@@ -2611,66 +2611,40 @@ function parseTwoYear(buf){
   const ws=wb.Sheets[wb.SheetNames[0]];
   const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
 
-  // Get year from title row (first few rows)
+  // Get year from title (first 5 rows)
   let year=new Date().getFullYear();
   for(let i=0;i<5;i++){
     const t=(raw[i]||[]).join('');
-    const ym=t.match(/(\d{4})/); if(ym){ year=parseInt(ym[1]); break; }
+    const ym=t.match(/(\d{4})/);
+    if(ym){year=parseInt(ym[1]);break;}
   }
 
-  // Flexible month name matching (supports 一月/1月/01月/January etc.)
-  const MON_MAP={'一':0,'二':1,'三':2,'四':3,'五':4,'六':5,
-                 '七':6,'八':7,'九':8,'十一':10,'十二':11,'十':9,
-                 '1':0,'2':1,'3':2,'4':3,'5':4,'6':5,
-                 '7':6,'8':7,'9':8,'10':9,'11':10,'12':11,
-                 '01':0,'02':1,'03':2,'04':3,'05':4,'06':5,
-                 '07':6,'08':7,'09':8};
-  function toMonIdx(s){
-    s=String(s||'').trim();
-    const m=s.match(/^([一二三四五六七八九十百千\d]+)月?$/);
-    if(!m) return -1;
-    const k=m[1];
-    return MON_MAP.hasOwnProperty(k)?MON_MAP[k]:-1;
-  }
+  const MN=['一月','二月','三月','四月','五月','六月',
+            '七月','八月','九月','十月','十一月','十二月'];
+  const empty=()=>MN.map(m=>({m,stays:0,guests:0,room:0,rev:0,adr:0,adr_p:0,rest_am:0,rest_noon:0,rest_pm:0,rest_total:0}));
+  const cur=empty(), prev=empty();
 
-  const cur=Array(12).fill(null).map((_,i)=>({m:MONTHS[i],stays:0,guests:0,room:0,rev:0,adr:0,adr_p:0,rest_am:0,rest_noon:0,rest_pm:0,rest_total:0}));
-  const prev=Array(12).fill(null).map((_,i)=>({m:MONTHS[i],stays:0,guests:0,room:0,rev:0,adr:0,adr_p:0,rest_am:0,rest_noon:0,rest_pm:0,rest_total:0}));
+  const toN=v=>{const n=parseFloat(String(v===undefined||v===null?'':v).replace(/,/g,''));return isNaN(n)?0:n;};
+  const toI=v=>{const n=parseInt(String(v===undefined||v===null?'':v).replace(/,/g,''));return isNaN(n)?0:n;};
+  const toP=v=>{const n=toN(v);return Math.abs(n)>1?n:n*100;};
 
-  const int=v=>{ const s=String(v||'').replace(/,/g,'').trim(); const n=parseInt(s); return isNaN(n)?0:n; };
-  const pct=v=>{ const s=String(v||'').replace('%','').trim(); const n=parseFloat(s); return isNaN(n)?0:Math.abs(n)>1?n:n*100; };
-
-  let curMon=-1;
+  let mi=-1;
   for(let i=0;i<raw.length;i++){
     const r=raw[i];
-    // Try to find month in first few columns
-    for(let c=0;c<3;c++){
-      const idx=toMonIdx(r[c]);
-      if(idx>=0){ curMon=idx; break; }
+    const c0=String(r[0]===undefined?'':r[0]).trim();
+    const c1=String(r[1]===undefined?'':r[1]).trim();
+    const idx=MN.indexOf(c0);
+    if(idx>=0) mi=idx;
+    if(mi<0) continue;
+    if(c1.includes('本年')){
+      cur[mi]={m:MN[mi],stays:toI(r[2]),guests:toI(r[3]),room:toP(r[4]),
+        rev:toI(r[5]),adr:toI(r[6]),adr_p:toI(r[7]),
+        rest_am:toI(r[10]),rest_noon:toI(r[14]),rest_pm:toI(r[18]),rest_total:toI(r[23])};
+    } else if(c1.includes('去年')||c1.includes('上年')){
+      prev[mi]={m:MN[mi],stays:toI(r[2]),guests:toI(r[3]),room:toP(r[4]),
+        rev:toI(r[5]),adr:toI(r[6]),adr_p:toI(r[7]),
+        rest_am:toI(r[10]),rest_noon:toI(r[14]),rest_pm:toI(r[18]),rest_total:toI(r[23])};
     }
-    if(curMon<0) continue;
-    // Find label - look for 本年/去年 in any of first 3 cols
-    let lbl='',dataStart=2;
-    for(let c=0;c<4;c++){
-      const v=String(r[c]||'').trim();
-      if(v.includes('本年')){ lbl='cur'; dataStart=c+1; break; }
-      if(v.includes('去年')||v.includes('上年')){ lbl='prev'; dataStart=c+1; break; }
-    }
-    if(!lbl) continue;
-    const row={
-      m:MONTHS[curMon],
-      stays: int(r[dataStart]),
-      guests:int(r[dataStart+1]),
-      room:  pct(r[dataStart+2]),
-      rev:   int(r[dataStart+3]),
-      adr:   int(r[dataStart+4]),
-      adr_p: int(r[dataStart+5]),
-      rest_am:   int(r[dataStart+8]),
-      rest_noon: int(r[dataStart+12]),
-      rest_pm:   int(r[dataStart+16]),
-      rest_total:int(r[dataStart+21]),
-    };
-    if(lbl==='cur') cur[curMon]=row;
-    else prev[curMon]=row;
   }
   return{year,cur,prev};
 }
