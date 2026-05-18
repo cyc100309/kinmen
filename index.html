@@ -2945,15 +2945,20 @@ document.getElementById('f-twoyear').addEventListener('change',function(e){
       saveOccData();
       init();
     }catch(err){
-      // Show diagnostic info to help fix the parser
       try{
         const wb=XLSX.read(ev.target.result,{type:'array'});
         const ws=wb.Sheets[wb.SheetNames[0]];
         const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
         const preview=raw.slice(0,12).map((r,i)=>`Row${i}: ${JSON.stringify(r.slice(0,8))}`).join('\n');
+        // 額外：嘗試再次解析並顯示結果
+        let parseResult='';
+        try{
+          const p2=parseTwoYear(ev.target.result);
+          parseResult=`\n\n解析結果：cur[0]=${JSON.stringify(p2.cur[0])}\ncur有資料的月份：${p2.cur.filter(r=>r.stays>0).map(r=>r.m).join(',')||'無'}`;
+        }catch(pe){ parseResult=`\n\n解析錯誤：${pe.message}`; }
         st.textContent='❌ 格式不符（見診斷）';
-        alert('📋 檔案前12列原始內容（請截圖給工程師）：\n\n'+preview);
-      }catch(e2){ st.textContent='❌ 格式不符，請確認 805_6_1_P1'; }
+        alert(`錯誤訊息：${err.message}\n\n${preview}${parseResult}`);
+      }catch(e2){ st.textContent='❌ '+err.message; }
     }
   };
   reader.readAsArrayBuffer(f);
