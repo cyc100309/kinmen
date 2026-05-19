@@ -506,12 +506,19 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <input class="cfg-input" id="cfgCity" type="text" placeholder="例：金門縣">
     </div>
     <div class="cfg-field">
-      <div class="cfg-lbl">Anthropic API Key（AI 功能必填）</div>
+      <div class="cfg-lbl">Anthropic API Key（Claude，付費）</div>
       <input class="cfg-input" id="cfgApiKey" type="password"
         placeholder="sk-ant-api03-..." autocomplete="off"
         style="font-family:'DM Mono',monospace;font-size:10px;">
+    </div>
+    <div class="cfg-field">
+      <div class="cfg-lbl">Google Gemini API Key（免費）</div>
+      <input class="cfg-input" id="cfgGeminiKey" type="password"
+        placeholder="AIza..." autocomplete="off"
+        style="font-family:'DM Mono',monospace;font-size:10px;">
       <div style="font-size:9px;color:var(--tx3);margin-top:3px;">
-        金鑰只存在本機裝置，不會上傳到程式碼或任何伺服器
+        免費申請：<a href="https://aistudio.google.com" target="_blank"
+        style="color:var(--ac);">aistudio.google.com</a>・有設定 Gemini 則優先使用
       </div>
     </div>
     <div class="cfg-field">
@@ -2639,24 +2646,30 @@ function renderAI(loading){
 }
 async function genAI(){
   // ── 預檢查 ──
-  const apiKey=getApiKey();
-  if(!apiKey||apiKey.length<20){
+  const geminiKey=localStorage.getItem('gemini_api_key')||'';
+  const claudeKey=getApiKey();
+  const useGemini=geminiKey.length>10;
+  const useClaude=claudeKey.length>20;
+
+  if(!useGemini&&!useClaude){
     document.getElementById('aiBadge').textContent='⚠ 請先設定 API Key';
     document.getElementById('aiContent').innerHTML=
-      '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.7;">'
-      +'請先至右上角 ⚙️ 設定，輸入 Anthropic API Key 後再試。</div>';
+      '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.8;">'
+      +'請至 ⚙️ 設定，輸入 Google Gemini Key（免費）或 Anthropic API Key。<br>'
+      +'Gemini 免費申請：<a href="https://aistudio.google.com" target="_blank" style="color:var(--ac);">aistudio.google.com</a></div>';
     return;
   }
   const d=curRows[curIdx], p=prevRows[curIdx];
   if(!d||d.stays===undefined){
     document.getElementById('aiBadge').textContent='⚠ 尚未上傳資料';
     document.getElementById('aiContent').innerHTML=
-      '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.7;">'
-      +'請先上傳住宿率報表（805_6_1_P1）再產生建議。</div>';
+      '<div style="font-size:11px;color:var(--red);padding:8px;">請先上傳住宿率報表再產生建議。</div>';
     return;
   }
 
-  renderAI(true); document.getElementById('aiBadge').textContent='生成中...';
+  renderAI(true);
+  const engineLabel=useGemini?'Gemini':'Claude';
+  document.getElementById('aiBadge').textContent=`${engineLabel} 生成中...`;
   try{
     const gpr=d.stays>0?(d.guests/d.stays).toFixed(1):0;
     const yoy=p&&p.room>0?(d.room-p.room).toFixed(1):'未知';
@@ -2685,7 +2698,7 @@ async function genAI(){
     }catch(e){}
 
     // ── 小三通最新數據 ──
-    const triLatest=TRI_2026_Q1||[];
+    const triLatest=TRI_2026_MONTHLY||[];
     const triCtx=triLatest.length?
       `2026年Q1總計：${(triLatest.reduce((a,m)=>a+(m.tot||0),0)/10000).toFixed(1)}萬人，` +
       `月均${(triLatest.reduce((a,m)=>a+(m.tot||0),0)/triLatest.length/10000).toFixed(1)}萬人`
@@ -2733,16 +2746,29 @@ ${newsCtx}
 
 每點含2-3個具體可執行步驟，直接寫建議，不用開頭說「根據數據」。`;
 
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':getApiKey(),
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();
-    const text=data.content[0].text;
+    let text='';
+    if(useGemini){
+      // Google Gemini API
+      const res=await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({contents:[{parts:[{text:prompt}]}],
+           generationConfig:{maxOutputTokens:1000,temperature:0.7}})});
+      const data=await res.json();
+      if(data.error) throw new Error(data.error.message||'Gemini 錯誤');
+      text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    } else {
+      // Anthropic Claude API
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':claudeKey,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+          messages:[{role:'user',content:prompt}]})});
+      const data=await res.json();
+      if(data.error) throw new Error(data.error.message||'Claude 錯誤');
+      text=data.content?.[0]?.text||'';
+    }
     const paras=text.split(/\n\n+/).filter(p=>p.trim().length>10);
     let html='',num=1;
     paras.slice(0,4).forEach(p=>{
@@ -2751,7 +2777,7 @@ ${newsCtx}
       num++;
     });
     document.getElementById('aiContent').innerHTML=html||`<div class="ai-item"><div class="ai-num">💡</div><div class="ai-text">${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
-    document.getElementById('aiBadge').textContent='✓ 已更新';
+    document.getElementById('aiBadge').textContent=`✓ ${engineLabel} 已更新`;
   }catch(e){
     renderAI(false);
     const msg=e.message||'未知錯誤';
@@ -2907,6 +2933,8 @@ function openCfg(){
   document.getElementById('cfgCity').value=cfg.city||'';
   const keyEl=document.getElementById('cfgApiKey');
   if(keyEl) keyEl.value=getApiKey();
+  const gemEl=document.getElementById('cfgGeminiKey');
+  if(gemEl) gemEl.value=localStorage.getItem('gemini_api_key')||'';
   const shEl=document.getElementById('cfgSheetsUrl');
   if(shEl) shEl.value=localStorage.getItem('sheetsUrl')||'';
   ['acc','rest','meet','camp'].forEach(k=>{
@@ -2928,6 +2956,9 @@ function saveCfg(){
   try{localStorage.setItem('kinmen_cfg',JSON.stringify(cfg));}catch(e){}
   const keyEl=document.getElementById('cfgApiKey');
   if(keyEl&&keyEl.value.trim()) setApiKey(keyEl.value.trim());
+  const gemEl=document.getElementById('cfgGeminiKey');
+  if(gemEl&&gemEl.value.trim()) localStorage.setItem('gemini_api_key',gemEl.value.trim());
+  else if(gemEl&&!gemEl.value.trim()) localStorage.removeItem('gemini_api_key');
   const shEl=document.getElementById('cfgSheetsUrl');
   if(shEl&&shEl.value.trim()) localStorage.setItem('sheetsUrl',shEl.value.trim());
   else if(shEl&&!shEl.value.trim()) localStorage.removeItem('sheetsUrl');
