@@ -50,7 +50,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .cfg-overlay.show{display:flex;}
 .cfg-panel{background:var(--sf);border-radius:20px 20px 0 0;padding:20px 20px 32px;
   width:100%;max-width:430px;border-top:1px solid var(--bd2);
-  animation:slideUp .25s ease;}
+  animation:slideUp .25s ease;
+  max-height:85vh;overflow-y:auto;}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:none;}}
 .cfg-handle{width:36px;height:4px;background:var(--sf3);border-radius:2px;
   margin:0 auto 18px;}
