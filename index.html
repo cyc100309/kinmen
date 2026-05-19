@@ -412,6 +412,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   <div>
     <div class="logo" id="hdrLogo">金門戰地文旅</div>
     <div class="sub" id="hdrSub">救國團金門青年活動中心・住宿分析</div>
+    <div style="font-size:9px;color:var(--tx3);opacity:.5;">v7.1</div>
     <div id="dataDateBar" style="display:none;margin-top:4px;display:flex;align-items:center;gap:6px;">
       <span style="font-size:10px;color:var(--tx3);font-family:'DM Mono',monospace;" id="dataDateTxt"></span>
       <button onclick="refreshDisplay()" style="font-size:10px;color:var(--ac2);background:var(--ad);
@@ -2949,15 +2950,25 @@ document.getElementById('f-twoyear').addEventListener('change',function(e){
         const wb=XLSX.read(ev.target.result,{type:'array'});
         const ws=wb.Sheets[wb.SheetNames[0]];
         const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-        const preview=raw.slice(0,12).map((r,i)=>`Row${i}: ${JSON.stringify(r.slice(0,8))}`).join('\n');
-        // 額外：嘗試再次解析並顯示結果
-        let parseResult='';
+        const preview=raw.slice(0,8).map((r,i)=>`Row${i}: ${JSON.stringify(r.slice(0,8))}`).join('\n');
+        // 偵測Row6 col0的實際字元碼
+        const r6=raw[6]||[];
+        const c0val=String(r6[0]||'');
+        const c0codes=Array.from(c0val).map(c=>c.charCodeAt(0).toString(16)).join(',');
+        const c1val=String(r6[1]||'');
+        // 再次嘗試解析
+        let dbg='';
         try{
+          const MN=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+          const idx=MN.indexOf(c0val.trim());
+          dbg=`\nRow6 col0="${c0val}" charCodes=[${c0codes}] indexOf=${idx}`;
+          dbg+=`\nRow6 col1="${c1val}" includes本年=${c1val.includes('本年')}`;
           const p2=parseTwoYear(ev.target.result);
-          parseResult=`\n\n解析結果：cur[0]=${JSON.stringify(p2.cur[0])}\ncur有資料的月份：${p2.cur.filter(r=>r.stays>0).map(r=>r.m).join(',')||'無'}`;
-        }catch(pe){ parseResult=`\n\n解析錯誤：${pe.message}`; }
-        st.textContent='❌ 格式不符（見診斷）';
-        alert(`錯誤訊息：${err.message}\n\n${preview}${parseResult}`);
+          dbg+=`\ncur[0]=${JSON.stringify(p2.cur[0])}`;
+          dbg+=`\n有資料月份：${p2.cur.filter(r=>r.stays>0).map(r=>r.m).join(',')||'無'}`;
+        }catch(pe){dbg+=`\n解析錯誤：${pe.message}`;}
+        st.textContent='❌ v7.1 格式不符';
+        alert(`【v7.1診斷】錯誤：${err.message}\n\n${preview}\n${dbg}`);
       }catch(e2){ st.textContent='❌ '+err.message; }
     }
   };
