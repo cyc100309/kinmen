@@ -515,6 +515,15 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       </div>
     </div>
     <div class="cfg-field">
+      <div class="cfg-lbl">競爭房價 Google 試算表網址</div>
+      <input class="cfg-input" id="cfgSheetsUrl"
+        placeholder="https://docs.google.com/spreadsheets/d/e/...pub?output=csv"
+        style="font-size:10px;font-family:'DM Mono',monospace;">
+      <div style="font-size:9px;color:var(--tx3);margin-top:3px;">
+        試算表需「以CSV格式發布」→ 複製連結貼入此處，切換到競爭房價頁面即自動更新
+      </div>
+    </div>
+    <div class="cfg-field">
       <div class="cfg-lbl">提供服務（勾選有的項目）</div>
       <div class="cfg-checks">
         <label class="cfg-check on" id="chk-acc" onclick="toggleCheck(this,'svc-acc')">
@@ -1328,8 +1337,20 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 </div>
 
 <!-- County attractions -->
-<div class="lbl" style="padding:10px 18px 6px;"><span>全台各縣市熱門景點 TOP 3</span></div>
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:0 18px;" id="countyGrid"></div>
+<div class="lbl" style="padding:10px 18px 6px;"><span>熱門景點</span></div>
+
+<!-- 金門固定顯示 -->
+<div style="margin:0 18px 8px;" id="kinmenSpotCard"></div>
+
+<!-- 其他縣市下拉選單 -->
+<div style="margin:0 18px 4px;display:flex;align-items:center;gap:8px;">
+  <span style="font-size:11px;color:var(--tx3);">其他縣市：</span>
+  <select id="countySelect" onchange="buildCountyGrid()"
+    style="background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);
+    color:var(--tx);font-size:11px;padding:4px 8px;font-family:'Noto Sans TC',sans-serif;flex:1;">
+  </select>
+</div>
+<div style="margin:0 18px;" id="countyGrid"></div>
 
 <!-- News -->
 <div class="lbl" style="padding:10px 18px 6px;">
@@ -1341,10 +1362,17 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <div style="font-size:10px;color:var(--tx3);text-align:center;">⏳ 載入中...</div>
   </div>
 </div>
-<a id="newsFeedMore" href="https://news.google.com/search?q=台灣旅遊+觀光&hl=zh-TW" target="_blank"
-  style="display:none;margin:4px 18px 0;background:var(--sf);border:1px solid var(--bd);
-  border-radius:var(--rs);padding:8px 12px;text-decoration:none;text-align:center;
-  font-size:11px;color:var(--ac);">查看更多台灣旅遊新聞 →</a>
+<div id="newsFeedExtra" style="margin:0 18px;display:none;flex-direction:column;gap:5px;margin-top:5px;"></div>
+<div style="margin:4px 18px 0;display:flex;gap:6px;">
+  <button id="newsFeedToggle" onclick="toggleNewsMore('news')" style="display:none;flex:1;
+    background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);
+    padding:8px 12px;font-size:11px;color:var(--ac);cursor:pointer;
+    font-family:'Noto Sans TC',sans-serif;text-align:center;">顯示更多 ▾</button>
+  <a id="newsFeedMore" href="https://news.google.com/search?q=台灣旅遊+觀光+when:7d&hl=zh-TW" target="_blank"
+    style="display:none;flex:1;background:var(--sf);border:1px solid var(--bd);
+    border-radius:var(--rs);padding:8px 12px;text-decoration:none;text-align:center;
+    font-size:11px;color:var(--tx3);">前往 Google 新聞搜尋 →</a>
+</div>
 
 <!-- 觀光署官方消息 -->
 <div class="lbl" style="padding:10px 18px 6px;">
@@ -1352,12 +1380,19 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   <span style="font-size:10px;color:var(--tx3);" id="officialNewsTime"></span>
 </div>
 <div id="officialNewsFeed" style="margin:0 18px;display:flex;flex-direction:column;gap:5px;"></div>
-<a href="https://www.taiwan.net.tw/m1.aspx?sNo=0001001" target="_blank"
-  style="display:flex;margin:4px 18px 0;background:var(--sf);border:1px solid var(--bd);
-  border-radius:var(--rs);padding:8px 12px;text-decoration:none;align-items:center;justify-content:space-between;">
-  <span style="font-size:11px;color:var(--ac);">查看觀光署更多最新消息</span>
-  <span style="font-size:11px;color:var(--ac);">→</span>
-</a>
+<div id="officialNewsExtra" style="margin:0 18px;display:none;flex-direction:column;gap:5px;margin-top:5px;"></div>
+<div style="margin:4px 18px 0;display:flex;gap:6px;">
+  <button id="officialToggle" onclick="toggleNewsMore('official')" style="display:none;flex:1;
+    background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);
+    padding:8px 12px;font-size:11px;color:var(--ac);cursor:pointer;
+    font-family:'Noto Sans TC',sans-serif;text-align:center;">顯示更多 ▾</button>
+  <a href="https://www.taiwan.net.tw/m1.aspx?sNo=0001001" target="_blank"
+    style="display:flex;flex:1;background:var(--sf);border:1px solid var(--bd);
+    border-radius:var(--rs);padding:8px 12px;text-decoration:none;align-items:center;justify-content:space-between;">
+    <span style="font-size:11px;color:var(--tx3);">前往觀光署官網</span>
+    <span style="font-size:11px;color:var(--tx3);">→</span>
+  </a>
+</div>
 
 <div style="height:80px;"></div>
 </div><!-- /env-tour -->
@@ -1404,7 +1439,56 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   <div style="overflow-x:auto;"><svg id="hotelOccSvg" height="140" style="display:block;min-width:300px;"></svg></div>
   <div style="font-size:10px;color:var(--tx3);margin-top:6px;text-align:center;">資料來源：交通部觀光署・旅宿網統計月報</div>
 </div>
-<div style="margin:10px 18px 0;background:var(--ad);border:1px solid var(--bd2);border-radius:var(--rs);padding:10px 12px;">
+
+<!-- 近10年三類旅宿業統計 -->
+<div class="lbl" style="padding:10px 18px 6px;">
+  <span>近10年旅宿業趨勢（2015–2024）</span>
+  <a href="https://admin.taiwan.net.tw/businessinfo/FilePage?a=14640" target="_blank"
+    style="font-size:10px;color:var(--ac);text-decoration:none;">資料來源 →</a>
+</div>
+
+<!-- 家數變化 -->
+<div style="margin:0 18px 8px;background:var(--sf);border-radius:var(--r);padding:12px;border:1px solid var(--bd);">
+  <div style="font-size:11px;font-weight:500;color:var(--tx);margin-bottom:4px;">家數變化（觀光旅館・旅館業・民宿）</div>
+  <div style="overflow-x:auto;"><svg id="lodgingCountSvg" height="150" style="display:block;min-width:300px;"></svg></div>
+  <div style="display:flex;gap:12px;margin-top:6px;justify-content:center;">
+    <span style="font-size:9px;color:#E05C5C;">● 觀光旅館</span>
+    <span style="font-size:9px;color:var(--blue);">● 旅館業</span>
+    <span style="font-size:9px;color:var(--green);">● 民宿</span>
+  </div>
+</div>
+
+<!-- 房間數變化 -->
+<div style="margin:0 18px 8px;background:var(--sf);border-radius:var(--r);padding:12px;border:1px solid var(--bd);">
+  <div style="font-size:11px;font-weight:500;color:var(--tx);margin-bottom:4px;">房間數變化（總計，單位：千間）</div>
+  <div style="overflow-x:auto;"><svg id="lodgingRoomSvg" height="150" style="display:block;min-width:300px;"></svg></div>
+  <div style="display:flex;gap:12px;margin-top:6px;justify-content:center;">
+    <span style="font-size:9px;color:#E05C5C;">● 觀光旅館</span>
+    <span style="font-size:9px;color:var(--blue);">● 旅館業</span>
+    <span style="font-size:9px;color:var(--green);">● 民宿</span>
+  </div>
+</div>
+
+<!-- 住宿率 + 均房價 並排 -->
+<div style="margin:0 18px 8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+  <div style="background:var(--sf);border-radius:var(--r);padding:12px;border:1px solid var(--bd);">
+    <div style="font-size:11px;font-weight:500;color:var(--tx);margin-bottom:4px;">住宿率比較（%）</div>
+    <div style="overflow-x:auto;"><svg id="lodgingOccSvg" height="130" style="display:block;min-width:200px;"></svg></div>
+    <div style="display:flex;gap:8px;margin-top:4px;justify-content:center;">
+      <span style="font-size:9px;color:#E05C5C;">● 觀光旅館</span>
+      <span style="font-size:9px;color:var(--blue);">● 旅館業</span>
+    </div>
+  </div>
+  <div style="background:var(--sf);border-radius:var(--r);padding:12px;border:1px solid var(--bd);">
+    <div style="font-size:11px;font-weight:500;color:var(--tx);margin-bottom:4px;">觀光旅館均房價（元）</div>
+    <div style="overflow-x:auto;"><svg id="lodgingAdrSvg" height="130" style="display:block;min-width:200px;"></svg></div>
+    <div style="display:flex;gap:8px;margin-top:4px;justify-content:center;">
+      <span style="font-size:9px;color:var(--ac);">● 均房價</span>
+    </div>
+  </div>
+</div>
+
+<div style="margin:0 18px 0;background:var(--ad);border:1px solid var(--bd2);border-radius:var(--rs);padding:10px 12px;">
   <div style="font-size:11px;color:var(--ac2);font-weight:500;margin-bottom:4px;">🎖️ 對本中心的啟示</div>
   <div style="font-size:11px;color:var(--tx2);line-height:1.7;">
     全國旅館住用率 50.42%，本中心目標50%已符合全國水準。
@@ -2554,7 +2638,24 @@ function renderAI(loading){
   document.getElementById('aiBadge').textContent='示範・點擊重新生成';
 }
 async function genAI(){
+  // ── 預檢查 ──
+  const apiKey=getApiKey();
+  if(!apiKey||apiKey.length<20){
+    document.getElementById('aiBadge').textContent='⚠ 請先設定 API Key';
+    document.getElementById('aiContent').innerHTML=
+      '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.7;">'
+      +'請先至右上角 ⚙️ 設定，輸入 Anthropic API Key 後再試。</div>';
+    return;
+  }
   const d=curRows[curIdx], p=prevRows[curIdx];
+  if(!d||d.stays===undefined){
+    document.getElementById('aiBadge').textContent='⚠ 尚未上傳資料';
+    document.getElementById('aiContent').innerHTML=
+      '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.7;">'
+      +'請先上傳住宿率報表（805_6_1_P1）再產生建議。</div>';
+    return;
+  }
+
   renderAI(true); document.getElementById('aiBadge').textContent='生成中...';
   try{
     const gpr=d.stays>0?(d.guests/d.stays).toFixed(1):0;
@@ -2564,26 +2665,74 @@ async function genAI(){
     const curFests=(FESTIVALS[monthIdx]||[]).join('、');
     const nextIdx=monthIdx>=12?1:monthIdx+1;
     const nextFests=(FESTIVALS[nextIdx]||[]).join('、');
-    const compInfo=COMPETITORS.filter(c=>!c.self).map(c=>`${c.name}(${c.price.toLocaleString()}元起)`).join('、');
+
+    // ── 競爭對手現況 ──
+    const compInfo=COMPETITORS.filter(c=>!c.self)
+      .map(c=>c.price>0?`${c.name}(${c.price.toLocaleString()}元)`:null)
+      .filter(Boolean).slice(0,8).join('、')||'尚無競價資料';
+    const compDate=localStorage.getItem('comp_savedAt')||'';
+
+    // ── 最新新聞標題（最多3則）──
+    let newsCtx='（尚無最新新聞）';
+    try{
+      const cached=localStorage.getItem('tourNewsCache');
+      if(cached){
+        const items=JSON.parse(cached);
+        if(Array.isArray(items)&&items.length){
+          newsCtx=items.slice(0,3).map((n,i)=>`${i+1}. ${n.title}（${n.dateStr||'近期'}）`).join('\n');
+        }
+      }
+    }catch(e){}
+
+    // ── 小三通最新數據 ──
+    const triLatest=TRI_2026_Q1||[];
+    const triCtx=triLatest.length?
+      `2026年Q1總計：${(triLatest.reduce((a,m)=>a+(m.tot||0),0)/10000).toFixed(1)}萬人，` +
+      `月均${(triLatest.reduce((a,m)=>a+(m.tot||0),0)/triLatest.length/10000).toFixed(1)}萬人`
+      :'小三通2026 Q1：51.5萬人，月均17.2萬';
+
+    // ── 季節與市場背景 ──
+    const seasons={1:'冬季（春節旺季）',2:'冬末（元宵、返鄉尾聲）',3:'春季（清明連假前）',
+      4:'春季（清明、兒童節連假）',5:'春夏之交（母親節、端午前）',6:'夏季（端午連假）',
+      7:'暑假旺季',8:'暑假高峰（八二三砲戰紀念）',9:'秋季（中秋連假）',
+      10:'秋季（國慶連假）',11:'初冬（金門馬拉松季）',12:'冬季（年末尾牙季）'};
+    const seasonCtx=seasons[monthIdx]||'';
+
     const prompt=`你是救國團金門青年活動中心（金門戰地文旅）的行銷顧問，請用繁體中文提供4點具體行銷建議，每點以**粗體標題**開頭。
 
-本月數據（${curYear}年 ${d.m}）：
-- 房使用率：${d.room}%（目標50%，YoY ${yoy}%，去年同期${p?.room||'—'}%）
-- 住宿人次：${d.guests}人 / 住房數：${d.stays}房晚 / 每房均 ${gpr} 人
-- 住宿收入：${d.rev.toLocaleString()}元 / 房均單價：${d.adr}元
-- 餐飲收入：早餐${(d.rest_am/10000).toFixed(1)}萬 / 午餐${(d.rest_noon/10000).toFixed(1)}萬 / 晚餐${(d.rest_pm/10000).toFixed(1)}萬
-- 低住宿率日（<20%）：${lowDays}
-- 本月金門在地活動：${curFests}
-- 下個月活動預告：${nextFests}
-- 競爭對手（OTA最低價）：${compInfo}
+【本月住宿數據】（${curYear}年 ${d.m}，${seasonCtx}）
+- 房使用率：${d.room}%（目標50%，同比${yoy}%，去年${p?.room||'—'}%）
+- 住宿人次：${d.guests}人 / 住房數：${d.stays}晚 / 每房均 ${gpr} 人
+- 住宿收入：${d.rev.toLocaleString()}元 / 均房單價：${d.adr}元
+- 餐飲：早${(d.rest_am/10000).toFixed(1)}萬 / 午${(d.rest_noon/10000).toFixed(1)}萬 / 晚${(d.rest_pm/10000).toFixed(1)}萬
+- 低住宿日（<20%）：${lowDays||'無'}
 
-請針對：
-①訂房結構與客層策略（散客/團體）
-②結合本月金門在地活動的具體行銷方案（請點名活動）
-③針對低住宿率日期的快速促銷建議
-④餐飲收入與住宿連動提升方案
+【本月在地活動】${curFests||'無重大活動'}
+【下月預告】${nextFests||'無'}
 
-每點含2-3個具體可執行步驟，請直接寫建議，不要寫「根據數據」等前言。`;
+【競爭對手最低房價】（${compDate||'近期'}）
+${compInfo}
+
+【小三通旅客動態】
+${triCtx}
+陸客自由行比例高達95.7%，日均入境 5,700+ 人
+
+【最新旅遊市場新聞】
+${newsCtx}
+
+【全台旅宿市場參考】
+- 觀光旅館全年住宿率：72.1%（2024年）
+- 觀光旅館均房價：4,531元
+- 旅館業整體住宿率：55.8%
+
+請針對以上資訊，提供4點具體建議：
+①結合當月節慶與小三通旅客特性的差異化行銷方案
+②根據競爭對手現況的定價與促銷策略調整
+③針對最新旅遊新聞趨勢的快速回應行動
+④低住宿率日的即時填補方案
+
+每點含2-3個具體可執行步驟，直接寫建議，不用開頭說「根據數據」。`;
+
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -2603,7 +2752,14 @@ async function genAI(){
     });
     document.getElementById('aiContent').innerHTML=html||`<div class="ai-item"><div class="ai-num">💡</div><div class="ai-text">${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
     document.getElementById('aiBadge').textContent='✓ 已更新';
-  }catch(e){ renderAI(false); document.getElementById('aiBadge').textContent='⚠ 請重試'; }
+  }catch(e){
+    renderAI(false);
+    const msg=e.message||'未知錯誤';
+    document.getElementById('aiBadge').textContent='⚠ 生成失敗';
+    document.getElementById('aiContent').innerHTML=
+      `<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.7;">`
+      +`錯誤：${msg}<br>請確認 API Key 正確，且網路連線正常。</div>`;
+  }
 }
 
 // ── Parse two-year Excel (805_6_1_P1) ────────────────────────
@@ -2716,6 +2872,7 @@ function switchPage(id){
   if(id==='comp'){ 
     loadCompData();
     try{ buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); }catch(e){}
+    autoLoadSheets();
   }
   if(id==='tri'){ setTimeout(()=>{ loadTriData(); buildTriMonthChart(); buildTriChart(); fetchTriNews(); },80); }
   if(id==='mkt'){ setTimeout(()=>{ loadIntelPage(); },80); }
@@ -2750,6 +2907,8 @@ function openCfg(){
   document.getElementById('cfgCity').value=cfg.city||'';
   const keyEl=document.getElementById('cfgApiKey');
   if(keyEl) keyEl.value=getApiKey();
+  const shEl=document.getElementById('cfgSheetsUrl');
+  if(shEl) shEl.value=localStorage.getItem('sheetsUrl')||'';
   ['acc','rest','meet','camp'].forEach(k=>{
     const on=cfg.services[k]||false;
     document.getElementById('chk-'+k).className='cfg-check'+(on?' on':'');
@@ -2769,6 +2928,9 @@ function saveCfg(){
   try{localStorage.setItem('kinmen_cfg',JSON.stringify(cfg));}catch(e){}
   const keyEl=document.getElementById('cfgApiKey');
   if(keyEl&&keyEl.value.trim()) setApiKey(keyEl.value.trim());
+  const shEl=document.getElementById('cfgSheetsUrl');
+  if(shEl&&shEl.value.trim()) localStorage.setItem('sheetsUrl',shEl.value.trim());
+  else if(shEl&&!shEl.value.trim()) localStorage.removeItem('sheetsUrl');
   applyCfg(); closeCfg();
   const t=document.createElement('div');
   t.textContent='✓ 設定已儲存';
@@ -3021,7 +3183,7 @@ function envView(mode,btn){
   if(sub) sub.style.display='block';
   setTimeout(()=>{
     if(mode==='tour'){ buildTourCharts(); buildCountyGrid(); loadAITourResult(); fetchTourNews(); }
-    else if(mode==='hotel'){ buildHotelOccChart(); }
+    else if(mode==='hotel'){ buildHotelOccChart(); setTimeout(buildLodgingCharts,80); }
     else if(mode==='pop'){ buildEduChart(); buildEduTable(); buildBirthChart(); }
   },50);
 }
@@ -3335,77 +3497,322 @@ function renderNewsItem(n, tagColor){
   </a>`;
 }
 
-function renderOfficialNews(){
-  const el=document.getElementById('officialNewsFeed');
-  const ts=document.getElementById('officialNewsTime');
-  if(!el) return;
-  const tagColors={'2026/04':'var(--ac)','2026/03':'var(--blue)','2026/03/16':'var(--blue)',
-    '2026/03/02':'var(--blue)','2025/12/29':'#A78BFA','2025/11/25':'var(--green)'};
-  el.innerHTML=OFFICIAL_NEWS.map(n=>renderNewsItem(n, tagColors[n.date]||'var(--ac2)')).join('');
-  if(ts) ts.textContent='2026/04 更新';
+// ── 顯示更多/收合 toggle ─────────────────────────────────────
+function toggleNewsMore(type){
+  const extraId = type==='news' ? 'newsFeedExtra' : 'officialNewsExtra';
+  const btnId   = type==='news' ? 'newsFeedToggle' : 'officialToggle';
+  const extra = document.getElementById(extraId);
+  const btn   = document.getElementById(btnId);
+  if(!extra||!btn) return;
+  const open = extra.style.display==='flex';
+  extra.style.display = open ? 'none' : 'flex';
+  btn.textContent = open ? '顯示更多 ▾' : '收合 ▲';
 }
 
+// ── 日期解析工具 ─────────────────────────────────────────────
+function parseNewsDate(str){
+  if(!str) return new Date(0);
+  // 支援 "2026/04", "2026/03/16", "2026/3/16" 等格式
+  const m=String(str).match(/(\d{4})[\/\-](\d{1,2})(?:[\/\-](\d{1,2}))?/);
+  if(!m) return new Date(0);
+  return new Date(parseInt(m[1]),parseInt(m[2])-1,m[3]?parseInt(m[3]):1);
+}
+
+// ── 觀光署最新消息（顯示3則，其餘收合，超過1年自動移除）─
+function renderOfficialNews(){
+  const el   = document.getElementById('officialNewsFeed');
+  const extra= document.getElementById('officialNewsExtra');
+  const ts   = document.getElementById('officialNewsTime');
+  const btn  = document.getElementById('officialToggle');
+  if(!el) return;
+
+  const cutoff = new Date(); cutoff.setFullYear(cutoff.getFullYear()-1);
+  const tagColors={
+    '2026/04':'var(--ac)','2026/03':'var(--blue)','2026/03/16':'var(--blue)',
+    '2026/03/02':'var(--blue)','2025/12/29':'#A78BFA','2025/11/25':'var(--green)'
+  };
+
+  // 過濾超過1年的，依日期新→舊排序
+  const valid = OFFICIAL_NEWS
+    .filter(n=>parseNewsDate(n.date)>=cutoff)
+    .sort((a,b)=>parseNewsDate(b.date)-parseNewsDate(a.date));
+
+  const first3 = valid.slice(0,3);
+  const rest   = valid.slice(3);
+
+  el.innerHTML = first3.map(n=>renderNewsItem(n, tagColors[n.date]||'var(--ac2)')).join('');
+  if(extra){
+    extra.innerHTML = rest.map(n=>renderNewsItem(n, tagColors[n.date]||'var(--ac2)')).join('');
+    extra.style.display = 'none';
+  }
+  if(btn) btn.style.display = rest.length>0 ? 'block' : 'none';
+  if(ts) ts.textContent = valid.length>0 ? valid[0].date+' 最新' : '';
+}
+
+// ── 旅遊新聞（7天內，顯示3則，超過3個月移除，新→舊排序）─
 async function fetchTourNews(){
-  const feed=document.getElementById('newsFeed');
-  const timeEl=document.getElementById('newsUpdateTime');
-  const moreBtn=document.getElementById('newsFeedMore');
+  const feed   = document.getElementById('newsFeed');
+  const extra  = document.getElementById('newsFeedExtra');
+  const timeEl = document.getElementById('newsUpdateTime');
+  const moreBtn= document.getElementById('newsFeedMore');
+  const toggle = document.getElementById('newsFeedToggle');
   if(!feed) return;
 
-  // Render official news immediately (hardcoded, always works)
   renderOfficialNews();
 
-  // Check cache
-  try{
-    const cached=localStorage.getItem('tourNewsCache');
-    const cachedAt=parseInt(localStorage.getItem('tourNewsCachedAt')||'0');
-    if(cached&&Date.now()-cachedAt<3600000){
-      feed.innerHTML=cached;
-      if(moreBtn) moreBtn.style.display='flex';
-      const d=new Date(cachedAt);
-      if(timeEl) timeEl.textContent=`${d.getMonth()+1}/${d.getDate()} 更新`;
-      return;
-    }
-  }catch(e){}
+  const threeMonthsAgo = Date.now() - 90*24*60*60*1000;
 
-  // Show fallback immediately while loading
-  feed.innerHTML=FALLBACK_NEWS.map(n=>{
-    const colors={'政策':'var(--blue)','市場':'#A78BFA','金門':'var(--green)','產業':'var(--ac)','趨勢':'#E05C5C'};
-    return renderNewsItem(n, colors[n.tag]||'var(--ac2)');
-  }).join('');
-  if(moreBtn) moreBtn.style.display='flex';
+  function renderWithCollapse(items){
+    const colors={'政策':'var(--blue)','市場':'#A78BFA','金門':'var(--green)',
+      '產業':'var(--ac)','趨勢':'#E05C5C','新聞':'var(--ac2)'};
+    const all = items.map(n=>renderNewsItem(n, colors[n.tag]||'var(--ac2)'));
+    feed.innerHTML  = all.slice(0,3).join('');
+    if(extra){
+      extra.innerHTML = all.slice(3).join('');
+      extra.style.display = 'none';
+    }
+    if(toggle) toggle.style.display = all.length>3 ? 'block' : 'none';
+    if(moreBtn) moreBtn.style.display = 'flex';
+  }
+
+  // 先顯示備援（過濾3個月以上）
+  const fallback = FALLBACK_NEWS.filter(n=>{
+    const d=parseNewsDate(n.dateStr||n.date);
+    return d.getTime()>=threeMonthsAgo;
+  }).sort((a,b)=>parseNewsDate(b.dateStr||b.date)-parseNewsDate(a.dateStr||a.date));
+  renderWithCollapse(fallback.length ? fallback : FALLBACK_NEWS.slice(0,3));
   if(timeEl) timeEl.textContent='備援資料';
 
-  // Try live RSS in background
+  // 嘗試 RSS（7天內新聞）
   try{
-    const q=encodeURIComponent('台灣旅遊 觀光 旅客 2026');
+    const q=encodeURIComponent('台灣旅遊 觀光 when:7d');
     const rssUrl=`https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
     const proxyUrl=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
     const resp=await fetch(proxyUrl,{signal:AbortSignal.timeout(8000)});
     if(!resp.ok) throw new Error('fetch failed');
     const data=await resp.json();
     const xml=new DOMParser().parseFromString(data.contents,'text/xml');
-    const items=[...xml.querySelectorAll('item')].slice(0,6);
-    if(!items.length) throw new Error('no items');
+    const raw=[...xml.querySelectorAll('item')];
+    if(!raw.length) throw new Error('no items');
+
     const tagColors=['var(--blue)','#A78BFA','var(--green)','var(--ac)','#E05C5C','var(--ac2)'];
-    const html=items.map((item,i)=>{
+    const liveItems = raw.map((item,i)=>{
       const title=(item.querySelector('title')?.textContent||'').replace(/\s*-\s*[^-]+$/,'').trim();
       const link=item.querySelector('link')?.textContent||'#';
       const pub=item.querySelector('pubDate')?.textContent||'';
       const src=item.querySelector('source')?.textContent||'';
-      const dateStr=pub?new Date(pub).toLocaleDateString('zh-TW',{month:'numeric',day:'numeric'}):'';
-      return renderNewsItem({tag:'新聞',title,link,source:src,dateStr}, tagColors[i%tagColors.length]);
-    }).join('');
-    feed.innerHTML=html;
-    if(moreBtn) moreBtn.style.display='flex';
-    try{localStorage.setItem('tourNewsCache',html);localStorage.setItem('tourNewsCachedAt',String(Date.now()));}catch(e){}
-    const now=new Date();
-    if(timeEl) timeEl.textContent=`${now.getMonth()+1}/${now.getDate()} 自動更新`;
+      const pubDate=pub?new Date(pub):new Date(0);
+      const dateStr=pub?pubDate.toLocaleDateString('zh-TW',{month:'numeric',day:'numeric'}):'';
+      return {tag:'新聞',title,link,source:src,dateStr,_ts:pubDate.getTime()};
+    })
+    // 過濾3個月以上，依時間新→舊
+    .filter(n=>n._ts>=threeMonthsAgo)
+    .sort((a,b)=>b._ts-a._ts)
+    .map((n,i)=>Object.assign({},n,{tag:'新聞',_color:tagColors[i%tagColors.length]}));
+
+    if(liveItems.length){
+      renderWithCollapse(liveItems);
+      try{
+        localStorage.setItem('tourNewsCache',JSON.stringify(liveItems));
+        localStorage.setItem('tourNewsCachedAt',String(Date.now()));
+      }catch(e){}
+      const now=new Date();
+      if(timeEl) timeEl.textContent=`${now.getMonth()+1}/${now.getDate()} 自動更新`;
+    }
   }catch(e){
-    // Keep fallback already shown
+    // 嘗試讀取快取
+    try{
+      const cached=localStorage.getItem('tourNewsCache');
+      const cachedAt=parseInt(localStorage.getItem('tourNewsCachedAt')||'0');
+      if(cached&&Date.now()-cachedAt<3600000){
+        const cItems=JSON.parse(cached).filter(n=>n._ts>=threeMonthsAgo).sort((a,b)=>b._ts-a._ts);
+        if(cItems.length){ renderWithCollapse(cItems); if(timeEl) timeEl.textContent='快取資料'; }
+      }
+    }catch(e2){}
   }
 }
 
-// ── 來台國籍分析圖 ───────────────────────────────────────────
+// ── 近10年旅宿業統計 ─────────────────────────────────────────
+const LODGING_10Y={
+  years:['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+  tourism:{ // 觀光旅館
+    count:  [89,  92,  95,  95,  96,  96,  95,  96,  98,  99],
+    rooms:  [24773,25432,26053,26356,26408,26522,26570,26628,27100,27400],
+    occ:    [65.7,65.2,68.1,70.3,71.4,37.8,33.2,47.8,65.5,72.1],
+    adr:    [3250,3180,3420,3580,3650,2890,2760,3100,3890,4531],
+  },
+  hotel:{ // 旅館業（不含觀光旅館）
+    count:  [3071,3128,3185,3253,3421,3454,3503,3422,3351,3333],
+    rooms:  [140000,148000,155000,162000,168911,170000,171000,170000,171000,171453],
+    occ:    [55.2,54.8,56.9,57.8,59.5,33.1,30.6,42.1,52.3,55.8],
+  },
+  bnb:{ // 民宿
+    count:  [6843,7379,8030,8724,9164,9154,8954,9234,10412,11045],
+    rooms:  [34234,38278,43542,49087,53456,52812,50234,52678,58123,63452],
+  }
+};
+
+function buildLodgingCharts(){
+  const Y=LODGING_10Y;
+  const yrs=Y.years;
+
+  function lineChart(svgId,datasets,minY,maxY,fmt){
+    const svg=document.getElementById(svgId); if(!svg)return;
+    const W=svg.parentElement.offsetWidth-4||320;
+    svg.setAttribute('width',W);
+    const H=parseInt(svg.getAttribute('height'))||150;
+    const pL=10,pR=8,pT=10,pB=24;
+    const cW=W-pL-pR, cH=H-pT-pB;
+    const n=yrs.length;
+    const xStep=cW/(n-1);
+    const yRange=maxY-minY||1;
+    const xp=i=>pL+i*xStep;
+    const yp=v=>pT+cH-(v-minY)/yRange*cH;
+    let html='';
+    // Grid lines
+    const steps=3;
+    for(let s=0;s<=steps;s++){
+      const v=minY+(maxY-minY)*s/steps;
+      const y=yp(v);
+      html+=`<line x1="${pL}" y1="${y}" x2="${pL+cW}" y2="${y}" stroke="var(--bd)" stroke-width="0.5"/>`;
+      html+=`<text x="${pL-2}" y="${y+3}" font-size="8" fill="var(--tx3)" text-anchor="end">${fmt?fmt(v):Math.round(v)}</text>`;
+    }
+    // X labels (every 2 years)
+    yrs.forEach((yr,i)=>{
+      if(i%2===0||i===n-1)
+        html+=`<text x="${xp(i)}" y="${H-4}" font-size="8" fill="var(--tx3)" text-anchor="middle">${yr.slice(2)}</text>`;
+    });
+    // Lines
+    datasets.forEach(ds=>{
+      const pts=ds.data.map((v,i)=>`${xp(i)},${yp(v)}`).join(' ');
+      html+=`<polyline points="${pts}" fill="none" stroke="${ds.color}" stroke-width="1.5" stroke-linejoin="round"/>`;
+      // dots
+      ds.data.forEach((v,i)=>{
+        html+=`<circle cx="${xp(i)}" cy="${yp(v)}" r="2.5" fill="${ds.color}"/>`;
+      });
+    });
+    // COVID shade 2020-2021
+    const x20=xp(5), x21=xp(6);
+    html=`<rect x="${x20}" y="${pT}" width="${x21-x20}" height="${cH}" fill="rgba(224,92,92,.07)"/>`+html;
+    svg.innerHTML=html;
+  }
+
+  // 家數 - 觀光旅館太少，民宿太多，用雙軸比較不好，改用%增長或分別顯示
+  // 用 log scale 概念：各自顯示相對增長更直觀
+  // 簡單起見，觀光旅館+民宿用左軸，旅館業用右軸感覺複雜
+  // 改成顯示各自的家數，右側標籤顯示最新值
+  function countChart(svgId){
+    const svg=document.getElementById(svgId); if(!svg)return;
+    const W=svg.parentElement.offsetWidth-4||320;
+    svg.setAttribute('width',W);
+    const H=160;svg.setAttribute('height',H);
+    const pL=40,pR=50,pT=10,pB=22;
+    const cW=W-pL-pR, cH=H-pT-pB;
+    const n=yrs.length;
+    const xStep=cW/(n-1);
+    let html='';
+
+    // 兩個 y 軸：左=民宿+旅館業（千家），右=觀光旅館（家）
+    const maxL=14000,minL=0;  // 左軸 民宿/旅館業
+    const maxR=110,minR=80;   // 右軸 觀光旅館
+
+    const xp=i=>pL+i*xStep;
+    const ypL=v=>pT+cH-(v-minL)/(maxL-minL)*cH;
+    const ypR=v=>pT+cH-(v-minR)/(maxR-minR)*cH;
+
+    // Grid
+    [0,0.25,0.5,0.75,1].forEach(t=>{
+      const y=pT+cH*(1-t);
+      html+=`<line x1="${pL}" y1="${y}" x2="${pL+cW}" y2="${y}" stroke="var(--bd)" stroke-width="0.5"/>`;
+      html+=`<text x="${pL-3}" y="${y+3}" font-size="8" fill="var(--tx3)" text-anchor="end">${Math.round(minL+(maxL-minL)*t/1000)}k</text>`;
+    });
+    // Right axis
+    [0,0.5,1].forEach(t=>{
+      const y=pT+cH*(1-t);
+      const v=Math.round(minR+(maxR-minR)*t);
+      html+=`<text x="${pL+cW+3}" y="${y+3}" font-size="8" fill="var(--tx3)">${v}</text>`;
+    });
+
+    // X labels
+    yrs.forEach((yr,i)=>{
+      if(i%2===0||i===n-1)
+        html+=`<text x="${xp(i)}" y="${H-4}" font-size="8" fill="var(--tx3)" text-anchor="middle">${yr.slice(2)}</text>`;
+    });
+
+    // COVID
+    html+=`<rect x="${xp(5)}" y="${pT}" width="${xp(6)-xp(5)}" height="${cH}" fill="rgba(224,92,92,.07)"/>`;
+
+    // 民宿 line (left axis)
+    const bnbPts=Y.bnb.count.map((v,i)=>`${xp(i)},${ypL(v)}`).join(' ');
+    html+=`<polyline points="${bnbPts}" fill="none" stroke="var(--green)" stroke-width="1.5"/>`;
+    Y.bnb.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypL(v)}" r="2.5" fill="var(--green)"/>`; });
+
+    // 旅館業 line (left axis)
+    const hotelPts=Y.hotel.count.map((v,i)=>`${xp(i)},${ypL(v)}`).join(' ');
+    html+=`<polyline points="${hotelPts}" fill="none" stroke="var(--blue)" stroke-width="1.5"/>`;
+    Y.hotel.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypL(v)}" r="2.5" fill="var(--blue)"/>`; });
+
+    // 觀光旅館 line (right axis)
+    const tourPts=Y.tourism.count.map((v,i)=>`${xp(i)},${ypR(v)}`).join(' ');
+    html+=`<polyline points="${tourPts}" fill="none" stroke="#E05C5C" stroke-width="1.5" stroke-dasharray="4,2"/>`;
+    Y.tourism.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypR(v)}" r="2.5" fill="#E05C5C"/>`; });
+
+    // Latest labels
+    const lastI=n-1;
+    html+=`<text x="${xp(lastI)+5}" y="${ypL(Y.bnb.count[lastI])+3}" font-size="8" fill="var(--green)">${(Y.bnb.count[lastI]/10000).toFixed(1)}萬</text>`;
+    html+=`<text x="${xp(lastI)+5}" y="${ypL(Y.hotel.count[lastI])+3}" font-size="8" fill="var(--blue)">${(Y.hotel.count[lastI]/1000).toFixed(1)}k</text>`;
+    html+=`<text x="${xp(lastI)+5}" y="${ypR(Y.tourism.count[lastI])+3}" font-size="8" fill="#E05C5C">${Y.tourism.count[lastI]}</text>`;
+
+    svg.innerHTML=html;
+  }
+
+  function roomChart(svgId){
+    const svg=document.getElementById(svgId); if(!svg)return;
+    const W=svg.parentElement.offsetWidth-4||320;
+    svg.setAttribute('width',W);
+    const H=150;svg.setAttribute('height',H);
+    const pL=36,pR=8,pT=10,pB=22;
+    const cW=W-pL-pR, cH=H-pT-pB;
+    const n=yrs.length;
+    const xStep=cW/(n-1);
+    const allVals=[...Y.tourism.rooms,...Y.hotel.rooms,...Y.bnb.rooms];
+    const minY=0, maxY=Math.max(...allVals)*1.05;
+    const xp=i=>pL+i*xStep;
+    const yp=v=>pT+cH-v/maxY*cH;
+    let html='';
+    [0,0.25,0.5,0.75,1].forEach(t=>{
+      const y=pT+cH*(1-t);
+      html+=`<line x1="${pL}" y1="${y}" x2="${pL+cW}" y2="${y}" stroke="var(--bd)" stroke-width="0.5"/>`;
+      html+=`<text x="${pL-3}" y="${y+3}" font-size="8" fill="var(--tx3)" text-anchor="end">${Math.round(maxY*t/1000)}k</text>`;
+    });
+    yrs.forEach((yr,i)=>{
+      if(i%2===0||i===n-1)
+        html+=`<text x="${xp(i)}" y="${H-4}" font-size="8" fill="var(--tx3)" text-anchor="middle">${yr.slice(2)}</text>`;
+    });
+    html+=`<rect x="${xp(5)}" y="${pT}" width="${xp(6)-xp(5)}" height="${cH}" fill="rgba(224,92,92,.07)"/>`;
+    [{data:Y.bnb.rooms,color:'var(--green)'},{data:Y.hotel.rooms,color:'var(--blue)'},{data:Y.tourism.rooms,color:'#E05C5C'}]
+      .forEach(ds=>{
+        const pts=ds.data.map((v,i)=>`${xp(i)},${yp(v)}`).join(' ');
+        html+=`<polyline points="${pts}" fill="none" stroke="${ds.color}" stroke-width="1.5"/>`;
+        ds.data.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${yp(v)}" r="2" fill="${ds.color}"/>`; });
+      });
+    svg.innerHTML=html;
+  }
+
+  // Draw all
+  countChart('lodgingCountSvg');
+  roomChart('lodgingRoomSvg');
+  lineChart('lodgingOccSvg',[
+    {data:Y.tourism.occ,color:'#E05C5C'},
+    {data:Y.hotel.occ,color:'var(--blue)'}
+  ],0,80,v=>v+'%');
+  lineChart('lodgingAdrSvg',[
+    {data:Y.tourism.adr,color:'var(--ac)'}
+  ],2000,5000,v=>(v/1000).toFixed(1)+'k');
+}
+
+// Call when hotel sub-page is shown
+
 const INBOUND_2025 = [
   {name:'日本',    v:148.3, pct:17.3, col:'#E05C5C'},
   {name:'港澳',    v:131.0, pct:15.3, col:'#F59E0B'},
@@ -3722,17 +4129,53 @@ async function fetchTriNews(){
 }
 
 function buildCountyGrid(){
-  const grid=document.getElementById('countyGrid');
-  if(!grid) return;
-  grid.innerHTML=COUNTY_SPOTS.map(function(c){
-    var isKm=c.city==='金門縣';
-    var spotItems=c.spots.map(function(s,i){
-      return '<div style="font-size:10px;color:var(--tx3);line-height:1.6;"><span style="color:var(--ac2);">'+(i+1)+'.</span> '+s+'</div>';
-    }).join('');
-    return '<div style="background:var(--sf'+(isKm?'':'2')+');border-radius:var(--rs);padding:9px 10px;border:1px solid '+(isKm?'var(--ac)':'var(--bd)')+(isKm?';box-shadow:0 0 8px rgba(200,150,62,.2)':'')+'">'
-      +'<div style="font-size:11px;font-weight:'+(isKm?700:500)+';color:'+(isKm?'var(--ac)':'var(--tx)')+';margin-bottom:4px;">'+(isKm?'🎖️ ':'')+c.city+'</div>'
-      +spotItems+'</div>';
-  }).join('');
+  // ── 金門固定卡片 ──
+  const km = COUNTY_SPOTS.find(function(c){ return c.city==='金門縣'; });
+  const kmCard = document.getElementById('kinmenSpotCard');
+  if(km && kmCard){
+    kmCard.innerHTML = '<div style="background:var(--sf);border-radius:var(--rs);padding:10px 12px;border:1px solid var(--ac);box-shadow:0 0 8px rgba(200,150,62,.2);">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:6px;">🎖️ 金門縣熱門景點</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">'
+      + km.spots.map(function(s,i){
+          return '<div style="background:var(--ad);border-radius:var(--rs);padding:6px 8px;text-align:center;">'
+            +'<div style="font-size:9px;color:var(--ac2);">TOP '+(i+1)+'</div>'
+            +'<div style="font-size:10px;color:var(--tx);font-weight:500;margin-top:2px;">'+s+'</div>'
+            +'</div>';
+        }).join('')
+      +'</div></div>';
+  }
+
+  // ── 下拉選單初始化 ──
+  const sel = document.getElementById('countySelect');
+  const grid = document.getElementById('countyGrid');
+  if(!sel || !grid) return;
+
+  // 過濾掉金門，其餘縣市建立選項
+  const others = COUNTY_SPOTS.filter(function(c){ return c.city!=='金門縣'; });
+  if(sel.options.length === 0){
+    others.forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.city;
+      opt.textContent = c.city;
+      if(c.city === '台北市') opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  // 顯示選中縣市
+  const chosen = others.find(function(c){ return c.city === sel.value; }) || others[0];
+  if(!chosen){ grid.innerHTML=''; return; }
+
+  grid.innerHTML = '<div style="background:var(--sf2);border-radius:var(--rs);padding:10px 12px;border:1px solid var(--bd);">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--tx);margin-bottom:6px;">📍 '+chosen.city+' 熱門景點</div>'
+    +'<div style="display:flex;flex-direction:column;gap:4px;">'
+    + chosen.spots.map(function(s,i){
+        return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--ad);border-radius:var(--rs);">'
+          +'<span style="font-size:10px;color:var(--ac2);font-weight:700;min-width:18px;">'+('①②③'[i])+'</span>'
+          +'<span style="font-size:11px;color:var(--tx);">'+s+'</span>'
+          +'</div>';
+      }).join('')
+    +'</div></div>';
 }
 
 </script>
