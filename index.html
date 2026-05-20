@@ -202,12 +202,14 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .yld{width:8px;height:8px;border-radius:2px;}
 
 /* YoY table */
-.yoy-wrap{margin:0 18px;}
+.yoy-wrap{margin:0;}
 .yt{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;}
 .yt th{padding:5px 4px;color:var(--tx3);font-weight:400;text-align:center;
   border-bottom:1px solid var(--bd);font-size:10px;font-family:'DM Mono',monospace;}
 .yt th:first-child{text-align:left;width:30%;}
-.yt th:not(:first-child){width:23.3%;}
+.yt th:nth-child(2){width:22%;}
+.yt th:nth-child(3){width:22%;}
+.yt th:nth-child(4){width:26%;}
 .yt td{padding:6px 4px;border-bottom:1px solid var(--bd);
   font-family:'DM Mono',monospace;text-align:center;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -507,26 +509,14 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <input class="cfg-input" id="cfgCity" type="text" placeholder="例：金門縣">
     </div>
     <div class="cfg-field">
-      <div class="cfg-lbl">Groq API Key（免費・推薦）</div>
+      <div class="cfg-lbl">Groq API Key（免費 AI 建議）</div>
       <input class="cfg-input" id="cfgGroqKey" type="password"
         placeholder="gsk_..." autocomplete="off"
         style="font-family:'DM Mono',monospace;font-size:10px;">
       <div style="font-size:9px;color:var(--tx3);margin-top:3px;">
         免費申請：<a href="https://console.groq.com" target="_blank"
-        style="color:var(--ac);">console.groq.com</a>・不需信用卡・有設定優先使用
+        style="color:var(--ac);">console.groq.com</a>・不需信用卡
       </div>
-    </div>
-    <div class="cfg-field">
-      <div class="cfg-lbl">Anthropic API Key（Claude，付費）</div>
-      <input class="cfg-input" id="cfgApiKey" type="password"
-        placeholder="sk-ant-api03-..." autocomplete="off"
-        style="font-family:'DM Mono',monospace;font-size:10px;">
-    </div>
-    <div class="cfg-field">
-      <div class="cfg-lbl">Google Gemini API Key（需搭配 Apps Script）</div>
-      <input class="cfg-input" id="cfgGeminiKey" type="password"
-        placeholder="AIza..." autocomplete="off"
-        style="font-family:'DM Mono',monospace;font-size:10px;">
     </div>
     <div class="cfg-field">
       <div class="cfg-lbl">競爭房價 Google 試算表網址</div>
@@ -2618,7 +2608,7 @@ function buildYoY(){
     ['餐飲合計','元',sumCur('rest_total'),sumPrev('rest_total')],
   ];
   const tb=document.getElementById('yoyTbl');
-  tb.innerHTML=`<tr><th>項目</th><th>${curYear}年</th><th>${prevYear}年（基準）</th><th>達成率</th></tr>`;
+  tb.innerHTML=`<tr><th>項目</th><th>${curYear}年</th><th>${prevYear}年</th><th>達成率</th></tr>`;
   rows.forEach(([lbl,u,now,prev])=>{
     const n2=parseFloat(now),p2=parseFloat(prev);
     const rate=p2>0?((n2/p2)*100):null;
@@ -2653,18 +2643,12 @@ function renderAI(loading){
 }
 async function genAI(){
   const groqKey=localStorage.getItem('groq_api_key')||'';
-  const geminiKey=localStorage.getItem('gemini_api_key')||'';
-  const claudeKey=getApiKey();
-  const useGroq=groqKey.length>10;
-  const useGemini=geminiKey.length>10;
-  const useClaude=claudeKey.length>20;
-
-  if(!useGroq&&!useClaude&&!useGemini){
-    document.getElementById('aiBadge').textContent='⚠ 請先設定 API Key';
+  if(groqKey.length<10){
+    document.getElementById('aiBadge').textContent='⚠ 請設定 Groq Key';
     document.getElementById('aiContent').innerHTML=
       '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.8;">'
-      +'推薦免費方案：<a href="https://console.groq.com" target="_blank" style="color:var(--ac);">console.groq.com</a> 申請 Groq Key<br>'
-      +'貼入 ⚙️ 設定 → Groq API Key</div>';
+      +'請至 ⚙️ 設定輸入 Groq API Key（免費）<br>'
+      +'申請：<a href="https://console.groq.com" target="_blank" style="color:var(--ac);">console.groq.com</a></div>';
     return;
   }
   const d=curRows[curIdx], p=prevRows[curIdx];
@@ -2674,10 +2658,8 @@ async function genAI(){
       '<div style="font-size:11px;color:var(--red);padding:8px;">請先上傳住宿率報表再產生建議。</div>';
     return;
   }
-
   renderAI(true);
-  const engineLabel=useGroq?'Groq':useGemini?'Gemini':'Claude';
-  document.getElementById('aiBadge').textContent=`${engineLabel} 生成中...`;
+  document.getElementById('aiBadge').textContent='Groq 生成中...';
   try{
     const gpr=d.stays>0?(d.guests/d.stays).toFixed(1):0;
     const yoy=p&&p.room>0?(d.room-p.room).toFixed(1):'未知';
@@ -2773,48 +2755,23 @@ ${newsCtx}
       const data=await res.json();
       if(data.error) throw new Error(data.error.message||'Groq 錯誤');
       text=data.choices?.[0]?.message?.content||'';
-    } else if(useGemini){
-      const appsUrl=getCloudUrl();
-      if(!appsUrl) throw new Error('請先在 ⚙️ 設定輸入 Apps Script 雲端網址');
-      const res=await fetch(appsUrl,{
-        method:'POST',
-        headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({action:'ai',prompt})
-      });
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data=await res.json();
-      if(data.error) throw new Error(data.error.message||'Gemini 錯誤');
-      const parts=data.candidates?.[0]?.content?.parts||[];
-      text=parts.filter(p=>!p.thought).map(p=>p.text||'').join('')
-           ||parts.map(p=>p.text||'').join('');
-    } else {
-      // Anthropic Claude API
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':claudeKey,
-          'anthropic-version':'2023-06-01',
-          'anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
-          messages:[{role:'user',content:prompt}]})});
-      const data=await res.json();
-      if(data.error) throw new Error(data.error.message||'Claude 錯誤');
-      text=data.content?.[0]?.text||'';
     }
     const paras=text.split(/\n\n+/).filter(p=>p.trim().length>10);
     let html='',num=1;
     paras.slice(0,4).forEach(p=>{
-      const fmt=p.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>').replace(/^[\d\.\)]+\s*/,'');
+      const fmt=p.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>').replace(/^[\d\.\)①②③④⑤\.\)]+\s*/,'');
       html+=`<div class="ai-item"><div class="ai-num">0${num}</div><div class="ai-text">${fmt}</div></div>`;
       num++;
     });
     document.getElementById('aiContent').innerHTML=html||`<div class="ai-item"><div class="ai-num">💡</div><div class="ai-text">${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
-    document.getElementById('aiBadge').textContent=`✓ ${engineLabel} 已更新`;
+    document.getElementById('aiBadge').textContent='✓ Groq 已更新';
   }catch(e){
     renderAI(false);
     const msg=e.message||'未知錯誤';
     document.getElementById('aiBadge').textContent='⚠ 生成失敗';
     document.getElementById('aiContent').innerHTML=
       `<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.7;">`
-      +`錯誤：${msg}<br>請確認 API Key 正確，且網路連線正常。</div>`;
+      +`錯誤：${msg}</div>`;
   }
 }
 
@@ -2961,10 +2918,6 @@ function openCfg(){
   document.getElementById('cfgLogo').value=cfg.logo||'';
   document.getElementById('cfgName').value=cfg.name||'';
   document.getElementById('cfgCity').value=cfg.city||'';
-  const keyEl=document.getElementById('cfgApiKey');
-  if(keyEl) keyEl.value=getApiKey();
-  const gemEl=document.getElementById('cfgGeminiKey');
-  if(gemEl) gemEl.value=localStorage.getItem('gemini_api_key')||'';
   const groqEl=document.getElementById('cfgGroqKey');
   if(groqEl) groqEl.value=localStorage.getItem('groq_api_key')||'';
   const shEl=document.getElementById('cfgSheetsUrl');
@@ -2986,11 +2939,6 @@ function toggleCheck(label,inputId){
 function saveCfg(){
   cfg={logo:document.getElementById('cfgLogo').value||'青年活動中心',name:document.getElementById('cfgName').value||'救國團青年活動中心',city:document.getElementById('cfgCity').value||'',services:{acc:document.getElementById('svc-acc').checked,rest:document.getElementById('svc-rest').checked,meet:document.getElementById('svc-meet').checked,camp:document.getElementById('svc-camp').checked}};
   try{localStorage.setItem('kinmen_cfg',JSON.stringify(cfg));}catch(e){}
-  const keyEl=document.getElementById('cfgApiKey');
-  if(keyEl&&keyEl.value.trim()) setApiKey(keyEl.value.trim());
-  const gemEl=document.getElementById('cfgGeminiKey');
-  if(gemEl&&gemEl.value.trim()) localStorage.setItem('gemini_api_key',gemEl.value.trim());
-  else if(gemEl&&!gemEl.value.trim()) localStorage.removeItem('gemini_api_key');
   const groqEl=document.getElementById('cfgGroqKey');
   if(groqEl&&groqEl.value.trim()) localStorage.setItem('groq_api_key',groqEl.value.trim());
   else if(groqEl&&!groqEl.value.trim()) localStorage.removeItem('groq_api_key');
