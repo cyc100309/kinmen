@@ -507,20 +507,26 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <input class="cfg-input" id="cfgCity" type="text" placeholder="例：金門縣">
     </div>
     <div class="cfg-field">
+      <div class="cfg-lbl">Groq API Key（免費・推薦）</div>
+      <input class="cfg-input" id="cfgGroqKey" type="password"
+        placeholder="gsk_..." autocomplete="off"
+        style="font-family:'DM Mono',monospace;font-size:10px;">
+      <div style="font-size:9px;color:var(--tx3);margin-top:3px;">
+        免費申請：<a href="https://console.groq.com" target="_blank"
+        style="color:var(--ac);">console.groq.com</a>・不需信用卡・有設定優先使用
+      </div>
+    </div>
+    <div class="cfg-field">
       <div class="cfg-lbl">Anthropic API Key（Claude，付費）</div>
       <input class="cfg-input" id="cfgApiKey" type="password"
         placeholder="sk-ant-api03-..." autocomplete="off"
         style="font-family:'DM Mono',monospace;font-size:10px;">
     </div>
     <div class="cfg-field">
-      <div class="cfg-lbl">Google Gemini API Key（免費）</div>
+      <div class="cfg-lbl">Google Gemini API Key（需搭配 Apps Script）</div>
       <input class="cfg-input" id="cfgGeminiKey" type="password"
         placeholder="AIza..." autocomplete="off"
         style="font-family:'DM Mono',monospace;font-size:10px;">
-      <div style="font-size:9px;color:var(--tx3);margin-top:3px;">
-        免費申請：<a href="https://aistudio.google.com" target="_blank"
-        style="color:var(--ac);">aistudio.google.com</a>・有設定 Gemini 則優先使用
-      </div>
     </div>
     <div class="cfg-field">
       <div class="cfg-lbl">競爭房價 Google 試算表網址</div>
@@ -2646,18 +2652,19 @@ function renderAI(loading){
   document.getElementById('aiBadge').textContent='示範・點擊重新生成';
 }
 async function genAI(){
-  // ── 預檢查 ──
+  const groqKey=localStorage.getItem('groq_api_key')||'';
   const geminiKey=localStorage.getItem('gemini_api_key')||'';
   const claudeKey=getApiKey();
+  const useGroq=groqKey.length>10;
   const useGemini=geminiKey.length>10;
   const useClaude=claudeKey.length>20;
 
-  if(!useGemini&&!useClaude){
+  if(!useGroq&&!useClaude&&!useGemini){
     document.getElementById('aiBadge').textContent='⚠ 請先設定 API Key';
     document.getElementById('aiContent').innerHTML=
       '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.8;">'
-      +'請至 ⚙️ 設定，輸入 Google Gemini Key（免費）或 Anthropic API Key。<br>'
-      +'Gemini 免費申請：<a href="https://aistudio.google.com" target="_blank" style="color:var(--ac);">aistudio.google.com</a></div>';
+      +'推薦免費方案：<a href="https://console.groq.com" target="_blank" style="color:var(--ac);">console.groq.com</a> 申請 Groq Key<br>'
+      +'貼入 ⚙️ 設定 → Groq API Key</div>';
     return;
   }
   const d=curRows[curIdx], p=prevRows[curIdx];
@@ -2669,7 +2676,7 @@ async function genAI(){
   }
 
   renderAI(true);
-  const engineLabel=useGemini?'Gemini':'Claude';
+  const engineLabel=useGroq?'Groq':useGemini?'Gemini':'Claude';
   document.getElementById('aiBadge').textContent=`${engineLabel} 生成中...`;
   try{
     const gpr=d.stays>0?(d.guests/d.stays).toFixed(1):0;
@@ -2748,7 +2755,25 @@ ${newsCtx}
 每點含2-3個具體可執行步驟，直接寫建議，不用開頭說「根據數據」。`;
 
     let text='';
-    if(useGemini){
+    if(useGroq){
+      // Groq API（免費，OpenAI 相容格式，支援瀏覽器直接呼叫）
+      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json',
+                 'Authorization':`Bearer ${groqKey}`},
+        body:JSON.stringify({
+          model:'llama-3.3-70b-versatile',
+          messages:[{role:'user',content:prompt}],
+          max_tokens:1000,temperature:0.7
+        })});
+      if(!res.ok){
+        const e=await res.json().catch(()=>({}));
+        throw new Error(e?.error?.message||`HTTP ${res.status}`);
+      }
+      const data=await res.json();
+      if(data.error) throw new Error(data.error.message||'Groq 錯誤');
+      text=data.choices?.[0]?.message?.content||'';
+    } else if(useGemini){
       const appsUrl=getCloudUrl();
       if(!appsUrl) throw new Error('請先在 ⚙️ 設定輸入 Apps Script 雲端網址');
       const res=await fetch(appsUrl,{
@@ -2940,6 +2965,8 @@ function openCfg(){
   if(keyEl) keyEl.value=getApiKey();
   const gemEl=document.getElementById('cfgGeminiKey');
   if(gemEl) gemEl.value=localStorage.getItem('gemini_api_key')||'';
+  const groqEl=document.getElementById('cfgGroqKey');
+  if(groqEl) groqEl.value=localStorage.getItem('groq_api_key')||'';
   const shEl=document.getElementById('cfgSheetsUrl');
   if(shEl) shEl.value=localStorage.getItem('sheetsUrl')||'';
   ['acc','rest','meet','camp'].forEach(k=>{
@@ -2964,6 +2991,9 @@ function saveCfg(){
   const gemEl=document.getElementById('cfgGeminiKey');
   if(gemEl&&gemEl.value.trim()) localStorage.setItem('gemini_api_key',gemEl.value.trim());
   else if(gemEl&&!gemEl.value.trim()) localStorage.removeItem('gemini_api_key');
+  const groqEl=document.getElementById('cfgGroqKey');
+  if(groqEl&&groqEl.value.trim()) localStorage.setItem('groq_api_key',groqEl.value.trim());
+  else if(groqEl&&!groqEl.value.trim()) localStorage.removeItem('groq_api_key');
   const shEl=document.getElementById('cfgSheetsUrl');
   if(shEl&&shEl.value.trim()) localStorage.setItem('sheetsUrl',shEl.value.trim());
   else if(shEl&&!shEl.value.trim()) localStorage.removeItem('sheetsUrl');
