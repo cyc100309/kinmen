@@ -2737,25 +2737,23 @@ ${newsCtx}
 每點含2-3個具體可執行步驟，直接寫建議，不用開頭說「根據數據」。`;
 
     let text='';
-    if(useGroq){
-      // Groq API（免費，OpenAI 相容格式，支援瀏覽器直接呼叫）
-      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-        method:'POST',
-        headers:{'Content-Type':'application/json',
-                 'Authorization':`Bearer ${groqKey}`},
-        body:JSON.stringify({
-          model:'llama-3.3-70b-versatile',
-          messages:[{role:'user',content:prompt}],
-          max_tokens:1000,temperature:0.7
-        })});
-      if(!res.ok){
-        const e=await res.json().catch(()=>({}));
-        throw new Error(e?.error?.message||`HTTP ${res.status}`);
-      }
-      const data=await res.json();
-      if(data.error) throw new Error(data.error.message||'Groq 錯誤');
-      text=data.choices?.[0]?.message?.content||'';
+    // Groq API（免費，OpenAI 相容格式）
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',
+               'Authorization':`Bearer ${groqKey}`},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[{role:'user',content:prompt}],
+        max_tokens:1000,temperature:0.7
+      })});
+    if(!res.ok){
+      const e=await res.json().catch(()=>({}));
+      throw new Error(e?.error?.message||`HTTP ${res.status}`);
     }
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message||'Groq 錯誤');
+    text=data.choices?.[0]?.message?.content||'';
     const paras=text.split(/\n\n+/).filter(p=>p.trim().length>10);
     let html='',num=1;
     paras.slice(0,4).forEach(p=>{
@@ -2967,7 +2965,7 @@ function saveOccData(){
     showDataDate(ts);
   }catch(e){}
   // Auto push to cloud if configured
-  if(getCloudCfg()) pushToCloud();
+  if(getCloudUrl()) pushToCloud();
 }
 
 function showDataDate(ts){
