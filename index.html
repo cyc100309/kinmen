@@ -2749,15 +2749,19 @@ ${newsCtx}
 
     let text='';
     if(useGemini){
-      // Google Gemini API
-      const res=await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({contents:[{parts:[{text:prompt}]}],
-           generationConfig:{maxOutputTokens:1000,temperature:0.7}})});
+      const appsUrl=getCloudUrl();
+      if(!appsUrl) throw new Error('請先在 ⚙️ 設定輸入 Apps Script 雲端網址');
+      const res=await fetch(appsUrl,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'ai',prompt})
+      });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
       const data=await res.json();
       if(data.error) throw new Error(data.error.message||'Gemini 錯誤');
-      text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+      const parts=data.candidates?.[0]?.content?.parts||[];
+      text=parts.filter(p=>!p.thought).map(p=>p.text||'').join('')
+           ||parts.map(p=>p.text||'').join('');
     } else {
       // Anthropic Claude API
       const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
