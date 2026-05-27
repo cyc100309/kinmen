@@ -93,12 +93,22 @@ def scrape(check_in, check_out):
         page.on("response", on_response)
 
         # ── 開啟金門搜尋頁 ────────────────────────────────────
+        # ── 開啟金門搜尋頁 ────────────────────────────────────
         url = (f"https://www.agoda.com/zh-tw/pages/agoda/default/"
                f"DestinationSearchResult.aspx"
                f"?city=16411&checkIn={check_in}&checkOut={check_out}"
-               f"&rooms=1&adults=2&children=0&priceCur=TWD&sort=1")
+               f"&rooms=1&adults=1&children=0&priceCur=TWD&sort=1"
+               f"&los=1&selectedproperty=0")
 
         print("  開啟 Agoda 金門搜尋頁...")
+
+        # 設定台灣地區標頭（讓 Agoda 以為是台灣用戶）
+        page.set_extra_http_headers({
+            "Accept-Language": "zh-TW,zh;q=0.9",
+            "X-Forwarded-For": "211.75.108.1",   # 中華電信台灣 IP
+            "CF-IPCountry": "TW",
+            "X-Real-IP": "211.75.108.1",
+        })
         try:
             page.goto(url, wait_until="networkidle", timeout=60000)
         except:
@@ -159,12 +169,9 @@ def scrape(check_in, check_out):
                         if not matched or matched in results:
                             continue
 
-                        # 售完判斷：只有搜尋結果卡片上明確顯示「沒有空房」才算售完
-                        # 注意：不用 soldOut 因為頁面JS裡常有此字串
-                        card_html = card.inner_html()
-                        if "住宿於你所選擇期間沒有空房" in card_html:
-                            results[matched] = {"price": 0, "avail": False}
-                            continue
+                        # 售完判斷：移除搜尋卡片判斷（不可靠）
+                        # 搜尋卡片顯示售完 ≠ 整間售完（可能只是某房型）
+                        # 只要沒有價格就標為「未知」，不標為售完
 
                         # 取得最低價格（找所有價格元素，取最小值）
                         price_els = card.query_selector_all(
