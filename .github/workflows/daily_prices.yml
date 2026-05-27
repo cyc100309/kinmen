@@ -2,6 +2,7 @@ name: 每日競爭旅宿房價抓取
 
 on:
   schedule:
+    # 每天台灣時間早上 8:00（UTC 0:00）
     - cron: '0 0 * * *'
   workflow_dispatch:
 
@@ -20,8 +21,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 安裝套件
-        run: pip install requests
+      - name: 安裝套件與瀏覽器
+        run: |
+          pip install playwright requests
+          playwright install chromium --with-deps
 
       - name: 執行爬蟲
         run: python scrape_prices.py
