@@ -1,251 +1,224 @@
 #!/usr/bin/env python3
 """
-金門競爭旅宿房價自動爬取腳本 v2
-透過 Agoda 搜尋 API 取得金門地區所有旅宿今日房價
+金門競爭旅宿房價爬取腳本 v4 (Playwright)
+模擬真實瀏覽器，從 Agoda 金門搜尋頁取得完整房價
 """
 
-import requests
-import json
-import re
-import time
+from playwright.sync_api import sync_playwright
+import json, re
 from datetime import datetime, timedelta
-import random
 
-# ── 目標飯店名稱對照表 ─────────────────────────────────────────
+# ── 飯店清單 ─────────────────────────────────────────────────
 HOTEL_MAP = {
-    "不倒翁輕旅":       {"cat": "hostel",  "id": None},
-    "八二三行館飯店":   {"cat": "general", "id": None},
-    "金華民宿":         {"cat": "suite",   "id": None},
-    "總兵招待所":       {"cat": "suite",   "id": None},
-    "金門市區背包客棧": {"cat": "hostel",  "id": None},
-    "浯島魁星背包棧":   {"cat": "hostel",  "id": None},
-    "背包客棧497-2館":  {"cat": "hostel",  "id": None},
-    "金城艾美商務旅館": {"cat": "suite",   "id": None},
-    "金瑞旅店":         {"cat": "suite",   "id": None},
-    "浯江大飯店":       {"cat": "luxury",  "id": None},
-    "浯島文旅":         {"cat": "general", "id": None},
-    "海福商務飯店":     {"cat": "luxury",  "id": None},
-    "IN99精品旅館":     {"cat": "luxury",  "id": None},
+    "不倒翁輕旅":       "hostel",
+    "八二三行館飯店":   "general",
+    "金華民宿":         "suite",
+    "總兵招待所":       "suite",
+    "金門市區背包客棧": "hostel",
+    "浯島魁星背包棧":   "hostel",
+    "背包客棧497-2館":  "hostel",
+    "金城艾美商務旅館": "suite",
+    "金瑞旅店":         "suite",
+    "浯江大飯店":       "luxury",
+    "浯島文旅":         "general",
+    "海福商務飯店":     "luxury",
+    "IN99精品旅館":     "luxury",
 }
 
-# 名稱關鍵字比對（處理中英文差異）
-NAME_KEYWORDS = {
-    "不倒翁":   "不倒翁輕旅",
-    "tumbler":  "不倒翁輕旅",
-    "823":      "八二三行館飯店",
-    "tourist hotel": "八二三行館飯店",
-    "金華":     "金華民宿",
-    "總兵":     "總兵招待所",
+# ── 名稱比對關鍵字 ─────────────────────────────────────────
+KEYWORDS = {
+    "不倒翁": "不倒翁輕旅",     "tumbler": "不倒翁輕旅",
+    "823": "八二三行館飯店",    "tourist hotel": "八二三行館飯店",
+    "金華": "金華民宿",
+    "總兵": "總兵招待所",
     "kinmen backpacker": "金門市區背包客棧",
-    "魁星":     "浯島魁星背包棧",
-    "497":      "背包客棧497-2館",
-    "backpack home 497": "背包客棧497-2館",
-    "艾美":     "金城艾美商務旅館",
-    "aimei":    "金城艾美商務旅館",
-    "金瑞":     "金瑞旅店",
-    "quemoy":   "金瑞旅店",
-    "浯江":     "浯江大飯店",
-    "river kinmen": "浯江大飯店",
-    "浯島文旅": "浯島文旅",
-    "h34126829": "浯島文旅",
-    "海福":     "海福商務飯店",
-    "haifu":    "海福商務飯店",
-    "in99":     "IN99精品旅館",
+    "魁星": "浯島魁星背包棧",
+    "497": "背包客棧497-2館",   "backpack home 497": "背包客棧497-2館",
+    "艾美": "金城艾美商務旅館", "aimei": "金城艾美商務旅館",
+    "金瑞": "金瑞旅店",         "quemoy": "金瑞旅店",
+    "浯江": "浯江大飯店",       "river kinmen": "浯江大飯店",
+    "浯島文旅": "浯島文旅",     "h34126829": "浯島文旅",
+    "海福": "海福商務飯店",     "haifu": "海福商務飯店",
+    "in99": "IN99精品旅館",
 }
 
-def match_hotel_name(name_str):
-    """根據關鍵字比對飯店名稱"""
-    s = name_str.lower()
-    for kw, hotel in NAME_KEYWORDS.items():
+def match_hotel(name):
+    s = name.lower()
+    for kw, hotel in KEYWORDS.items():
         if kw.lower() in s:
             return hotel
     return None
 
-
-def fetch_agoda_search(check_in, check_out):
-    """
-    呼叫 Agoda 搜尋 API 取得金門地區旅宿房價
-    city_id = 16411 (金門)
-    """
-    results = {}
-
-    # 方法一：Agoda property search API
-    try:
-        url = "https://www.agoda.com/api/cronos/property/BestMatch/GetSearchResultList"
-        params = {
-            "finalPriceView": "1",
-            "isShowMobileNotice": "false",
-            "checkIn": check_in,
-            "checkOut": check_out,
-            "cityId": "16411",      # 金門縣
-            "rooms": "1",
-            "adults": "2",
-            "children": "0",
-            "priceCur": "TWD",
-            "los": "1",
-            "cid": "1844104",
-            "currency": "TWD",
-            "pageTypeId": "1",
-            "culture": "zh-TW",
-            "userId": "0",
-            "userCurrency": "TWD",
-            "countryCode": "TW",
-            "isPriceLoaded": "false",
-            "priceTypeCode": "All",
-            "isIncludeInternalSortRankProperties": "true",
-            "sortField": "1",
-            "sortOrder": "1",
-            "isFreeBreakfast": "false",
-            "isSafetyFirst": "false",
-            "isNhaSanPham": "false",
-            "isShowUnAvailable": "false",
-            "searchGuid": "none",
-            "searchBoardTypeId": "0",
-            "travellerType": "2",
-            "numOfHotel": "50",
-            "pageIndex": "0",
-        }
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "zh-TW,zh;q=0.9",
-            "Referer": "https://www.agoda.com/zh-tw/",
-            "X-Requested-With": "XMLHttpRequest",
-        }
-        resp = requests.get(url, params=params, headers=headers, timeout=20)
-        if resp.status_code == 200:
-            data = resp.json()
-            properties = data.get("SearchResultList", []) or data.get("propertyResultList", [])
-            for p in properties:
-                name = p.get("hotelName","") or p.get("PropertyName","")
-                price = (p.get("displayPrice",0) or
-                         p.get("LowestAveragePrice",{}).get("perRoomPerNight",0) or 0)
-                avail = price > 0
-                matched = match_hotel_name(name)
-                if matched and int(price) > 0:
-                    results[matched] = {"price": int(price), "avail": avail, "source": "api"}
-            print(f"  API 方法一取得 {len(results)} 家")
-    except Exception as e:
-        print(f"  API 方法一失敗: {e}")
-
-    return results
-
-
-def fetch_individual_pages(hotels_needed, check_in, check_out):
-    """針對未取得的飯店，直接訪問頁面"""
-    HOTEL_URLS = {
-        "不倒翁輕旅":       "https://www.agoda.com/zh-tw/tumbler-travel/hotel/all/kinmen-islands-tw.html",
-        "八二三行館飯店":   "https://www.agoda.com/zh-tw/823-tourist-hotel/hotel/kinmen-tw.html",
-        "金華民宿":         "https://www.agoda.com/zh-tw/h63113258/hotel/kinmen-islands-tw.html",
-        "總兵招待所":       "https://www.agoda.com/zh-tw/h76106414/hotel/kinmen-islands-tw.html",
-        "金門市區背包客棧": "https://www.agoda.com/zh-tw/kinmen-backpacker_2/hotel/kinmen-tw.html",
-        "浯島魁星背包棧":   "https://www.agoda.com/zh-tw/h76945502/hotel/kinmen-islands-tw.html",
-        "背包客棧497-2館":  "https://www.agoda.com/zh-tw/backpack-home-497-no-2/hotel/kinmen-tw.html",
-        "金城艾美商務旅館": "https://www.agoda.com/zh-tw/aimei-hotel/hotel/kinmen-tw.html",
-        "金瑞旅店":         "https://www.agoda.com/zh-tw/quemoy-hotel/hotel/kinmen-tw.html",
-        "浯江大飯店":       "https://www.agoda.com/zh-tw/hotel-river-kinmen/hotel/kinmen-tw.html",
-        "浯島文旅":         "https://www.agoda.com/zh-tw/h34126829/hotel/kinmen-tw.html",
-        "海福商務飯店":     "https://www.agoda.com/zh-tw/haifu-hotel-suites/hotel/kinmen-tw.html",
-        "IN99精品旅館":     "https://www.agoda.com/zh-tw/in99-hotel/hotel/kinmen-tw.html",
-    }
-
-    results = {}
-    headers = {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "zh-TW,zh;q=0.9",
-    }
-
-    for name in hotels_needed:
-        url = HOTEL_URLS.get(name)
-        if not url:
-            continue
-        full_url = f"{url}?checkIn={check_in}&checkOut={check_out}&rooms=1&adults=2"
+def parse_price(text):
+    """從文字中提取合理的房價"""
+    nums = re.findall(r'\d[\d,]*', str(text).replace(',', ''))
+    for n in nums:
         try:
-            resp = requests.get(full_url, headers=headers, timeout=15)
-            html = resp.text
+            v = int(n)
+            if 300 <= v <= 30000:
+                return v
+        except:
+            pass
+    return 0
 
-            # 已售完判斷
-            if any(k in html for k in ["沒有空房", "no rooms", "unavailable", "soldOut\":true"]):
-                results[name] = {"price": 0, "avail": False, "source": "page"}
-                print(f"  {name}: 售完")
-                continue
+def scrape(check_in, check_out):
+    results = {}
+    api_data = []
 
-            # 找價格
-            patterns = [
-                r'"DiscountedPrice"[^}]*?"value"\s*:\s*(\d+)',
-                r'"displayPrice"\s*:\s*(\d+)',
-                r'"PriceFor1Night"\s*:\s*(\d+)',
-                r'(?:price-content|hotel-price)[^>]*>\s*[\$\s]*([\d,]+)',
-            ]
-            found_price = None
-            for pat in patterns:
-                m = re.search(pat, html)
-                if m:
-                    p = int(str(m.group(1)).replace(',',''))
-                    if 200 <= p <= 30000:
-                        found_price = p
-                        break
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            headless=True,
+            args=['--no-sandbox', '--disable-setuid-sandbox',
+                  '--disable-dev-shm-usage', '--disable-gpu']
+        )
+        ctx = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/124.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 800},
+            locale="zh-TW",
+        )
+        page = ctx.new_page()
 
-            if found_price:
-                results[name] = {"price": found_price, "avail": True, "source": "page"}
-                print(f"  {name}: NT${found_price}")
-            else:
-                print(f"  {name}: 無法解析")
+        # ── 攔截 Agoda API 回應 ──────────────────────────────
+        def on_response(resp):
+            try:
+                if any(x in resp.url for x in
+                       ['SearchResult', 'BestMatch', 'GetHotelList',
+                        'propertyList', 'cronos/property']):
+                    data = resp.json()
+                    api_data.append(data)
+            except:
+                pass
+        page.on("response", on_response)
 
-            time.sleep(random.uniform(1.5, 3.0))
+        # ── 開啟金門搜尋頁 ────────────────────────────────────
+        url = (f"https://www.agoda.com/zh-tw/pages/agoda/default/"
+               f"DestinationSearchResult.aspx"
+               f"?city=16411&checkIn={check_in}&checkOut={check_out}"
+               f"&rooms=1&adults=2&children=0&priceCur=TWD&sort=1")
 
-        except Exception as e:
-            print(f"  {name}: 錯誤 {e}")
+        print("  開啟 Agoda 金門搜尋頁...")
+        try:
+            page.goto(url, wait_until="networkidle", timeout=60000)
+        except:
+            page.wait_for_timeout(8000)
 
+        # 捲動頁面觸發更多載入
+        for _ in range(6):
+            page.evaluate("window.scrollBy(0, 600)")
+            page.wait_for_timeout(800)
+
+        # ── 方法1：從攔截的 API 取得資料 ─────────────────────
+        for d in api_data:
+            try:
+                props = (d.get('SearchResultList') or
+                         d.get('propertyResultList') or
+                         d.get('hotels') or [])
+                for prop in props:
+                    name = (prop.get('hotelName') or
+                            prop.get('PropertyName') or
+                            prop.get('name') or '')
+                    price = (prop.get('displayPrice') or
+                             (prop.get('lowestAveragePrice') or {}).get('perRoomPerNight') or
+                             prop.get('price') or 0)
+                    matched = match_hotel(name)
+                    if matched and int(price) > 0:
+                        results[matched] = {
+                            "price": int(price), "avail": True
+                        }
+            except:
+                pass
+        print(f"  API 攔截：取得 {len(results)} 家")
+
+        # ── 方法2：DOM 解析飯店卡片 ──────────────────────────
+        if len(results) < 8:
+            try:
+                cards = page.query_selector_all(
+                    "[data-selenium='hotel-item'], "
+                    ".hotel-listItem, "
+                    "[class*='PropertyCard'], "
+                    "[class*='hotel-card']"
+                )
+                print(f"  DOM 找到 {len(cards)} 個飯店卡片")
+                for card in cards:
+                    try:
+                        name_el = (
+                            card.query_selector("[data-selenium='hotel-name']") or
+                            card.query_selector("[class*='hotel-name']") or
+                            card.query_selector("h3")
+                        )
+                        if not name_el:
+                            continue
+                        name = name_el.inner_text().strip()
+                        matched = match_hotel(name)
+                        if not matched or matched in results:
+                            continue
+
+                        # 售完判斷
+                        card_html = card.inner_html()
+                        if any(x in card_html for x in
+                               ["沒有空房", "Sold out", "soldOut"]):
+                            results[matched] = {"price": 0, "avail": False}
+                            continue
+
+                        # 取得價格
+                        price_el = (
+                            card.query_selector("[data-selenium='display-price']") or
+                            card.query_selector("[class*='display-price']") or
+                            card.query_selector("[class*='Price']")
+                        )
+                        if price_el:
+                            price = parse_price(price_el.inner_text())
+                            if price > 0:
+                                results[matched] = {"price": price, "avail": True}
+                    except:
+                        continue
+            except Exception as e:
+                print(f"  DOM 解析錯誤: {e}")
+
+        browser.close()
     return results
 
 
 def main():
-    today = datetime.now()
-    check_in  = today.strftime("%Y-%m-%d")
-    check_out = (today + timedelta(days=1)).strftime("%Y-%m-%d")
-    fetch_date = today.strftime("%Y/%m/%d %H:%M")
+    today    = datetime.now()
+    ci       = today.strftime("%Y-%m-%d")
+    co       = (today + timedelta(days=1)).strftime("%Y-%m-%d")
+    ts       = today.strftime("%Y/%m/%d %H:%M")
 
-    print(f"🏨 開始抓取 {check_in} 金門地區房價...")
+    print(f"🏨 Playwright 抓取 {ci} 金門房價...")
+    try:
+        results = scrape(ci, co)
+    except Exception as e:
+        print(f"❌ 嚴重錯誤: {e}")
+        results = {}
 
-    # 方法一：Agoda 搜尋 API
-    all_results = fetch_agoda_search(check_in, check_out)
-
-    # 方法二：補齊未取得的飯店
-    missing = [name for name in HOTEL_MAP if name not in all_results]
-    if missing:
-        print(f"  補充抓取 {len(missing)} 家...")
-        page_results = fetch_individual_pages(missing, check_in, check_out)
-        all_results.update(page_results)
-
-    # 組合最終結果
-    hotels_output = []
-    for name, info in HOTEL_MAP.items():
-        r = all_results.get(name, {})
-        hotels_output.append({
+    out = []
+    for name, cat in HOTEL_MAP.items():
+        r = results.get(name, {})
+        out.append({
             "name":  name,
-            "cat":   info["cat"],
+            "cat":   cat,
             "price": r.get("price", 0),
-            "avail": r.get("avail", None),   # None = 未知，不是售完
-            "ok":    name in all_results,
-            "date":  fetch_date,
+            "avail": r.get("avail", None),
+            "ok":    r.get("price", 0) > 0,
+            "date":  ts,
         })
 
-    ok = sum(1 for h in hotels_output if h["ok"])
-    print(f"\n✅ 完成！成功取得 {ok}/{len(hotels_output)} 家房價")
-    for h in hotels_output:
-        status = f"NT${h['price']}" if h['price'] else ("售完" if h['avail'] is False else "未取得")
-        print(f"  {h['name']}: {status}")
+    ok   = sum(1 for h in out if h["ok"])
+    sold = sum(1 for h in out if h["avail"] is False)
+    unk  = sum(1 for h in out if h["avail"] is None)
+    print(f"\n✅ 完成：有房價 {ok} 家 ｜ 售完 {sold} 家 ｜ 未知 {unk} 家")
+    for h in out:
+        s = f"NT${h['price']}" if h["price"] > 0 else (
+            "售完" if h["avail"] is False else "未取得")
+        print(f"  {h['name']}: {s}")
 
     with open("prices.json", "w", encoding="utf-8") as f:
-        json.dump({
-            "updated": fetch_date,
-            "checkIn": check_in,
-            "hotels": hotels_output
-        }, f, ensure_ascii=False, indent=2)
-
-    print("💾 已儲存至 prices.json")
+        json.dump({"updated": ts, "checkIn": ci, "hotels": out},
+                  f, ensure_ascii=False, indent=2)
+    print("💾 prices.json 已儲存")
 
 
 if __name__ == "__main__":
