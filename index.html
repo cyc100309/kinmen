@@ -3206,7 +3206,7 @@ function envView(mode,btn){
   if(sub) sub.style.display='block';
   setTimeout(()=>{
     if(mode==='tour'){ buildTourCharts(); buildCountyGrid(); loadAITourResult(); fetchTourNews(); }
-    else if(mode==='hotel'){ buildHotelOccChart(); setTimeout(buildLodgingCharts,80); }
+    else if(mode==='hotel'){ setTimeout(buildLodgingCharts,300); }
     else if(mode==='pop'){ buildEduChart(); buildEduTable(); buildBirthChart(); }
   },50);
 }
@@ -3681,10 +3681,10 @@ function buildLodgingCharts(){
 
   function lineChart(svgId,datasets,minY,maxY,fmt){
     const svg=document.getElementById(svgId); if(!svg)return;
-    const W=svg.parentElement.offsetWidth-4||320;
+    const W=Math.max(svg.parentElement?.offsetWidth||0,260)-4;
     svg.setAttribute('width',W);
     const H=parseInt(svg.getAttribute('height'))||150;
-    const pL=10,pR=8,pT=10,pB=24;
+    const pL=28,pR=8,pT=10,pB=24;
     const cW=W-pL-pR, cH=H-pT-pB;
     const n=yrs.length;
     const xStep=cW/(n-1);
@@ -3726,75 +3726,52 @@ function buildLodgingCharts(){
   // 改成顯示各自的家數，右側標籤顯示最新值
   function countChart(svgId){
     const svg=document.getElementById(svgId); if(!svg)return;
-    const W=svg.parentElement.offsetWidth-4||320;
+    const W=Math.max(svg.parentElement?.offsetWidth||0,260)-4;
     svg.setAttribute('width',W);
     const H=160;svg.setAttribute('height',H);
-    const pL=40,pR=50,pT=10,pB=22;
+    const pL=36,pR=46,pT=10,pB=22;
     const cW=W-pL-pR, cH=H-pT-pB;
     const n=yrs.length;
     const xStep=cW/(n-1);
     let html='';
-
-    // 兩個 y 軸：左=民宿+旅館業（千家），右=觀光旅館（家）
-    const maxL=14000,minL=0;  // 左軸 民宿/旅館業
-    const maxR=110,minR=80;   // 右軸 觀光旅館
-
+    const maxL=14000,minL=0;
+    const maxR=110,minR=80;
     const xp=i=>pL+i*xStep;
     const ypL=v=>pT+cH-(v-minL)/(maxL-minL)*cH;
     const ypR=v=>pT+cH-(v-minR)/(maxR-minR)*cH;
-
-    // Grid
     [0,0.25,0.5,0.75,1].forEach(t=>{
       const y=pT+cH*(1-t);
       html+=`<line x1="${pL}" y1="${y}" x2="${pL+cW}" y2="${y}" stroke="var(--bd)" stroke-width="0.5"/>`;
-      html+=`<text x="${pL-3}" y="${y+3}" font-size="8" fill="var(--tx3)" text-anchor="end">${Math.round(minL+(maxL-minL)*t/1000)}k</text>`;
+      html+=`<text x="${pL-4}" y="${y+3}" font-size="8" fill="var(--tx3)" text-anchor="end">${Math.round(minL+(maxL-minL)*t/1000)}k</text>`;
     });
-    // Right axis
     [0,0.5,1].forEach(t=>{
       const y=pT+cH*(1-t);
       const v=Math.round(minR+(maxR-minR)*t);
-      html+=`<text x="${pL+cW+3}" y="${y+3}" font-size="8" fill="var(--tx3)">${v}</text>`;
+      html+=`<text x="${pL+cW+4}" y="${y+3}" font-size="8" fill="var(--tx3)">${v}</text>`;
     });
-
-    // X labels
     yrs.forEach((yr,i)=>{
       if(i%2===0||i===n-1)
         html+=`<text x="${xp(i)}" y="${H-4}" font-size="8" fill="var(--tx3)" text-anchor="middle">${yr.slice(2)}</text>`;
     });
-
-    // COVID
     html+=`<rect x="${xp(5)}" y="${pT}" width="${xp(6)-xp(5)}" height="${cH}" fill="rgba(224,92,92,.07)"/>`;
-
-    // 民宿 line (left axis)
     const bnbPts=Y.bnb.count.map((v,i)=>`${xp(i)},${ypL(v)}`).join(' ');
     html+=`<polyline points="${bnbPts}" fill="none" stroke="var(--green)" stroke-width="1.5"/>`;
-    Y.bnb.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypL(v)}" r="2.5" fill="var(--green)"/>`; });
-
-    // 旅館業 line (left axis)
+    Y.bnb.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypL(v)}" r="2" fill="var(--green)"/>`; });
     const hotelPts=Y.hotel.count.map((v,i)=>`${xp(i)},${ypL(v)}`).join(' ');
     html+=`<polyline points="${hotelPts}" fill="none" stroke="var(--blue)" stroke-width="1.5"/>`;
-    Y.hotel.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypL(v)}" r="2.5" fill="var(--blue)"/>`; });
-
-    // 觀光旅館 line (right axis)
+    Y.hotel.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypL(v)}" r="2" fill="var(--blue)"/>`; });
     const tourPts=Y.tourism.count.map((v,i)=>`${xp(i)},${ypR(v)}`).join(' ');
     html+=`<polyline points="${tourPts}" fill="none" stroke="#E05C5C" stroke-width="1.5" stroke-dasharray="4,2"/>`;
-    Y.tourism.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypR(v)}" r="2.5" fill="#E05C5C"/>`; });
-
-    // Latest labels
-    const lastI=n-1;
-    html+=`<text x="${xp(lastI)+5}" y="${ypL(Y.bnb.count[lastI])+3}" font-size="8" fill="var(--green)">${(Y.bnb.count[lastI]/10000).toFixed(1)}萬</text>`;
-    html+=`<text x="${xp(lastI)+5}" y="${ypL(Y.hotel.count[lastI])+3}" font-size="8" fill="var(--blue)">${(Y.hotel.count[lastI]/1000).toFixed(1)}k</text>`;
-    html+=`<text x="${xp(lastI)+5}" y="${ypR(Y.tourism.count[lastI])+3}" font-size="8" fill="#E05C5C">${Y.tourism.count[lastI]}</text>`;
-
+    Y.tourism.count.forEach((v,i)=>{ html+=`<circle cx="${xp(i)}" cy="${ypR(v)}" r="2" fill="#E05C5C"/>`; });
     svg.innerHTML=html;
   }
 
   function roomChart(svgId){
     const svg=document.getElementById(svgId); if(!svg)return;
-    const W=svg.parentElement.offsetWidth-4||320;
+    const W=Math.max(svg.parentElement?.offsetWidth||0,260)-4;
     svg.setAttribute('width',W);
     const H=150;svg.setAttribute('height',H);
-    const pL=36,pR=8,pT=10,pB=22;
+    const pL=32,pR=8,pT=10,pB=22;
     const cW=W-pL-pR, cH=H-pT-pB;
     const n=yrs.length;
     const xStep=cW/(n-1);
@@ -3806,7 +3783,7 @@ function buildLodgingCharts(){
     [0,0.25,0.5,0.75,1].forEach(t=>{
       const y=pT+cH*(1-t);
       html+=`<line x1="${pL}" y1="${y}" x2="${pL+cW}" y2="${y}" stroke="var(--bd)" stroke-width="0.5"/>`;
-      html+=`<text x="${pL-3}" y="${y+3}" font-size="8" fill="var(--tx3)" text-anchor="end">${Math.round(maxY*t/1000)}k</text>`;
+      html+=`<text x="${pL-4}" y="${y+3}" font-size="8" fill="var(--tx3)" text-anchor="end">${Math.round(maxY*t/1000)}k</text>`;
     });
     yrs.forEach((yr,i)=>{
       if(i%2===0||i===n-1)
