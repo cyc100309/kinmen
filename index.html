@@ -662,13 +662,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 <!-- Daily chart -->
 <div class="lbl">
   <span>日別住宿率</span>
-  <select id="dailyMonthSel" onchange="setDailyMonth(this.value)"
-    style="font-size:11px;background:var(--sf2);color:var(--tx2);border:1px solid var(--bd);
-    border-radius:20px;padding:3px 10px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;outline:none;">
-    <option value="0">第1個月</option>
-    <option value="1">第2個月</option>
-    <option value="2">第3個月</option>
-  </select>
+  <div id="dailyMonthTabs" style="display:flex;gap:5px;"></div>
 </div>
 <div class="card">
   <div style="font-size:12px;font-weight:500;color:var(--tx);margin-bottom:10px;" id="dcTitle">2026年 五月・日別房使用率</div>
@@ -2024,15 +2018,20 @@ function setDailyMonth(idx){
 }
 
 function updateDailyMonthSelector(){
-  const sel=document.getElementById('dailyMonthSel');
-  if(!sel) return;
-  sel.innerHTML='';
+  const tabs=document.getElementById('dailyMonthTabs');
+  if(!tabs) return;
+  tabs.innerHTML='';
   dailyMonths.forEach((m,i)=>{
-    const opt=document.createElement('option');
-    opt.value=i;
-    opt.textContent=m?`${m.year}年${m.month}`:`第${i+1}個月（未上傳）`;
-    if(i===dailyViewIdx) opt.selected=true;
-    sel.appendChild(opt);
+    const label=m?`${m.year}年${m.month}`:`第${i+1}月`;
+    const btn=document.createElement('button');
+    btn.textContent=label;
+    btn.onclick=()=>setDailyMonth(i);
+    const isActive=i===dailyViewIdx;
+    btn.style.cssText=`font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;
+      font-family:'Noto Sans TC',sans-serif;border:1px solid ${isActive?'var(--ac)':'var(--bd)'};
+      background:${isActive?'var(--ac)':'var(--sf2)'};
+      color:${isActive?'#fff':'var(--tx2)'};transition:all .2s;`;
+    tabs.appendChild(btn);
   });
 }
 
