@@ -2306,6 +2306,42 @@ function showCSVStatus(msg,color){
 
 // Auto-load from Sheets on page open
 async function autoLoadSheets(){
+  // 優先嘗試 GitHub Actions 自動爬取的 prices.json
+  const PRICES_JSON='https://raw.githubusercontent.com/cyc100309/kinmen/main/prices.json';
+  try{
+    const res=await fetch(PRICES_JSON+'?t='+Date.now());
+    if(res.ok){
+      const data=await res.json();
+      if(data.hotels&&data.hotels.length){
+        let matched=0;
+        data.hotels.forEach(h=>{
+          const found=COMPETITORS.find(c=>
+            c.name===h.name||
+            c.sheetName===h.name||
+            c.name.slice(0,4)===h.name.slice(0,4)
+          );
+          if(found&&h.price>0){
+            found.price=h.price;
+            found.avail=h.avail!==false;
+            matched++;
+          } else if(found&&h.avail===false){
+            found.price=0;
+            found.avail=false;
+            matched++;
+          }
+        });
+        if(matched>0){
+          buildLists(); buildBarChart(); calcStats();
+          const el=document.getElementById('updateTime');
+          if(el) el.textContent='自動更新：'+data.updated;
+          saveCompData();
+          return;
+        }
+      }
+    }
+  }catch(e){}
+
+  // 備援：讀取 Google Sheets CSV
   try{
     const url=getSheetsUrl();
     if(!url) return;
@@ -2328,15 +2364,10 @@ async function autoLoadSheets(){
         const bn=c.name.replace(/[\s（）()]/g,'');
         return a===b||a===bn||b.includes(a.slice(0,4))||a.includes(b.slice(0,4));
       });
-      if(found){
-        found.price=price;
-        found.avail=avail;
-        if(rating>0) found.rating=rating;
-        matched++;
-      }
+      if(found){ found.price=price; found.avail=avail; if(rating>0) found.rating=rating; matched++; }
     });
     if(matched>0){ buildLists(); buildBarChart(); calcStats(); stampUpdateTime(); saveCompData(); }
-  }catch(e){ /* silent */ }
+  }catch(e){}
 }
 
 function saveCompData(){
