@@ -509,13 +509,9 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <input class="cfg-input" id="cfgCity" type="text" placeholder="例：金門縣">
     </div>
     <div class="cfg-field">
-      <div class="cfg-lbl">Groq API Key（免費 AI 建議）</div>
-      <input class="cfg-input" id="cfgGroqKey" type="password"
-        placeholder="gsk_..." autocomplete="off"
-        style="font-family:'DM Mono',monospace;font-size:10px;">
-      <div style="font-size:9px;color:var(--tx3);margin-top:3px;">
-        免費申請：<a href="https://console.groq.com" target="_blank"
-        style="color:var(--ac);">console.groq.com</a>・不需信用卡
+      <div class="cfg-lbl">AI 行銷建議</div>
+      <div style="font-size:11px;color:var(--tx3);line-height:1.7;">
+        透過雲端同步自動啟用，無需額外設定。
       </div>
     </div>
     <div class="cfg-field">
@@ -2671,15 +2667,6 @@ function renderAI(loading){
   document.getElementById('aiBadge').textContent='示範・點擊重新生成';
 }
 async function genAI(){
-  const groqKey=localStorage.getItem('groq_api_key')||'';
-  if(groqKey.length<10){
-    document.getElementById('aiBadge').textContent='⚠ 請設定 Groq Key';
-    document.getElementById('aiContent').innerHTML=
-      '<div style="font-size:11px;color:var(--red);padding:8px;line-height:1.8;">'
-      +'請至 ⚙️ 設定輸入 Groq API Key（免費）<br>'
-      +'申請：<a href="https://console.groq.com" target="_blank" style="color:var(--ac);">console.groq.com</a></div>';
-    return;
-  }
   const d=curRows[curIdx], p=prevRows[curIdx];
   if(!d||d.stays===undefined){
     document.getElementById('aiBadge').textContent='⚠ 尚未上傳資料';
@@ -2688,7 +2675,7 @@ async function genAI(){
     return;
   }
   renderAI(true);
-  document.getElementById('aiBadge').textContent='Groq 生成中...';
+  document.getElementById('aiBadge').textContent='AI 生成中...';
   try{
     const gpr=d.stays>0?(d.guests/d.stays).toFixed(1):0;
     const yoy=p&&p.room>0?(d.room-p.room).toFixed(1):'未知';
@@ -2766,22 +2753,16 @@ ${newsCtx}
 每點含2-3個具體可執行步驟，直接寫建議，不用開頭說「根據數據」。`;
 
     let text='';
-    // Groq API（免費，OpenAI 相容格式）
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    // 透過 Apps Script 呼叫 Groq（金鑰存在 Apps Script，不需本機設定）
+    const appsUrl=getCloudUrl();
+    const res=await fetch(appsUrl,{
       method:'POST',
-      headers:{'Content-Type':'application/json',
-               'Authorization':`Bearer ${groqKey}`},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[{role:'user',content:prompt}],
-        max_tokens:1000,temperature:0.7
-      })});
-    if(!res.ok){
-      const e=await res.json().catch(()=>({}));
-      throw new Error(e?.error?.message||`HTTP ${res.status}`);
-    }
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'ai',prompt})
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data=await res.json();
-    if(data.error) throw new Error(data.error.message||'Groq 錯誤');
+    if(data.error) throw new Error(data.error.message||'AI 錯誤');
     text=data.choices?.[0]?.message?.content||'';
     const paras=text.split(/\n\n+/).filter(p=>p.trim().length>10);
     let html='',num=1;
@@ -2791,7 +2772,7 @@ ${newsCtx}
       num++;
     });
     document.getElementById('aiContent').innerHTML=html||`<div class="ai-item"><div class="ai-num">💡</div><div class="ai-text">${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
-    document.getElementById('aiBadge').textContent='✓ Groq 已更新';
+    document.getElementById('aiBadge').textContent='✓ AI 已更新';
   }catch(e){
     renderAI(false);
     const msg=e.message||'未知錯誤';
