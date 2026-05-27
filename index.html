@@ -2322,13 +2322,15 @@ async function autoLoadSheets(){
           );
           if(found&&h.price>0){
             found.price=h.price;
-            found.avail=h.avail!==false;
+            found.avail=true;
             matched++;
-          } else if(found&&h.avail===false){
+          } else if(found&&h.avail===false&&h.price===0){
+            // 明確售完
             found.price=0;
             found.avail=false;
             matched++;
           }
+          // h.ok===false 或 avail===null：資料未知，維持原本狀態
         });
         if(matched>0){
           buildLists(); buildBarChart(); calcStats();
