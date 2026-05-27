@@ -3060,7 +3060,8 @@ function loadSavedOccData(){
 
 // ── 雲端同步（Google Apps Script）──────────────────────────
 function getCloudUrl(){
-  try{ return localStorage.getItem('cloudUrl')||''; }catch(e){ return ''; }
+  const DEFAULT='https://script.google.com/macros/s/AKfycbwinsU-QJg_9zWlQp0ByTINq-bEBXH-mFI6Rswh0xa-owagFAa5iY5Cc_qiYjrq3D4o/exec';
+  try{ return localStorage.getItem('cloudUrl')||DEFAULT; }catch(e){ return DEFAULT; }
 }
 
 function showSyncStatus(msg,ok){
