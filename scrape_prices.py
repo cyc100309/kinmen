@@ -119,14 +119,18 @@ def scrape(check_in, check_out):
                     name = (prop.get('hotelName') or
                             prop.get('PropertyName') or
                             prop.get('name') or '')
-                    price = (prop.get('displayPrice') or
-                             (prop.get('lowestAveragePrice') or {}).get('perRoomPerNight') or
-                             prop.get('price') or 0)
+                    price = int(
+                        prop.get('displayPrice') or
+                        (prop.get('lowestAveragePrice') or {}).get('perRoomPerNight') or
+                        prop.get('minDisplayPrice') or
+                        prop.get('price') or 0
+                    )
                     matched = match_hotel(name)
-                    if matched and int(price) > 0:
-                        results[matched] = {
-                            "price": int(price), "avail": True
-                        }
+                    if matched and price > 0:
+                        # 若已有資料，保留較低的那個
+                        existing = results.get(matched, {}).get('price', 99999)
+                        if price < existing:
+                            results[matched] = {"price": price, "avail": True}
             except:
                 pass
         print(f"  API 攔截：取得 {len(results)} 家")
@@ -155,23 +159,31 @@ def scrape(check_in, check_out):
                         if not matched or matched in results:
                             continue
 
-                        # 售完判斷
+                        # 售完判斷：只有搜尋結果卡片上明確顯示「沒有空房」才算售完
+                        # 注意：不用 soldOut 因為頁面JS裡常有此字串
                         card_html = card.inner_html()
-                        if any(x in card_html for x in
-                               ["沒有空房", "Sold out", "soldOut"]):
+                        if "住宿於你所選擇期間沒有空房" in card_html:
                             results[matched] = {"price": 0, "avail": False}
                             continue
 
-                        # 取得價格
-                        price_el = (
-                            card.query_selector("[data-selenium='display-price']") or
-                            card.query_selector("[class*='display-price']") or
-                            card.query_selector("[class*='Price']")
+                        # 取得最低價格（找所有價格元素，取最小值）
+                        price_els = card.query_selector_all(
+                            "[data-selenium='display-price'], "
+                            "[class*='display-price'], "
+                            "[class*='lowest-price'], "
+                            "[class*='Price']"
                         )
-                        if price_el:
-                            price = parse_price(price_el.inner_text())
-                            if price > 0:
-                                results[matched] = {"price": price, "avail": True}
+                        all_prices = []
+                        for pel in price_els:
+                            try:
+                                p = parse_price(pel.inner_text())
+                                if p > 0:
+                                    all_prices.append(p)
+                            except:
+                                pass
+                        if all_prices:
+                            price = min(all_prices)  # 取最低價
+                            results[matched] = {"price": price, "avail": True}
                     except:
                         continue
             except Exception as e:
