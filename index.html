@@ -3805,10 +3805,10 @@ function buildLodgingCharts(){
   lineChart('lodgingOccSvg',[
     {data:Y.tourism.occ,color:'#E05C5C'},
     {data:Y.hotel.occ,color:'var(--blue)'}
-  ],0,80,v=>v+'%');
+  ],0,80,v=>Math.round(v)+'%');
   lineChart('lodgingAdrSvg',[
     {data:Y.tourism.adr,color:'var(--ac)'}
-  ],2000,5000,v=>(v/1000).toFixed(1)+'k');
+  ],2000,5000,v=>Math.round(v/1000*10)/10+'k');
 }
 
 // Call when hotel sub-page is shown
