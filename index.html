@@ -1908,12 +1908,11 @@ function buildTabs(){
       b.scrollIntoView({inline:'nearest',behavior:'smooth'}); };
     el.appendChild(b);
   });
-  // Scroll to start first so user sees month 1
-  el.scrollLeft=0;
-  // Then scroll selected into view after brief delay
+  // 將「當月」捲到最左邊，過期月份藏在左側（往左拉才看得到）
   setTimeout(()=>{
-    if(el.children[curIdx]) el.children[curIdx].scrollIntoView({inline:'nearest',behavior:'smooth'});
-  },100);
+    const cur=el.children[curIdx];
+    if(cur) el.scrollLeft=cur.offsetLeft-el.offsetLeft;
+  },80);
 }
 
 // ── KPI + restaurant render ───────────────────────────────────
@@ -2439,6 +2438,7 @@ let dailyViewIdx=0;
 function setDailyMonth(idx){
   dailyViewIdx=parseInt(idx);
   buildDailyChart();
+  updateDailyMonthSelector();
 }
 
 function updateDailyMonthSelector(){
