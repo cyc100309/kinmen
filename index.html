@@ -138,6 +138,37 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   font-size:11px;color:var(--tx2);line-height:1.7;margin-top:8px;
   border-left:2px solid var(--ac);white-space:pre-line;}
 
+/* Booking structure — YoY compare blocks */
+.gi-block{padding:2px 0;}
+.gi-block-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.gi-block-title{font-size:11px;color:var(--tx2);font-weight:500;}
+.gi-yoy{font-size:11px;font-family:'DM Mono',monospace;font-weight:500;
+  padding:2px 8px;border-radius:20px;}
+.gi-yoy.up{color:var(--green);background:rgba(76,175,130,.12);}
+.gi-yoy.dn{color:var(--red);background:rgba(224,92,92,.12);}
+.gi-yoy.neu{color:var(--tx3);background:var(--sf2);}
+.gi-compare{display:flex;align-items:center;gap:8px;}
+.gi-cmp-item{flex:1;background:var(--sf2);border-radius:var(--rs);
+  padding:9px 6px;text-align:center;border:1px solid var(--bd);}
+.gi-cmp-lbl{font-size:10px;color:var(--tx3);margin-bottom:4px;}
+.gi-cmp-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;line-height:1;}
+.gi-cmp-val.prev{color:var(--tx3);}
+.gi-cmp-val.cur{color:var(--ac2);}
+.gi-cmp-val small{font-size:10px;color:var(--tx3);font-weight:400;margin-left:1px;}
+.gi-cmp-arrow{color:var(--tx3);font-size:14px;flex-shrink:0;}
+.gi-divider{height:1px;background:var(--bd);margin:13px 0;}
+/* Stacked 100% income mix */
+.gi-stack{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--sf3);}
+.gi-stack-seg{height:100%;transition:width .5s;}
+.gi-stack-seg.acc{background:linear-gradient(90deg,#5B9BD5,#8BBDE0);}
+.gi-stack-seg.rest{background:linear-gradient(90deg,#C8963E,#E8B86D);}
+.gi-stack-legend{display:flex;gap:16px;margin-top:9px;}
+.gi-leg{font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:5px;}
+.gi-leg b{font-family:'DM Mono',monospace;color:var(--tx);font-weight:500;}
+.gi-leg .dot{width:9px;height:9px;border-radius:2px;display:inline-block;}
+.gi-leg .dot.acc{background:#5B9BD5;}
+.gi-leg .dot.rest{background:#C8963E;}
+
 /* Daily chart */
 .dc-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--sf3) transparent;}
 .dc-legend{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;}
@@ -582,7 +613,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
         </div>
       </div>
     </div>
-    <div style="flex:1;">
+    <div style="flex:1;text-align:right;">
       <div class="kl">YoY 住宿率</div>
       <div class="kv" id="v-yoy" style="font-size:18px;"><span class="neu">—</span></div>
       <div style="margin-top:12px;">
@@ -591,10 +622,25 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       </div>
     </div>
   </div>
-  <div class="kpi b">
-    <div class="kl">住宿人次</div>
-    <div class="kv" id="v-guests">—<span class="ku"> 人</span></div>
-    <div class="kd" id="d-guests"><span class="neu">—</span></div>
+  <div class="kpi b" style="display:flex;gap:10px;align-items:flex-start;">
+    <div style="flex:1;">
+      <div class="kl">住宿人次</div>
+      <div class="kv" id="v-guests">—<span class="ku"> 人</span></div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div style="font-size:9px;color:var(--tx3);font-family:'DM Mono',monospace;letter-spacing:.06em;">YoY</div>
+      <div id="d-guests" style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;line-height:1.1;margin-top:1px;"><span class="neu">—</span></div>
+    </div>
+  </div>
+  <div class="kpi am" style="display:flex;gap:10px;align-items:flex-start;">
+    <div style="flex:1;">
+      <div class="kl">每房平均人數</div>
+      <div class="kv" id="v-gpr">—<span class="ku"> 人/房</span></div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div style="font-size:9px;color:var(--tx3);font-family:'DM Mono',monospace;letter-spacing:.06em;">YoY</div>
+      <div id="d-gpr" style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;line-height:1.1;margin-top:1px;"><span class="neu">—</span></div>
+    </div>
   </div>
   <div class="kpi rd">
     <div class="kl">住房數</div>
@@ -610,6 +656,17 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <div class="kl">住宿收入</div>
     <div class="kv" id="v-rev" style="font-size:17px;">—</div>
     <div class="kd" id="d-rev"><span class="neu">—</span></div>
+  </div>
+  <div class="kpi wide">
+    <div class="kl" style="margin-bottom:8px;">收入結構（住宿 vs 餐飲）</div>
+    <div class="gi-stack" id="gi-mix-bar">
+      <div class="gi-stack-seg acc" id="gi-mix-acc" style="width:0%;"></div>
+      <div class="gi-stack-seg rest" id="gi-mix-rest" style="width:0%;"></div>
+    </div>
+    <div class="gi-stack-legend">
+      <span class="gi-leg"><i class="dot acc"></i>住宿 <b id="gi-mix-acc-pct">—</b></span>
+      <span class="gi-leg"><i class="dot rest"></i>餐飲 <b id="gi-mix-rest-pct">—</b></span>
+    </div>
   </div>
 </div>
 
@@ -646,31 +703,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   </div>
 </div>
 
-<!-- Group analysis -->
-<div class="lbl"><span>訂房結構分析</span></div>
-<div class="card">
-  <div class="card-hdr">
-    <div class="card-title">散客 vs 團體</div>
-    <div class="tag mix" id="giTag">分析中</div>
-  </div>
-  <div class="gi-row">
-    <div class="gi-lbl">平均人 / 房</div>
-    <div class="gi-bar-wrap"><div class="gi-bar" id="gi-b1" style="background:var(--blue);width:0%;"></div></div>
-    <div class="gi-val" id="gi-v1">—</div>
-  </div>
-  <div class="gi-row">
-    <div class="gi-lbl">人次 YoY</div>
-    <div class="gi-bar-wrap"><div class="gi-bar" id="gi-b2" style="background:var(--pur);width:0%;"></div></div>
-    <div class="gi-val" id="gi-v2">—</div>
-  </div>
-  <div class="gi-row">
-    <div class="gi-lbl">住宿 vs 餐飲</div>
-    <div class="gi-bar-wrap"><div class="gi-bar" id="gi-b3" style="background:var(--green);width:0%;"></div></div>
-    <div class="gi-val" id="gi-v3">—</div>
-  </div>
-  <div class="insight" id="giInsight">載入中...</div>
-</div>
 <!-- Daily chart -->
+<div id="dailyMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;padding:4px 18px 8px;justify-content:flex-end;"></div>
 <div class="card">
   <div style="font-size:12px;font-weight:500;color:var(--tx);margin-bottom:10px;" id="dcTitle">2026年 五月・日別房使用率</div>
   <div class="dc-wrap">
@@ -800,10 +834,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 <!-- Sub: 觀光行事曆 -->
 <div id="occ-sub-cal" style="display:none;padding:12px 14px 80px;">
   <div style="font-size:11px;color:var(--tx3);margin-bottom:12px;line-height:1.6;">
-    金門全年觀光節慶與假期行事曆，助您提前規劃促銷時機。
-    <span style="color:var(--ac);">● 峰期</span>
-    <span style="color:var(--green);margin-left:6px;">● 次峰</span>
-    <span style="color:var(--tx3);margin-left:6px;">● 平日</span>
+    金門全年觀光節慶與假期行事曆，每月日曆下方附當月活動說明，有確定日期者已於日曆上標記。
   </div>
   <div id="calGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
@@ -1851,6 +1882,13 @@ function deltaStr(now,prev,unit,invert=false){
   else { ds=(d>=0?'+':'')+(Math.abs(d)<10?d.toFixed(1):Math.round(d).toLocaleString()); }
   return `<span class="${up?'up':'dn'}">${ds}${unit} vs 去年</span>`;
 }
+// 大字 YoY 差值（用於人次、每房均人數）：只顯示差值數字，漲綠跌紅
+function yoyBig(now,prev,dp=0){
+  if(!prev||prev===0||!now) return '<span class="neu" style="font-size:13px;">—</span>';
+  const diff=now-prev, up=diff>=0;
+  const v=dp>0?Math.abs(diff).toFixed(dp):Math.round(Math.abs(diff)).toLocaleString();
+  return `<span class="${up?'up':'dn'}">${up?'+':'−'}${v}</span>`;
+}
 
 function renderMonth(i){
   const d=curRows[i], p=prevRows[i];
@@ -1874,11 +1912,31 @@ function renderMonth(i){
     document.getElementById('v-'+id).innerHTML=(val>0?val.toLocaleString():'—')+(val>0?`<span class="ku"> ${unit}</span>`:'');
     if(document.getElementById('d-'+id)) document.getElementById('d-'+id).innerHTML=deltaStr(val,pval,unit);
   }
-  setK('guests',d.guests,'人',p?.guests);
   setK('stays',d.stays,'房晚',p?.stays);
   setK('adr',d.adr,'元',p?.adr);
+  // 住宿人次 YoY（右側大字，僅顯示差值）
+  document.getElementById('v-guests').innerHTML=(d.guests>0?d.guests.toLocaleString():'—')+(d.guests>0?'<span class="ku"> 人</span>':'');
+  document.getElementById('d-guests').innerHTML=yoyBig(d.guests,p?.guests);
+  // 每房平均人數（取代原訂房結構分析）
+  const gprCur=d.stays>0?d.guests/d.stays:0;
+  const gprPrev=(p&&p.stays>0)?p.guests/p.stays:0;
+  document.getElementById('v-gpr').innerHTML=(gprCur>0?gprCur.toFixed(2):'—')+(gprCur>0?'<span class="ku"> 人/房</span>':'');
+  document.getElementById('d-gpr').innerHTML=yoyBig(gprCur,gprPrev,2);
   document.getElementById('v-rev').innerHTML=d.rev>0?fmtRev(d.rev)+'<span class="ku"> 元</span>':'—';
   document.getElementById('d-rev').innerHTML=(p?.rev>0&&d.rev>0)?deltaStr(d.rev,p.rev,'元'):'<span class="neu">—</span>';
+
+  // 收入結構：住宿 vs 餐飲（兩者合計為100%）
+  (function(){
+    const total=d.rev+d.rest_total;
+    const accPct=total>0?Math.round(d.rev/total*100):0;
+    const restPct=total>0?100-accPct:0;
+    const accEl=document.getElementById('gi-mix-acc'), restEl=document.getElementById('gi-mix-rest');
+    if(accEl) accEl.style.width=accPct+'%';
+    if(restEl) restEl.style.width=restPct+'%';
+    const ap=document.getElementById('gi-mix-acc-pct'), rp=document.getElementById('gi-mix-rest-pct');
+    if(ap) ap.textContent=total>0?accPct+'%':'—';
+    if(rp) rp.textContent=total>0?restPct+'%':'—';
+  })();
 
   // Restaurant
   const maxR=Math.max(d.rest_am,d.rest_noon,d.rest_pm,1);
@@ -1894,7 +1952,6 @@ function renderMonth(i){
   document.getElementById('rd-total').innerHTML=(p?.rest_total>0&&d.rest_total>0)
     ?deltaStr(d.rest_total,p.rest_total,'元'):'<span class="neu">—</span>';
 
-  renderGroupAnalysis(d,p);
   genAI();
 }
 
@@ -1961,49 +2018,215 @@ function occView(mode, btn){
   if(mode==='cal') buildCalendar();
 }
 
+// ── 2026-2027 金門觀光行事曆資料 ─────────────────────────────────────
+// 資料來源：金門觀光旅遊網、交通部觀光署、金門縣政府新聞（2026/5 查證）
+const CAL_EVENTS = [
+  // ── 2026年5月 ──
+  {y:2026,m:5,d:1,name:'浯島城隍文化季',type:'major',end:28,note:'金門最大宗教盛事，農曆4/12迎城隍遶境巡安為最高潮（國家重要民俗，346年傳承）',icon:'⛩️',src:'觀光署'},
+  {y:2026,m:5,d:1,name:'購物嘉年華',type:'cultural',end:30,note:'買翻金門島一路抽好禮（5/1-6/30）',icon:'🛍️',src:'縣府'},
+  // ── 2026年6月 ──
+  {y:2026,m:6,d:1,name:'購物嘉年華（延續）',type:'cultural',end:30,note:'5/1-6/30',icon:'🛍️',src:'縣府'},
+  {y:2026,m:6,d:null,name:'金寧！音浪玩水節（夏季）',type:'major',note:'夏季主打活動，吸引大量年輕旅客',icon:'🎵'},
+  {y:2026,m:6,d:19,name:'端午節連假',type:'holiday',end:21,note:'3天連假，旅客高峰',icon:'🏮'},
+  // ── 2026年7月 ──
+  {y:2026,m:7,d:1,name:'親子嘉年華（暑假系列）',type:'major',end:31,note:'金門親子體驗遊 7/1-8/31，10項系列活動',icon:'🎪',src:'縣府'},
+  {y:2026,m:7,d:1,name:'運動i台灣兒童游泳體驗營',type:'season',end:31,note:'7/1-8/31',icon:'🏊',src:'縣府'},
+  {y:2026,m:7,d:1,name:'暑假旺季開始',type:'season',note:'旺季，住宿率衝高峰',icon:'☀️'},
+  {y:2026,m:7,d:10,name:'後浦十六藝文特區音樂季',type:'cultural',end:29,note:'7/10-8/29，週末音樂演出',icon:'🎶',src:'縣府'},
+  {y:2026,m:7,d:11,name:'水獺阿特快閃：島嶼探險之旅',type:'cultural',end:31,note:'7/11-8/9',icon:'🦦',src:'縣府'},
+  {y:2026,m:7,d:15,name:'報報小職人：親子新聞印報體驗',type:'cultural',note:'7/15 與 8/12 兩場',icon:'📰',src:'縣府'},
+  {y:2026,m:7,d:24,name:'金湖海灘花蛤季',type:'major',end:26,note:'7/24-7/26',icon:'🐚',src:'縣府'},
+  {y:2026,m:7,d:25,name:'烈嶼親子童玩節',type:'cultural',end:26,note:'7/25-7/26',icon:'🎏',src:'縣府'},
+  {y:2026,m:7,d:25,name:'金門海上長泳暨金廈泳渡',type:'major',end:26,note:'7/25-7/26',icon:'🏊',src:'縣府'},
+  // ── 2026年8月 ──
+  {y:2026,m:8,d:1,name:'金寧！音浪玩水節',type:'major',end:5,note:'8/1-8/5，暑假高峰，外來旅客最多',icon:'🎵',src:'縣府'},
+  {y:2026,m:8,d:1,name:'尋找風獅爺APP',type:'cultural',end:null,note:'8/1-11/30 長期活動',icon:'🦁',src:'縣府'},
+  {y:2026,m:8,d:12,name:'報報小職人（第二場）',type:'cultural',note:'7/15、8/12',icon:'📰',src:'縣府'},
+  {y:2026,m:8,d:23,name:'八二三砲戰紀念日',type:'major',note:'金門特有，紀念活動吸引外縣市旅客',icon:'🎖️'},
+  {y:2026,m:8,d:31,name:'暑假結束 / 親子嘉年華最後一日',type:'season',icon:'📚'},
+  // ── 2026年9月 ──
+  {y:2026,m:9,d:1,name:'中秋博狀元餅',type:'major',end:25,note:'9/1-9/25，傳承超過300年特色民俗',icon:'🥮',src:'縣府'},
+  {y:2026,m:9,d:25,name:'中秋節連假',type:'holiday',end:27,note:'3天連假，旅客回流',icon:'🥮'},
+  // ── 2026年10月 ──
+  {y:2026,m:10,d:1,name:'老兵召集令',type:'cultural',end:null,note:'10/1-12/15，廣受老兵喜愛',icon:'🎖️',src:'縣府'},
+  {y:2026,m:10,d:9,name:'國慶連假',type:'holiday',end:12,note:'4天連假，旅遊旺季',icon:'🎌'},
+  {y:2026,m:10,d:25,name:'台灣光復暨金門古寧頭大捷紀念日',type:'major',note:'金門特有假日，地方慶典',icon:'🎖️'},
+  {y:2026,m:10,d:26,name:'古寧頭大捷補假',type:'holiday',icon:'📅'},
+  {y:2026,m:10,d:null,name:'金門島嶼生活節（秋冬系列）',type:'cultural',note:'音樂×市集×微醺體驗，五鄉鎮輪辦',icon:'🎪'},
+  // ── 2026年11月 ──
+  {y:2026,m:11,d:null,name:'島嶼生活節 各場次',type:'cultural',note:'持續各鄉鎮場次',icon:'🎪'},
+  {y:2026,m:11,d:null,name:'金門單車節',type:'major',note:'每年約11月，吸引大量自行車旅客',icon:'🚲'},
+  // ── 2026年12月 ──
+  {y:2026,m:12,d:15,name:'老兵召集令（最後一日）',type:'cultural',note:'10/1-12/15',icon:'🎖️',src:'縣府'},
+  {y:2026,m:12,d:null,name:'島嶼生活節 壓軸場',type:'cultural',icon:'🎪'},
+  {y:2026,m:12,d:25,name:'行憲紀念日',type:'holiday',note:'金門特有放假',icon:'📅'},
+  {y:2026,m:12,d:31,name:'金門跨年晚會',type:'major',note:'莒光共融公園，大型音樂煙火，萬人出席',icon:'🎆'},
+  // ── 2027年1月 ──
+  {y:2027,m:1,d:null,name:'農曆春節連假',type:'holiday',note:'約1月下旬，返鄉旺季',icon:'🧧'},
+  {y:2027,m:1,d:23,name:'2027金門馬拉松',type:'major',note:'第20屆，國際賽事，大量外縣市旅客（往年約1月下旬）',icon:'🏃'},
+  // ── 2027年2月 ──
+  {y:2027,m:2,d:null,name:'島嶼生活節 終站場',type:'cultural',icon:'🎪'},
+  {y:2027,m:2,d:null,name:'元宵節',type:'holiday',note:'燈籠展示活動',icon:'🏮'},
+  {y:2027,m:2,d:28,name:'228和平紀念日連假',type:'holiday',note:'3天連假',icon:'📅'},
+  // ── 2027年3月 ──
+  {y:2027,m:3,d:null,name:'春季踏青旺季',type:'season',icon:'🌸'},
+  // ── 2027年4月 ──
+  {y:2027,m:4,d:2,name:'清明連假',type:'holiday',end:5,note:'4天連假',icon:'🌿'},
+  {y:2027,m:4,d:null,name:'石蚵文化季',type:'cultural',note:'石蚵採收季節，在地特色體驗',icon:'🦪'},
+  {y:2027,m:4,d:null,name:'浯島城隍文化季 籌備',type:'cultural',note:'5月起正式展開',icon:'⛩️'},
+  // ── 2027年5月 ──
+  {y:2027,m:5,d:null,name:'浯島城隍文化季',type:'major',note:'金門最大宗教盛事，約1個月活動',icon:'⛩️'},
+  {y:2027,m:5,d:null,name:'石蚵文化季（延續）',type:'cultural',icon:'🦪'},
+];
+
+// ── 體育活動（研習／競賽）──────────────────────────────────────
+// ⚠️ 待補：Facebook 社團檔案無法自動抓取，請手動將活動名稱與日期填入下方陣列
+// 格式範例：{y:2026,m:6,d:5,name:'金湖盃桌球賽',type:'sport',end:7,note:'6/5-6/7 金湖綜合體育館',icon:'🏓'}
+const SPORTS_EVENTS = [
+  // 範例（取自金湖鎮公所公告，可保留或刪除）：
+  {y:2026,m:6,d:5,name:'金湖盃桌球賽',type:'sport',end:7,note:'6/5-6/7（五六日）金湖綜合體育館，報名至5/1',icon:'🏓',src:'金湖鎮公所'},
+  // ── 在此貼上更多體育研習／競賽 ──
+];
+
+// 顏色與分類設定
+const CAL_TYPE = {
+  major:   {bg:'rgba(200,150,62,.18)',border:'var(--ac)',dot:'var(--ac)',   tag:'大型活動'},
+  cultural:{bg:'rgba(59,130,246,.12)',border:'var(--blue)',dot:'var(--blue)',tag:'節慶文化'},
+  holiday: {bg:'rgba(16,185,129,.12)',border:'var(--green)',dot:'var(--green)',tag:'國定假日'},
+  season:  {bg:'rgba(139,92,246,.12)',border:'var(--pur)',dot:'var(--pur)',  tag:'旅遊旺季'},
+  sport:   {bg:'rgba(224,92,92,.12)', border:'var(--red)', dot:'var(--red)', tag:'體育活動'},
+  exhibit: {bg:'rgba(120,120,120,.1)',border:'#666',dot:'#666',             tag:'展覽'},
+};
+
 function buildCalendar(){
   const grid=document.getElementById('calGrid');
-  if(!grid||grid.children.length>0)return; // already built
+  if(!grid) return;
+  grid.innerHTML='';
+
+  const TODAY=new Date(2026,4,29); // 2026/5/29
+  const CY=TODAY.getFullYear(), CM=TODAY.getMonth()+1;
   const MN=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
-  let html='';
-  for(let m=1;m<=12;m++){
-    const lvl=MONTH_LEVEL[m];
-    const acol=LEVEL_COLOR[lvl];
-    const albl=LEVEL_LABEL[lvl];
-    const events=FESTIVALS[m]||[];
-    const hols=HOLIDAYS_2026[m]||[];
-    html+=`
-    <div style="background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);
-      border-left:3px solid ${acol};overflow:hidden;">
-      <!-- Month Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;
-        padding:8px 12px;background:var(--sf2);">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:14px;font-weight:700;color:var(--tx);">${m}月</span>
-          <span style="font-size:10px;color:var(--tx3);">${MN[m-1]}</span>
-        </div>
-        <span style="font-size:10px;color:${acol};font-weight:600;">${albl}</span>
+  const DNAMES=['日','一','二','三','四','五','六'];
+
+  // 合併觀光活動 + 體育活動
+  const ALL_EVENTS=CAL_EVENTS.concat(typeof SPORTS_EVENTS!=='undefined'?SPORTS_EVENTS:[]);
+
+  // 圖例
+  const leg=document.createElement('div');
+  leg.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;';
+  leg.innerHTML=Object.entries(CAL_TYPE).map(([k,v])=>
+    `<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--tx3);">
+      <div style="width:8px;height:8px;border-radius:50%;background:${v.dot};"></div>${v.tag}
+    </div>`).join('');
+  grid.appendChild(leg);
+
+  // 逐月：月曆 + 該月活動說明 交錯排列（12個月）
+  for(let mi=0;mi<12;mi++){
+    let cy=CY, cm=CM+mi;
+    if(cm>12){cm-=12;cy++;}
+    const isOpen=(mi===0);
+    const firstDay=new Date(cy,cm-1,1);
+    const lastDay=new Date(cy,cm,0).getDate();
+    const startWk=firstDay.getDay();
+
+    // 當月事件
+    const mevts=ALL_EVENTS.filter(e=>e.y===cy&&e.m===cm);
+    // 有確定日期者，計算要標記的日子
+    const dotDays=new Set(), majorDays=new Set(), holDays=new Set(), sportDays=new Set();
+    mevts.forEach(e=>{
+      if(!e.d) return;
+      const lastD=e.end||e.d;
+      for(let dd=e.d;dd<=lastD;dd++){
+        dotDays.add(dd);
+        if(e.type==='major') majorDays.add(dd);
+        else if(e.type==='holiday') holDays.add(dd);
+        else if(e.type==='sport') sportDays.add(dd);
+      }
+    });
+    const hasMajor=mevts.some(e=>e.type==='major');
+
+    // ── 容器卡片 ──
+    const card=document.createElement('div');
+    card.style.cssText=`background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);
+      ${hasMajor?'border-left:3px solid var(--ac);':''}margin-bottom:10px;overflow:hidden;`;
+
+    // 標頭（可收合，控制整個月份區塊）
+    const hdr=document.createElement('div');
+    hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--sf2);';
+    hdr.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:15px;font-weight:700;color:var(--tx);">${cy}年 ${MN[cm-1]}</span>
+        ${mi===0?'<span style="font-size:9px;padding:2px 7px;border-radius:10px;background:var(--ac);color:#0F1923;font-weight:700;">本月</span>':''}
+        ${hasMajor?'<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(200,150,62,.2);color:var(--ac);">🔴 大型活動</span>':''}
       </div>
-      <!-- 國定假日 -->
-      ${hols.length?`<div style="padding:6px 12px 0;display:flex;flex-wrap:wrap;gap:4px;">
-        ${hols.map(h=>`<span style="font-size:9px;padding:2px 7px;border-radius:10px;
-          background:${h.peak?'rgba(200,150,62,.2)':'rgba(255,255,255,.06)'};
-          border:1px solid ${h.peak?'var(--ac)':'var(--bd)'};
-          color:${h.peak?'var(--ac)':'var(--tx3)'};">
-          ${h.n}${h.days?`（${h.days}天）`:''}
-        </span>`).join('')}
-      </div>`:''}
-      <!-- 節慶活動 -->
-      <div style="padding:6px 12px 10px;">
-        ${events.map(e=>`<div style="display:flex;align-items:flex-start;gap:6px;margin-top:4px;">
-          <span style="color:${acol};flex-shrink:0;font-size:10px;margin-top:1px;">▸</span>
-          <span style="font-size:11px;color:var(--tx2);line-height:1.5;">${e}</span>
-        </div>`).join('')}
-      </div>
-    </div>`;
+      <span id="calArrow${mi}" style="font-size:12px;color:var(--tx3);transition:.2s;">${isOpen?'▲':'▼'}</span>`;
+
+    // 內容（月曆 + 活動說明）
+    const body=document.createElement('div');
+    body.id=`calBody${mi}`;
+    body.style.cssText=`display:${isOpen?'block':'none'};`;
+
+    // 1) 迷你月曆
+    let g=`<div style="padding:10px 12px 6px;"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">`;
+    DNAMES.forEach((d,i)=>g+=`<div style="text-align:center;font-size:9px;color:${i===0?'#E05C5C':i===6?'#3B82F6':'var(--tx3)'};padding:2px 0;">${d}</div>`);
+    g+=`</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">`;
+    for(let i=0;i<startWk;i++) g+=`<div></div>`;
+    for(let dd=1;dd<=lastDay;dd++){
+      const isPast=new Date(cy,cm-1,dd)<new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+      const isToday=cy===CY&&cm===CM&&dd===TODAY.getDate();
+      const wk=(startWk+dd-1)%7;
+      const isMajor=majorDays.has(dd), isHol=holDays.has(dd), isSport=sportDays.has(dd), hasDot=dotDays.has(dd);
+      let bg='transparent', col='var(--tx2)', fw='400';
+      if(isToday){bg='var(--ac)';col='#0F1923';fw='700';}
+      else if(isMajor){bg='rgba(200,150,62,.25)';col='var(--ac)';}
+      else if(isSport){bg='rgba(224,92,92,.18)';col='var(--red)';}
+      else if(isHol){bg='rgba(16,185,129,.15)';col='var(--green)';}
+      else if(wk===0)col='rgba(224,92,92,.7)';
+      else if(wk===6)col='rgba(59,130,246,.7)';
+      if(isPast&&!isToday)col='var(--tx3)';
+      const dotColor=isMajor?'var(--ac)':isSport?'var(--red)':isHol?'var(--green)':'var(--blue)';
+      g+=`<div style="text-align:center;padding:3px 1px;border-radius:4px;background:${bg};position:relative;">
+        <span style="font-size:10px;color:${col};font-weight:${fw};">${dd}</span>
+        ${hasDot&&!isToday?`<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${dotColor};"></div>`:''}
+      </div>`;
+    }
+    g+=`</div></div>`;
+
+    // 2) 活動說明（接在月曆下方）
+    let evHTML='<div style="padding:4px 12px 12px;border-top:1px solid var(--bd);">';
+    if(mevts.length){
+      mevts.forEach(e=>{
+        const t=CAL_TYPE[e.type]||CAL_TYPE.cultural;
+        const dateStr=e.d?(e.end?`${e.m}/${e.d}–${e.end}`:`${e.m}/${e.d}`):'日期未定';
+        evHTML+=`<div style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div style="width:7px;height:7px;border-radius:50%;background:${t.dot};flex-shrink:0;"></div>
+            <span style="font-size:12px;font-weight:600;color:var(--tx);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</span>
+            <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--tx2);flex-shrink:0;">${dateStr}</span>
+            <span style="font-size:9px;padding:1px 6px;border-radius:6px;background:${t.bg};color:${t.dot};border:1px solid ${t.border};flex-shrink:0;width:52px;text-align:center;">${t.tag}</span>
+          </div>
+          ${e.note?`<div style="font-size:10px;color:var(--tx3);margin-top:3px;padding-left:14px;line-height:1.5;">${e.note}${e.src?` ·${e.src}`:''}</div>`:''}
+        </div>`;
+      });
+    } else {
+      evHTML+='<div style="font-size:10px;color:var(--tx3);padding:8px 0;">本月暫無登錄活動</div>';
+    }
+    evHTML+='</div>';
+
+    body.innerHTML=g+evHTML;
+
+    hdr.onclick=()=>{
+      const b=document.getElementById(`calBody${mi}`);
+      const a=document.getElementById(`calArrow${mi}`);
+      const open=b.style.display==='none';
+      b.style.display=open?'block':'none';
+      a.textContent=open?'▲':'▼';
+    };
+    card.appendChild(hdr); card.appendChild(body);
+    grid.appendChild(card);
   }
-  grid.innerHTML=html;
 }
+
 
 // ── Real competitors with Agoda URLs ─────────────────────────
 // ── 14家競爭對手（對應 Thunderbit 抓取欄位）────────────────
@@ -2048,71 +2271,6 @@ const COMPETITORS = [
     cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:7.7,
     note:'精品旅館・金城鎮', agoda:'https://www.agoda.com/zh-tw/in99-hotel/hotel/kinmen-tw.html' },
 ];
-
-// ── Group analysis with festivals ────────────────────────────
-function renderGroupAnalysis(d,p){
-  if(!d.stays){ document.getElementById('giInsight').textContent='本月尚無住宿資料'; return; }
-  const gpr=(d.guests/d.stays).toFixed(2);
-  const restPct=d.rev>0?Math.round(d.rest_total/(d.rev+d.rest_total)*100):0;
-  const guestDiff=p&&p.guests>0?((d.guests-p.guests)/p.guests*100).toFixed(1):null;
-
-  document.getElementById('gi-v1').textContent=gpr+' 人/房';
-  document.getElementById('gi-b1').style.width=Math.min(parseFloat(gpr)/3*100,100)+'%';
-  document.getElementById('gi-v2').textContent=guestDiff!==null?(guestDiff>0?'+':'')+guestDiff+'%':'—';
-  document.getElementById('gi-b2').style.width=Math.min(Math.abs(parseFloat(guestDiff||0))/50*100,100)+'%';
-  document.getElementById('gi-b2').style.background=parseFloat(guestDiff||0)>=0?'var(--green)':'var(--red)';
-  document.getElementById('gi-v3').textContent=restPct+'%';
-  document.getElementById('gi-b3').style.width=restPct+'%';
-
-  // Get current month index (1-12)
-  const monthIdx = MONTHS.indexOf(d.m)+1 || new Date().getMonth()+1;
-  // Next month festivals
-  const nextIdx = monthIdx>=12?1:monthIdx+1;
-  const curFests = FESTIVALS[monthIdx]||[];
-  const nextFests = FESTIVALS[nextIdx]||[];
-
-  const tag=document.getElementById('giTag');
-  let tagText,cls,lines=[];
-
-  // Customer type analysis
-  if(parseFloat(gpr)>=2.5){
-    tagText='團體為主'; cls='grp';
-    lines.push('【客群】每房均 '+gpr+' 人，團體特徵明顯');
-    lines.push('→ 主動聯繫政府機關、學校單位，提供年度合作優惠');
-    lines.push('→ 推「10人以上住宿優惠」搭配會議室套餐');
-  } else if(parseFloat(gpr)<1.8){
-    tagText='散客為主'; cls='ind';
-    lines.push('【客群】每房均 '+gpr+' 人，以個人/雙人旅遊為主');
-    lines.push('→ 加強 OTA 平台（Booking/Agoda）個人房型曝光');
-    lines.push('→ 推出「雙人住宿方案」提升客單價');
-  } else {
-    tagText='散客+小團體'; cls='mix';
-    lines.push('【客群】每房均 '+gpr+' 人，散客與小團體並存');
-    lines.push('→ 平日：主打個人/商務客  週末：主打家庭/小團體');
-  }
-
-  // Current month festivals
-  if(curFests.length){
-    lines.push('\n【本月節慶・行銷機會】');
-    curFests.forEach(f=>lines.push('・'+f));
-  }
-  // Next month preview
-  if(nextFests.length){
-    const nextName=MONTHS[nextIdx-1];
-    lines.push('\n【'+nextName+'預備・提前佈局】');
-    nextFests.slice(0,2).forEach(f=>lines.push('・'+f+' → 建議提前30天促銷'));
-  }
-
-  // Low occupancy warning
-  const lowCount=dailyMonths[0]?.rows||[].filter(r=>r.r>0&&r.r<20).length;
-  if(lowCount>3) lines.push('\n⚠ 本月有 '+lowCount+' 天住宿率 <20%，建議加強平日促銷方案');
-
-  // Revenue mix advice
-  if(restPct>40) lines.push('\n💡 餐飲收入佔總收入 '+restPct+'%，表現良好，建議推出住宿含餐套餐提升轉換率');
-
-  tag.textContent=tagText; tag.className='tag '+cls;
-  document.getElementById('giInsight').textContent=lines.join('\n');
-}
 
 // ── Daily chart with month selector ──────────────────────────
 let dailyMonths=[{year:2026,month:'五月',rows:DEMO_DAILY},null,null];
@@ -2797,6 +2955,19 @@ async function genAI(){
     const nextIdx=monthIdx>=12?1:monthIdx+1;
     const nextFests=(FESTIVALS[nextIdx]||[]).join('、');
 
+    // ── 客群結構判讀（每房均人數 + YoY）──
+    const gprNum=parseFloat(gpr);
+    let segType;
+    if(gprNum>=2.5) segType='團體為主（每房均人數偏高，多為機關／學校／旅行團）';
+    else if(gprNum<1.8) segType='散客為主（每房均人數偏低，多為個人／雙人旅遊）';
+    else segType='散客與小團體並存（家庭、商務客混合）';
+    const gprPrev=(p&&p.stays>0)?(p.guests/p.stays):null;
+    const gprYoY=gprPrev?(((gprNum-gprPrev)/gprPrev)*100).toFixed(1):null;
+    const guestYoY=(p&&p.guests>0)?(((d.guests-p.guests)/p.guests)*100).toFixed(1):null;
+    const segCtx=`客群類型：${segType}\n`+
+      `每房均人數：今年 ${gpr} 人 / 去年 ${gprPrev?gprPrev.toFixed(1):'—'} 人`+(gprYoY?`（同比 ${gprYoY>0?'+':''}${gprYoY}%）`:'')+`\n`+
+      `住客人次：今年 ${d.guests} 人 / 去年 ${p?.guests||'—'} 人`+(guestYoY?`（同比 ${guestYoY>0?'+':''}${guestYoY}%）`:'');
+
     // ── 競爭對手現況 ──
     const compInfo=COMPETITORS.filter(c=>!c.self)
       .map(c=>c.price>0?`${c.name}(${c.price.toLocaleString()}元)`:null)
@@ -2838,6 +3009,9 @@ async function genAI(){
 - 餐飲：早${(d.rest_am/10000).toFixed(1)}萬 / 午${(d.rest_noon/10000).toFixed(1)}萬 / 晚${(d.rest_pm/10000).toFixed(1)}萬
 - 低住宿日（<20%）：${lowDays||'無'}
 
+【客群結構分析】
+${segCtx}
+
 【本月在地活動】${curFests||'無重大活動'}
 【下月預告】${nextFests||'無'}
 
@@ -2857,9 +3031,9 @@ ${newsCtx}
 - 旅館業整體住宿率：55.8%
 
 請針對以上資訊，提供4點具體建議：
-①結合當月節慶與小三通旅客特性的差異化行銷方案
-②根據競爭對手現況的定價與促銷策略調整
-③針對最新旅遊新聞趨勢的快速回應行動
+①針對本月客群結構（團體／散客比重、每房均人數與人次同比變化）的客群經營策略
+②結合當月節慶與小三通旅客特性的差異化行銷方案
+③根據競爭對手現況的定價與促銷策略調整
 ④低住宿率日的即時填補方案
 
 每點含2-3個具體可執行步驟，直接寫建議，不用開頭說「根據數據」。`;
