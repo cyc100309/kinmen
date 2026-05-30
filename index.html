@@ -598,6 +598,21 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 
 <!-- KPI -->
 <div id="occ-sub-main">
+
+<!-- 三部門子分頁 -->
+<div style="display:flex;gap:6px;padding:4px 16px 0;">
+  <button id="dept-tab-stay" onclick="deptView('stay',this)"
+    style="flex:1;padding:7px 4px;background:var(--ac);border:none;border-radius:18px;
+    color:#0F1923;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">🛏️ 住宿</button>
+  <button id="dept-tab-food" onclick="deptView('food',this)"
+    style="flex:1;padding:7px 4px;background:var(--sf);border:1px solid var(--bd);border-radius:18px;
+    color:var(--tx3);font-size:11px;font-weight:500;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">🍽️ 餐飲</button>
+  <button id="dept-tab-venue" onclick="deptView('venue',this)"
+    style="flex:1;padding:7px 4px;background:var(--sf);border:1px solid var(--bd);border-radius:18px;
+    color:var(--tx3);font-size:11px;font-weight:500;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">🏛️ 場地</button>
+</div>
+
+<div id="dept-stay">
 <div class="lbl">
   <span>本月住宿數據</span>
   <span class="lbl-r" id="kpiSub">2026年・五月</span>
@@ -690,9 +705,11 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     </div>
   </div>
 </div>
+</div><!-- /dept-stay -->
 
-<!-- Restaurant Revenue -->
-<div class="lbl" id="rest-section"><span>餐飲收入</span><span class="lbl-r" id="restSub">本月各餐別營業額</span></div>
+<!-- 餐飲分頁 -->
+<div id="dept-food" style="display:none;">
+<div class="lbl" id="rest-section"><span>本月餐飲數據</span><span class="lbl-r" id="restSub">各時段營業額</span></div>
 <div class="rest-grid" id="rest-grid">
   <div class="rc am">
     <div class="rc-icon">🌅</div>
@@ -715,6 +732,13 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <div class="rc-sub" id="rd-pm"><span class="neu">—</span></div>
     <div class="rc-bar"><div class="rc-fill" id="rb-pm" style="background:#A78BFA;width:0%;"></div></div>
   </div>
+  <div class="rc night">
+    <div class="rc-icon">🍜</div>
+    <div class="rc-lbl">消夜及其他</div>
+    <div class="rc-val" id="rv-night">—</div>
+    <div class="rc-sub" id="rd-night"><span class="neu">—</span></div>
+    <div class="rc-bar"><div class="rc-fill" id="rb-night" style="background:#16A085;width:0%;"></div></div>
+  </div>
 </div>
 <div class="rest-total">
   <div class="rt-lbl">餐飲合計收入</div>
@@ -723,6 +747,45 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <div class="rt-delta" id="rd-total"><span class="neu">—</span></div>
   </div>
 </div>
+</div><!-- /dept-food -->
+
+<!-- 場地分頁 -->
+<div id="dept-venue" style="display:none;">
+<div class="lbl"><span>本月場地數據</span><span class="lbl-r">研習／會議場次</span></div>
+<div class="rest-grid">
+  <div class="rc am">
+    <div class="rc-icon">🌅</div>
+    <div class="rc-lbl">早場</div>
+    <div class="rc-val" id="vv-am">—</div>
+    <div class="rc-sub" id="vd-am"><span class="neu">—</span></div>
+    <div class="rc-bar"><div class="rc-fill" id="vb-am" style="background:#F59E0B;width:0%;"></div></div>
+  </div>
+  <div class="rc noon">
+    <div class="rc-icon">☀️</div>
+    <div class="rc-lbl">午場</div>
+    <div class="rc-val" id="vv-noon">—</div>
+    <div class="rc-sub" id="vd-noon"><span class="neu">—</span></div>
+    <div class="rc-bar"><div class="rc-fill" id="vb-noon" style="background:#5B9BD5;width:0%;"></div></div>
+  </div>
+  <div class="rc pm">
+    <div class="rc-icon">🌙</div>
+    <div class="rc-lbl">晚場</div>
+    <div class="rc-val" id="vv-pm">—</div>
+    <div class="rc-sub" id="vd-pm"><span class="neu">—</span></div>
+    <div class="rc-bar"><div class="rc-fill" id="vb-pm" style="background:#A78BFA;width:0%;"></div></div>
+  </div>
+</div>
+<div class="rest-total">
+  <div class="rt-lbl">場地合計（場次 / 使用率）</div>
+  <div style="display:flex;align-items:baseline;gap:6px;">
+    <div class="rt-val" id="vv-total">—</div>
+    <div class="rt-delta" id="vd-total"><span class="neu">—</span></div>
+  </div>
+</div>
+<div style="font-size:10px;color:var(--tx3);padding:8px 18px 0;line-height:1.6;" id="venueNote">
+  場地收入計入研習服務。金門 5月起若有研習/會議場次將自動顯示。
+</div>
+</div><!-- /dept-venue -->
 
 <!-- Daily chart -->
 <div id="dailyMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;padding:4px 18px 8px;justify-content:flex-end;"></div>
@@ -810,8 +873,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
         <input type="file" id="f-twoyear" accept=".xlsx,.xls">
         <div class="ib-icon">📊</div>
         <div class="ib-body">
-          <div class="ib-title">兩年度比較報表（805_6_1_P1）</div>
-          <div class="ib-sub">住宿 + 餐飲，本年度及去年度一次匯入</div>
+          <div class="ib-title">營運報表（805_6_P1）</div>
+          <div class="ib-sub">住宿＋餐飲＋場地三部門，自動讀取金門</div>
         </div>
         <div class="ib-st" id="s-twoyear">未匯入</div>
       </label>
@@ -1906,7 +1969,7 @@ const DEMO_CUR = [
   {m:'二月',stays:286,guests:631,room:34.05,rev:281168,adr:983,adr_p:446,rest_am:67500,rest_noon:99540,rest_pm:199290,rest_total:366330},
   {m:'三月',stays:301,guests:580,room:32.37,rev:279987,adr:930,adr_p:483,rest_am:61050,rest_noon:12030,rest_pm:209660,rest_total:282740},
   {m:'四月',stays:485,guests:992,room:53.89,rev:511625,adr:1055,adr_p:516,rest_am:114430,rest_noon:61140,rest_pm:128140,rest_total:303710},
-  {m:'五月',stays:359,guests:726,room:38.60,rev:371541,adr:1035,adr_p:512,rest_am:86250,rest_noon:52300,rest_pm:135600,rest_total:274150},
+  {m:'五月',stays:521,guests:1001,room:56.02,rev:532310,adr:1022,adr_p:532,rest_am:108600,rest_noon:52300,rest_pm:195030,rest_night:0,rest_total:355930,venue:{am:0,noon:0,pm:0,am_u:0,noon_u:0,pm_u:0,total:0,total_u:0,total_r:0}},
   {m:'六月',stays:188,guests:405,room:20.89,rev:205115,adr:1091,adr_p:506,rest_am:58350,rest_noon:0,rest_pm:39600,rest_total:97950},
   {m:'七月',stays:225,guests:530,room:24.19,rev:265507,adr:1180,adr_p:501,rest_am:72150,rest_noon:0,rest_pm:0,rest_total:72150},
   {m:'八月',stays:59,guests:157,room:6.34,rev:79241,adr:1343,adr_p:505,rest_am:23550,rest_noon:0,rest_pm:0,rest_total:23550},
@@ -1921,7 +1984,7 @@ const DEMO_PREV = [
   {m:'二月',stays:222,guests:436,room:26.43,rev:227033,adr:1023,adr_p:521,rest_am:37200,rest_noon:0,rest_pm:29030,rest_total:66230},
   {m:'三月',stays:384,guests:794,room:41.29,rev:425986,adr:1109,adr_p:537,rest_am:69150,rest_noon:53090,rest_pm:107770,rest_total:230010},
   {m:'四月',stays:484,guests:897,room:53.78,rev:513861,adr:1062,adr_p:573,rest_am:107720,rest_noon:20360,rest_pm:109470,rest_total:237550},
-  {m:'五月',stays:619,guests:1347,room:66.56,rev:710509,adr:1148,adr_p:527,rest_am:179250,rest_noon:7590,rest_pm:226310,rest_total:413150},
+  {m:'五月',stays:619,guests:1347,room:66.56,rev:710509,adr:1148,adr_p:527,rest_am:179250,rest_noon:7590,rest_pm:226310,rest_night:0,rest_total:413150,venue:{am:0,noon:0,pm:0,am_u:0,noon_u:0,pm_u:0,total:0,total_u:0,total_r:0}},
   {m:'六月',stays:360,guests:698,room:40.00,rev:390602,adr:1085,adr_p:560,rest_am:87600,rest_noon:42350,rest_pm:64200,rest_total:194150},
   {m:'七月',stays:459,guests:1062,room:49.35,rev:481241,adr:1048,adr_p:453,rest_am:143550,rest_noon:0,rest_pm:76490,rest_total:220040},
   {m:'八月',stays:536,guests:1171,room:57.63,rev:592052,adr:1105,adr_p:506,rest_am:160800,rest_noon:49680,rest_pm:68630,rest_total:282110},
@@ -2052,21 +2115,63 @@ function renderMonth(i){
     if(rp) rp.textContent=total>0?restPct+'%':'—';
   })();
 
-  // Restaurant
-  const maxR=Math.max(d.rest_am,d.rest_noon,d.rest_pm,1);
-  function setR(id,bid,did,val,pval){
+  // Restaurant（四時段：早/午/晚/消夜）
+  const rest_night=d.rest_night||0, p_rest_night=p?.rest_night||0;
+  const maxR=Math.max(d.rest_am,d.rest_noon,d.rest_pm,rest_night,1);
+  function setR(id,val,pval){
     document.getElementById('rv-'+id).textContent=val>0?fmtRev(val)+'元':'—';
     document.getElementById('rd-'+id).innerHTML=deltaStr(val,pval,'元');
     document.getElementById('rb-'+id).style.width=(val/maxR*100)+'%';
   }
-  setR('am','rb-am','rd-am',d.rest_am,p?.rest_am);
-  setR('noon','rb-noon','rd-noon',d.rest_noon,p?.rest_noon);
-  setR('pm','rb-pm','rd-pm',d.rest_pm,p?.rest_pm);
+  setR('am',d.rest_am,p?.rest_am);
+  setR('noon',d.rest_noon,p?.rest_noon);
+  setR('pm',d.rest_pm,p?.rest_pm);
+  setR('night',rest_night,p_rest_night);
   document.getElementById('rv-total').textContent=d.rest_total>0?fmtRev(d.rest_total)+'元':'—';
   document.getElementById('rd-total').innerHTML=(p?.rest_total>0&&d.rest_total>0)
     ?deltaStr(d.rest_total,p.rest_total,'元'):'<span class="neu">—</span>';
 
+  // 場地（研習：早場/午場/晚場，顯示場次與使用率）
+  const v=d.venue||{am:0,noon:0,pm:0,total:0,total_u:0,total_r:0,am_u:0,noon_u:0,pm_u:0};
+  const pv=p?.venue||{am:0,noon:0,pm:0,total:0};
+  const maxV=Math.max(v.am,v.noon,v.pm,1);
+  function setV(id,sessions,sessPrev,usage){
+    const el=document.getElementById('vv-'+id);
+    el.textContent=sessions>0?sessions+'場':'—';
+    const u=usage>0?` <span style="font-size:9px;color:var(--tx3);">(${(usage*100).toFixed(0)}%)</span>`:'';
+    if(sessions>0) el.innerHTML=sessions+'場'+u;
+    const diff=sessions-sessPrev;
+    document.getElementById('vd-'+id).innerHTML=diff!==0
+      ?`<span class="${diff>=0?'up':'dn'}">${diff>=0?'+':''}${diff} 場</span>`
+      :'<span class="neu">持平</span>';
+    document.getElementById('vb-'+id).style.width=(sessions/maxV*100)+'%';
+  }
+  setV('am',v.am,pv.am,v.am_u);
+  setV('noon',v.noon,pv.noon,v.noon_u);
+  setV('pm',v.pm,pv.pm,v.pm_u);
+  const vtEl=document.getElementById('vv-total');
+  if(v.total>0){
+    vtEl.innerHTML=v.total+'場 <span style="font-size:12px;color:var(--tx3);">/ '+(v.total_u*100).toFixed(1)+'%</span>'
+      +(v.total_r>0?' <span style="font-size:12px;color:var(--ac2);">'+fmtRev(v.total_r)+'元</span>':'');
+  } else { vtEl.textContent='本月無場次'; }
+  const vtd=document.getElementById('vd-total');
+  const vtDiff=v.total-(pv.total||0);
+  vtd.innerHTML=vtDiff!==0?`<span class="${vtDiff>=0?'up':'dn'}">${vtDiff>=0?'+':''}${vtDiff} 場</span>`:'<span class="neu">—</span>';
+
   genAI();
+}
+
+// 三部門子分頁切換
+function deptView(mode, btn){
+  ['stay','food','venue'].forEach(k=>{
+    const el=document.getElementById('dept-'+k);
+    if(el) el.style.display=(k===mode)?'block':'none';
+  });
+  ['stay','food','venue'].forEach(k=>{
+    const b=document.getElementById('dept-tab-'+k);
+    if(b){ b.style.background='var(--sf)'; b.style.color='var(--tx3)'; b.style.border='1px solid var(--bd)'; b.style.fontWeight='500'; }
+  });
+  btn.style.background='var(--ac)'; btn.style.color='#0F1923'; btn.style.border='none'; btn.style.fontWeight='700';
 }
 
 // ── Kinmen / Taiwan Festival Calendar（含金門在地活動）─────
@@ -3646,6 +3751,60 @@ function saveCloudSettings(){
   showSyncStatus('✓ 已儲存，下次上傳資料自動同步',true);
 }
 
+// ── 805_6_P1 全中心單月報表解析（住宿/餐飲/場地三部門）──────────
+// 欄位對應（依報表 row4/row5 標題）
+const R805={stays:2,guests:3,room:4,rev:5,adr:6,adr_p:7,
+  am_g:8,am_u:9,am_r:10,am_p:11, noon_g:12,noon_u:13,noon_r:14,noon_p:15,
+  pm_g:16,pm_u:17,pm_r:18,pm_p:19, night_g:20,night_r:21,
+  rest_total_u:22,rest_total_r:23,
+  ve_g:24,ve_u:25,vn_g:26,vn_u:27,vp_g:28,vp_u:29,
+  vt_g:30,vt_u:31,vt_r:32};
+function n805(v){ const x=parseFloat(String(v).replace(/[,\s]/g,'')); return isNaN(x)?0:x; }
+
+// 解析整份 805，回傳 {centers:{中心名:{cur,prev}}, month, year}
+function parse805All(buf){
+  const wb=XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  // 標題列找年月
+  let year=new Date().getFullYear(), month=new Date().getMonth()+1;
+  const t=String(raw[0]?.[0]||'');
+  const my=t.match(/(\d{4})\s*年\s*(\d{1,2})\s*月/);
+  if(my){ year=+my[1]; month=+my[2]; }
+  const centers={};
+  for(let r=6;r<raw.length;r++){
+    const name=String(raw[r]?.[0]||'').trim();
+    if(!name) continue;
+    if(!/中心|會館|山莊|學苑/.test(name)) continue;
+    const rowCur=raw[r], rowPrev=raw[r+1];
+    const pick=(row)=>{ const o={}; for(const k in R805) o[k]=n805(row?.[R805[k]]); return o; };
+    centers[name]={cur:pick(rowCur),prev:pick(rowPrev)};
+    r+=2; // 跳過 去年度、年增減 列
+  }
+  return {centers,month,year};
+}
+
+// 把 805 的某中心資料，套進 curRows/prevRows 對應月份
+function apply805(parsed, centerName){
+  const c=parsed.centers[centerName];
+  if(!c) return false;
+  const mi=parsed.month-1;
+  const toRow=(s)=>({
+    m:MONTHS[mi], stays:s.stays, guests:s.guests, room:+(s.room*100).toFixed(2),
+    rev:s.rev, adr:s.adr, adr_p:s.adr_p,
+    rest_am:s.am_r, rest_noon:s.noon_r, rest_pm:s.pm_r, rest_night:s.night_r,
+    rest_total:s.rest_total_r,
+    venue:{am:s.ve_g,noon:s.vn_g,pm:s.vp_g,am_u:s.ve_u,noon_u:s.vn_u,pm_u:s.vp_u,
+           total:s.vt_g,total_u:s.vt_u,total_r:s.vt_r}
+  });
+  if(!curRows[mi]||curRows[mi].m!==MONTHS[mi]) curRows[mi]={m:MONTHS[mi]};
+  Object.assign(curRows[mi], toRow(c.cur));
+  Object.assign(prevRows[mi], toRow(c.prev));
+  // 儲存全中心資料供未來切換
+  try{ localStorage.setItem('all805_'+parsed.year+'_'+parsed.month, JSON.stringify(parsed.centers)); }catch(e){}
+  return true;
+}
+
 document.getElementById('f-twoyear').addEventListener('change',function(e){
   const f=e.target.files[0]; if(!f)return;
   const st=document.getElementById('s-twoyear'); st.textContent='解析中...';
@@ -3666,30 +3825,22 @@ document.getElementById('f-twoyear').addEventListener('change',function(e){
       saveOccData();
       init();
     }catch(err){
+      // 後備：嘗試以「805 全中心單月報表」格式解析（取金門活動中心）
       try{
-        const wb=XLSX.read(ev.target.result,{type:'array'});
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-        const preview=raw.slice(0,8).map((r,i)=>`Row${i}: ${JSON.stringify(r.slice(0,8))}`).join('\n');
-        // 偵測Row6 col0的實際字元碼
-        const r6=raw[6]||[];
-        const c0val=String(r6[0]||'');
-        const c0codes=Array.from(c0val).map(c=>c.charCodeAt(0).toString(16)).join(',');
-        const c1val=String(r6[1]||'');
-        // 再次嘗試解析
-        let dbg='';
-        try{
-          const MN=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
-          const idx=MN.indexOf(c0val.trim());
-          dbg=`\nRow6 col0="${c0val}" charCodes=[${c0codes}] indexOf=${idx}`;
-          dbg+=`\nRow6 col1="${c1val}" includes本年=${c1val.includes('本年')}`;
-          const p2=parseTwoYear(ev.target.result);
-          dbg+=`\ncur[0]=${JSON.stringify(p2.cur[0])}`;
-          dbg+=`\n有資料月份：${p2.cur.filter(r=>r.stays>0).map(r=>r.m).join(',')||'無'}`;
-        }catch(pe){dbg+=`\n解析錯誤：${pe.message}`;}
-        st.textContent='❌ v7.1 格式不符';
-        alert(`【v7.1診斷】錯誤：${err.message}\n\n${preview}\n${dbg}`);
-      }catch(e2){ st.textContent='❌ '+err.message; }
+        const parsed=parse805All(ev.target.result);
+        const ok=apply805(parsed,'金門活動中心');
+        if(!ok) throw new Error('找不到金門活動中心');
+        curYear=parsed.year; prevYear=parsed.year-1;
+        curIdx=parsed.month-1;
+        document.getElementById('ib1').classList.add('ok');
+        st.textContent='✓ 已載入（'+parsed.year+'年'+parsed.month+'月・三部門）'; st.className='ib-st ok';
+        updateImportSummary(); saveOccData(); init();
+        // 切到對應月份
+        renderMonth(curIdx); buildTabs();
+      }catch(e2){
+        st.textContent='❌ '+err.message+' / '+e2.message;
+        alert('無法解析此報表。\n\n兩年度格式錯誤：'+err.message+'\n805全中心格式錯誤：'+e2.message);
+      }
     }
   };
   reader.readAsArrayBuffer(f);
