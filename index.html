@@ -2236,20 +2236,20 @@ const FESTIVALS = {
   12: ['聖誕節','金門跨年晚會（莒光共融公園）','年終尾牙旺季','金門島嶼生活節壓軸'],
 };
 
-// ── 全年國定假日 & 連假（2026）────────────────────────────────────
+// ── 全年國定假日 & 連假（2026・人事行政總處官方）──────────────────
 const HOLIDAYS_2026 = {
-  1: [{d:'1/1',n:'元旦',days:3}],
-  2: [{d:'1/28–2/2',n:'農曆春節',days:6}],
-  3: [{d:'3/28-29',n:'228連假',days:3}],
-  4: [{d:'4/3-6',n:'清明連假',days:4}],
-  5: [{d:'5/1',n:'勞動節'},{d:'5/10',n:'母親節'},{d:'5/26',n:'浯島城隍遶境（高峰）',peak:true}],
-  6: [{d:'6/28–7/1',n:'端午連假',days:4}],
+  1: [{d:'1/1',n:'元旦'}],
+  2: [{d:'2/14-2/22',n:'農曆春節',days:9},{d:'2/27-3/1',n:'228和平紀念日連假',days:3}],
+  3: [{d:'2/27-3/1',n:'228連假',days:3}],
+  4: [{d:'4/3-4/6',n:'兒童節暨清明連假',days:4}],
+  5: [{d:'5/1-5/3',n:'勞動節連假',days:3},{d:'5/10',n:'母親節'},{d:'5/26',n:'浯島城隍遶境（高峰）',peak:true}],
+  6: [{d:'6/19-6/21',n:'端午節連假',days:3}],
   7: [{d:'7/1–8/31',n:'暑假旺季',peak:true}],
   8: [{d:'8/7',n:'父親節'},{d:'8/23',n:'823紀念日',peak:true}],
-  9: [{d:'9/29–10/1',n:'中秋連假',days:3}],
-  10: [{d:'10/9-10',n:'國慶連假',days:2},{d:'10/29',n:'重陽節'}],
+  9: [{d:'9/25-9/28',n:'中秋暨教師節連假',days:4}],
+  10: [{d:'10/9-10/11',n:'國慶連假',days:3},{d:'10/24-10/26',n:'光復節連假',days:3},{d:'10/29',n:'重陽節'}],
   11: [{d:'11月',n:'金門馬拉松'},{d:'11月',n:'金門單車節'}],
-  12: [{d:'12/25',n:'聖誕節'},{d:'12/31',n:'跨年晚會',peak:true}],
+  12: [{d:'12/25-12/27',n:'行憲紀念日連假',days:3},{d:'12/31',n:'跨年晚會',peak:true}],
 };
 
 // 各月住宿高峰等級（依歷史資料）
@@ -2321,7 +2321,7 @@ const CAL_EVENTS = [
   // ── 2026年6月 ──
   {y:2026,m:6,d:1,name:'購物嘉年華（延續）',type:'cultural',end:30,note:'5/1-6/30',icon:'🛍️',src:'縣府'},
   {y:2026,m:6,d:null,name:'金寧！音浪玩水節（夏季）',type:'major',note:'夏季主打活動，吸引大量年輕旅客',icon:'🎵'},
-  {y:2026,m:6,d:19,name:'端午節連假',type:'holiday',end:21,note:'3天連假，旅客高峰',icon:'🏮'},
+  {y:2026,m:6,d:19,name:'端午節連假',type:'holiday',end:21,note:'6/19–21 端午連假（6/19端午節）',icon:'🏮'},
   // ── 2026年7月 ──
   {y:2026,m:7,d:1,name:'親子嘉年華（暑假系列）',type:'major',end:31,note:'金門親子體驗遊 7/1-8/31，10項系列活動',icon:'🎪',src:'縣府'},
   {y:2026,m:7,d:1,name:'運動i台灣兒童游泳體驗營',type:'season',end:31,note:'7/1-8/31',icon:'🏊',src:'縣府'},
@@ -2435,28 +2435,53 @@ function buildCalendar(){
     mevts.forEach(e=>{
       if(!e.d) return;
       const lastD=e.end||e.d;
+      const isLongMajor=(e.type==='major' && lastD>e.d);
       for(let dd=e.d;dd<=lastD;dd++){
-        dotDays.add(dd);
-        if(e.type==='major') majorDays.add(dd);
-        else if(e.type==='holiday') holDays.add(dd);
-        else if(e.type==='sport') sportDays.add(dd);
+        if(e.type==='major'){
+          // 長期重要活動：只標第一天與最後一天
+          if(!isLongMajor || dd===e.d || dd===lastD){ majorDays.add(dd); dotDays.add(dd); }
+        } else if(e.type==='holiday'){ holDays.add(dd); dotDays.add(dd); }
+        else if(e.type==='sport'){ sportDays.add(dd); dotDays.add(dd); }
+        else dotDays.add(dd);
       }
     });
     const hasMajor=mevts.some(e=>e.type==='major');
 
     // 已預訂率對照：從 dailyMonths 找出此年月的每日已訂率
+    // 用每列日期(MM/DD)的「月」直接比對，避免「5月 vs 五月」格式不一致
     const occByDay={};
     (typeof dailyMonths!=='undefined'?dailyMonths:[]).forEach(slot=>{
       if(!slot||!slot.rows) return;
-      const slotMonthIdx=MONTHS.indexOf(slot.month)+1;
-      if(slot.year===cy && slotMonthIdx===cm){
-        slot.rows.forEach(row=>{
-          const dd=parseInt(String(row.d).split('/')[1]);
-          if(dd) occByDay[dd]=row.r;
-        });
-      }
+      if(slot.year && slot.year!==cy) return;
+      slot.rows.forEach(row=>{
+        const parts=String(row.d).split('/');
+        const rowM=parseInt(parts[0]), rowD=parseInt(parts[1]);
+        if(rowM===cm && rowD) occByDay[rowD]=row.r;
+      });
     });
     const hasOcc=Object.keys(occByDay).length>0;
+
+    // ── 連假解析：展開 HOLIDAYS_2026 的日期範圍，標出連假日與最後一天 ──
+    const longHolDays=new Set(), longHolLastDay=new Set();
+    if(cy===2026 && typeof HOLIDAYS_2026!=='undefined' && HOLIDAYS_2026[cm]){
+      HOLIDAYS_2026[cm].forEach(h=>{
+        if(!h.days || h.days<2) return; // 只處理連假(2天以上)
+        // 解析日期字串，如 "1/28–2/2"、"3/28-29"、"6/28–7/1"
+        const ds=String(h.d).replace(/[–—]/g,'-');
+        const m=ds.match(/(\d{1,2})\/(\d{1,2})\s*-\s*(?:(\d{1,2})\/)?(\d{1,2})/);
+        if(!m) return;
+        const sM=+m[1], sD=+m[2], eM=m[3]?+m[3]:sM, eD=+m[4];
+        // 此連假在「本月(cm)」涵蓋的日子
+        for(let mm=sM; mm<=eM; mm++){
+          if(mm!==cm) continue;
+          const from=(mm===sM)?sD:1;
+          const to=(mm===eM)?eD:new Date(cy,mm,0).getDate();
+          for(let dd=from; dd<=to; dd++) longHolDays.add(dd);
+        }
+        // 連假最後一天（若最後一天落在本月）
+        if(eM===cm) longHolLastDay.add(eD);
+      });
+    }
 
     // ── 容器卡片 ──
     const card=document.createElement('div');
@@ -2489,42 +2514,67 @@ function buildCalendar(){
       const isToday=cy===CY&&cm===CM&&dd===TODAY.getDate();
       const wk=(startWk+dd-1)%7;
       const isMajor=majorDays.has(dd), isHol=holDays.has(dd), isSport=sportDays.has(dd), hasDot=dotDays.has(dd);
+      const isLongHol=longHolDays.has(dd), isLongHolLast=longHolLastDay.has(dd);
+      const isSat=(wk===6);
       let bg='transparent', col='var(--tx2)', fw='400';
-      if(isToday){bg='var(--ac)';col='#0F1923';fw='700';}
-      else if(isMajor){bg='rgba(200,150,62,.25)';col='var(--ac)';}
-      else if(isSport){bg='rgba(224,92,92,.18)';col='var(--red)';}
-      else if(isHol){bg='rgba(16,185,129,.15)';col='var(--green)';}
-      else if(wk===0)col='rgba(224,92,92,.7)';
-      else if(wk===6)col='rgba(59,130,246,.7)';
-      if(isPast&&!isToday)col='var(--tx3)';
+      // 優先序：過期(灰) > 今天 > 連假最後一天(淡紅) > 連假/週六(紅) > 週間假日(綠) > 重要活動(黃)
+      if(isPast && !isToday){
+        bg='rgba(120,120,120,.12)'; col='var(--tx3)';
+      } else if(isToday){
+        bg='var(--ac)'; col='#0F1923'; fw='700';
+      } else if(isLongHolLast){
+        bg='rgba(224,92,92,.16)'; col='#E0544E';
+      } else if(isLongHol || isSat){
+        bg='rgba(224,92,92,.32)'; col='#F5B0AD';
+      } else if(isHol || isSport){
+        bg='rgba(16,185,129,.18)'; col='#5DD6A5';
+      } else if(isMajor){
+        bg='rgba(232,180,40,.20)'; col='#E8C547';
+      } else if(wk===0){
+        col='rgba(224,92,92,.7)';
+      }
       // 已預訂率著色（綠：越滿越深；無事件背景時套用）
       const occ=occByDay[dd];
-      let occBadge='';
+      let occText='';
       if(occ!==undefined){
         if(bg==='transparent'){
-          const a=Math.max(0.06, Math.min(occ/100,1)*0.55);
+          const a=Math.max(0.04, Math.min(occ/100,1)*0.18);
           bg=`rgba(16,185,129,${a.toFixed(2)})`;
         }
-        occBadge=`<div style="font-size:7px;color:var(--tx2);font-family:'DM Mono',monospace;line-height:1;margin-top:1px;">${Math.round(occ)}</div>`;
+        // 住宿率分級顏色：≤30灰 / 31-50黃 / 51-80橘 / 81-100紅
+        let occColor;
+        if(occ<=30) occColor='#9AA5B1';
+        else if(occ<=50) occColor='#E8C547';
+        else if(occ<=80) occColor='#E8893E';
+        else occColor='#E0544E';
+        if(isToday) occColor='#0F1923';
+        occText=`<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:700;color:${occColor};font-family:'DM Mono',monospace;line-height:1;">${Math.round(occ)}</div>`;
       }
       const dotColor=isMajor?'var(--ac)':isSport?'var(--red)':isHol?'var(--green)':'var(--blue)';
-      g+=`<div style="text-align:center;padding:3px 1px;border-radius:4px;background:${bg};position:relative;">
-        <span style="font-size:10px;color:${col};font-weight:${fw};">${dd}</span>
-        ${occBadge}
-        ${hasDot&&!isToday?`<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${dotColor};"></div>`:''}
+      g+=`<div style="padding:2px;border-radius:4px;background:${bg};position:relative;height:36px;">
+        <span style="position:absolute;top:2px;left:4px;font-size:12px;color:${col};font-weight:${isToday?'700':'500'};line-height:1;">${dd}</span>
+        ${occText}
+        ${hasDot?`<div style="position:absolute;bottom:3px;right:3px;width:7px;height:7px;border-radius:50%;background:${dotColor};"></div>`:''}
       </div>`;
     }
     g+=`</div>`;
     // 已預訂率圖例（僅該月有資料時顯示）
     if(hasOcc){
-      g+=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:8px;color:var(--tx3);">
-        <span>已預訂率</span>
-        <span style="display:inline-block;width:14px;height:8px;border-radius:2px;background:rgba(16,185,129,0.08);"></span>
-        <span>低</span>
-        <span style="display:inline-block;width:14px;height:8px;border-radius:2px;background:rgba(16,185,129,0.55);"></span>
-        <span>高（數字=%）</span>
+      g+=`<div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:8px;color:var(--tx3);flex-wrap:wrap;">
+        <span style="color:var(--tx2);">已預訂率%</span>
+        <span style="display:flex;align-items:center;gap:3px;"><b style="color:#9AA5B1;font-family:'DM Mono',monospace;">●</b>≤30</span>
+        <span style="display:flex;align-items:center;gap:3px;"><b style="color:#E8C547;font-family:'DM Mono',monospace;">●</b>31–50</span>
+        <span style="display:flex;align-items:center;gap:3px;"><b style="color:#E8893E;font-family:'DM Mono',monospace;">●</b>51–80</span>
+        <span style="display:flex;align-items:center;gap:3px;"><b style="color:#E0544E;font-family:'DM Mono',monospace;">●</b>81–100</span>
       </div>`;
     }
+    // 日期底色圖例
+    g+=`<div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:8px;color:var(--tx3);flex-wrap:wrap;">
+      <span style="display:flex;align-items:center;gap:3px;"><i style="width:10px;height:10px;border-radius:2px;background:rgba(224,92,92,.32);display:inline-block;"></i>連假/週六</span>
+      <span style="display:flex;align-items:center;gap:3px;"><i style="width:10px;height:10px;border-radius:2px;background:rgba(224,92,92,.16);display:inline-block;"></i>連假末日</span>
+      <span style="display:flex;align-items:center;gap:3px;"><i style="width:10px;height:10px;border-radius:2px;background:rgba(16,185,129,.18);display:inline-block;"></i>週間假日/體育</span>
+      <span style="display:flex;align-items:center;gap:3px;"><i style="width:10px;height:10px;border-radius:2px;background:rgba(232,180,40,.20);display:inline-block;"></i>重要活動</span>
+    </div>`;
     g+=`</div>`;
 
     // 2) 活動說明（接在月曆下方）
