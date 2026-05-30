@@ -1027,6 +1027,22 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   </div>
 </div>
 
+<!-- 交通 Sub-page Tabs -->
+<div style="display:flex;gap:6px;padding:10px 16px 0;">
+  <button id="tri-tab-boat" onclick="triView('boat',this)"
+    style="flex:1;padding:8px 4px;background:var(--ac);border:none;border-radius:20px;
+    color:#0F1923;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">
+    🚢 小三通（水運）
+  </button>
+  <button id="tri-tab-air" onclick="triView('air',this)"
+    style="flex:1;padding:8px 4px;background:var(--sf);border:1px solid var(--bd);border-radius:20px;
+    color:var(--tx3);font-size:11px;font-weight:500;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">
+    ✈️ 航班歷史（空運）
+  </button>
+</div>
+
+<div id="tri-sub-boat">
+
 <!-- 月份進度 & 手動更新 -->
 <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 18px 0;">
   <div style="font-size:10px;color:var(--tx3);" id="triUpdateNote">資料：金門縣大數據平台 2026.3</div>
@@ -1301,6 +1317,54 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       </button>
     </div>
   </div>
+</div>
+
+</div><!-- /tri-sub-boat -->
+
+<div id="tri-sub-air" style="display:none;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 18px 0;">
+    <div style="font-size:10px;color:var(--tx3);" id="airUpdateNote">資料：金門航空站・歷年旅客統計</div>
+    <button onclick="fetchAirStats()"
+      style="font-size:10px;color:var(--ac2);background:var(--ad);border:1px solid var(--bd2);
+      border-radius:20px;padding:3px 10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">
+      🔄 重新抓取
+    </button>
+  </div>
+
+  <!-- 空運 KPI -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 18px 0;" id="airKpis"></div>
+
+  <!-- 今年 vs 去年 逐月對比圖 -->
+  <div class="lbl" style="margin:16px 18px 8px;"><span>✈️ 空運旅客・今年 vs 去年（逐月）</span></div>
+  <div style="padding:0 14px;overflow-x:auto;">
+    <svg id="airMonthSvg" width="100%" height="180"></svg>
+  </div>
+  <div style="display:flex;gap:16px;padding:4px 18px 0;">
+    <span style="font-size:10px;color:var(--tx2);display:flex;align-items:center;gap:5px;"><i style="width:9px;height:9px;border-radius:2px;background:#C8963E;display:inline-block;"></i>今年</span>
+    <span style="font-size:10px;color:var(--tx2);display:flex;align-items:center;gap:5px;"><i style="width:9px;height:9px;border-radius:2px;background:#3B6EA5;display:inline-block;"></i>去年</span>
+  </div>
+
+  <!-- 空運 vs 水運 年度對比 -->
+  <div class="lbl" style="margin:18px 18px 8px;"><span>📊 空運 vs 水運・歷年旅客總量</span></div>
+  <div style="padding:0 14px;overflow-x:auto;">
+    <svg id="airVsBoatSvg" width="100%" height="180"></svg>
+  </div>
+  <div style="display:flex;gap:16px;padding:4px 18px 0;">
+    <span style="font-size:10px;color:var(--tx2);display:flex;align-items:center;gap:5px;"><i style="width:9px;height:9px;border-radius:2px;background:#C8963E;display:inline-block;"></i>空運（飛機）</span>
+    <span style="font-size:10px;color:var(--tx2);display:flex;align-items:center;gap:5px;"><i style="width:9px;height:9px;border-radius:2px;background:#16A085;display:inline-block;"></i>水運（小三通）</span>
+  </div>
+
+  <!-- 歷年空運明細表 -->
+  <div class="lbl" style="margin:18px 18px 8px;"><span>📅 歷年空運旅客數（近10年）</span></div>
+  <div style="padding:0 14px;">
+    <div id="airYearTable" style="display:flex;flex-direction:column;gap:5px;"></div>
+  </div>
+
+  <!-- 旺淡季分析 -->
+  <div class="lbl" style="margin:18px 18px 8px;"><span>🔥 空運旺淡季（近3年平均）</span></div>
+  <div id="airSeason" style="padding:0 18px;font-size:11px;color:var(--tx2);line-height:1.7;"></div>
+
+  <div style="height:80px;"></div>
 </div>
 
 <div style="height:80px;"></div>
@@ -3160,7 +3224,30 @@ async function genAI(){
       10:'秋季（國慶連假）',11:'初冬（金門馬拉松季）',12:'冬季（年末尾牙季）'};
     const seasonCtx=seasons[monthIdx]||'';
 
-    const prompt=`你是救國團金門青年活動中心（金門戰地文旅）的行銷顧問，請用繁體中文提供4點具體行銷建議，每點以**粗體標題**開頭。
+    const prompt=`你是一位資深旅宿營運暨行銷顧問，擁有15年離島與觀光區飯店實戰經驗，同時精通營運管理（收益管理 RevPAR/ADR/住宿率優化、成本控管、淡旺季調節）與行銷推廣（OTA 平台操作、社群經營、節慶活動行銷、客群分眾、異業合作）。你現在服務的客戶是「救國團金門青年活動中心（金門戰地文旅）」，提供住宿、中式餐廳（採預約制）、會議室租借三項服務，位於金門，主要客源含小三通陸客、台灣本島旅客、機關團體與學校。
+
+你深知金門的特殊性：離島交通受船班與航班影響大、戰地文化與閩南聚落是觀光賣點、旺季集中暑假與連假、淡季需靠團體與在地活動填補。
+
+【中心背景檔案】
+- 歷史定位：33年歷史建物，隸屬救國團（非營利組織），早期為辦青年活動（夏令營等）而設立。除旅宿外，亦需兼辦公益活動與服務（兼做金門縣團委會角色）。
+- 財務現況：因設備老舊＋疫情影響，連年約虧損200萬；今年將編列200萬整修1、2樓木質地板與淋浴拉門、3樓防火門與浴室門；去年已更新軟體備品（沐浴乳、洗髮精、床鋪備品）。
+- 客房結構：1樓10間、2樓11間、3樓9間。1、2樓約10-15年前整修過、較新；3樓仍為33年前裝潢、較舊。
+- 擴增規劃：擬於3樓新增「背包客棧」房型增營收，另規劃小型招待所（附KTV）供租用、一間桌遊室出租。
+- 市場現況：金門旅遊環境近年不佳。小三通雖帶來陸客，但台灣本島客多把金門當成往廈門的跳板，難有效留客。全島年度住宿率約3成初，本中心靠低價搶市維持近2年約50%住宿率。
+- 通路結構：官網（賣套裝行程，結合機車租借住宿套裝、買二送一等方案）＋OTA（主賣純房間），官網訂房約佔30%。
+- 異業與優惠：與3家主要機票經銷旅行社合作超低房價、計程車推薦退佣；金門籍/在地朋友限定找主管訂房超低價（1000元含早餐、客房升等），主攻滯留旅客。
+- 服務特色：櫃檯免費泡麵零食、咖啡一杯10元、販售高粱酒（經營者親試把關才推薦）。
+- 餐飲：中式餐廳採預約制，今年餐廳營收明顯成長，計畫年中更新菜單。
+- 在地關係：與金門大學、金門高中、金城國中、中正國小關係良好；與縣政府關係良好；周邊為縣府文化局，常有藝文活動；在地社團眾多；經營者與各方士紳、機關互動良好。
+- 團隊：共11位同仁。
+
+【經營者方針與偏好】
+- 客群定位：不主打高檔客群，務實親民路線。
+- 行銷風格：喜歡創新的行銷方式，樂於嘗試新點子。
+- 季節機會：暑假有許多球賽（棒球、籃球等）帶來團體住宿需求。
+- 核心使命：兼顧旅宿營收與救國團公益服務雙重身分。
+
+請用繁體中文提供4點具體行銷建議，每點以**粗體標題**開頭。建議須務實、可立即執行、貼合上述背景與經營者偏好，避免空泛口號與不切實際的高檔路線。
 
 【本月住宿數據】（${curYear}年 ${d.m}，${seasonCtx}）
 - 房使用率：${d.room}%（目標50%，同比${yoy}%，去年${p?.room||'—'}%）
@@ -4774,6 +4861,201 @@ function loadTriData(){
     const el2=document.getElementById('tri-tw'); if(el2) el2.textContent=(d.tw/10000).toFixed(1)+'萬';
     const dateEl=document.getElementById('triDataDate'); if(dateEl) dateEl.textContent=d.period;
   }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════
+// 航班歷史（空運）— 金門航空站歷年旅客數，自動抓取＋內建後備
+// ════════════════════════════════════════════════════════════
+// 民國年 → 西元年。內建後備資料（來源：金門航空站，2026/5 查證）
+let AIR_YEARLY = {
+  // 民國年: [1月,2月,...,12月]（0=尚無資料）
+  115:[169205,196344,189747,195973,0,0,0,0,0,0,0,0],
+  114:[168029,154199,155762,170575,184917,190414,185729,188502,164818,214635,186715,185432],
+  113:[162648,179201,151616,163212,178652,182104,186694,183303,174453,183197,173301,162397],
+  112:[147856,125609,129103,178095,173971,185397,199159,198999,169206,213648,184796,158630],
+  111:[115013,111609,100885,125042,71602,96480,151284,177221,150470,171072,158178,135506],
+  110:[117933,137575,124263,150486,92338,9895,19065,43411,62367,92194,122187,130336],
+  109:[187986,75622,57421,54193,67797,118661,184714,212941,183520,224146,152986,133671],
+  108:[179129,212180,190672,208039,218179,231112,249752,209410,207681,242256,216683,178399],
+  107:[161058,198146,172408,208135,202557,212384,240864,229082,195375,218961,199599,191259],
+  106:[191194,179517,171761,191182,207973,200548,221945,219853,166573,221671,186079,178517],
+};
+let airDataSrc='內建資料';
+
+function airSumYear(arr){ return arr.reduce((a,b)=>a+b,0); }
+
+// 自動抓取金門航空站歷年旅客統計表
+async function fetchAirStats(){
+  const note=document.getElementById('airUpdateNote');
+  if(note) note.textContent='⏳ 正在抓取金門航空站資料...';
+  try{
+    const url='https://www.kma.gov.tw/BulletinBoard/StatPassenger.aspx?1=1&MenuID=423';
+    const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+    const resp=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
+    const data=await resp.json();
+    const doc=new DOMParser().parseFromString(data.contents,'text/html');
+    const rows=[...doc.querySelectorAll('table tr')];
+    const parsed={};
+    rows.forEach(tr=>{
+      const cells=[...tr.querySelectorAll('td,th')].map(c=>c.textContent.replace(/[,\s]/g,''));
+      // 找「XXX年」開頭、後接12個月份數字的列
+      const m=cells[0] && cells[0].match(/^(\d{2,3})年?$/);
+      if(m && cells.length>=13){
+        const yr=parseInt(m[1]);
+        const months=cells.slice(1,13).map(v=>parseInt(v)||0);
+        if(months.some(v=>v>0)) parsed[yr]=months;
+      }
+    });
+    if(Object.keys(parsed).length>=3){
+      AIR_YEARLY=parsed; airDataSrc='即時抓取';
+      if(note) note.textContent='資料：金門航空站（即時抓取・'+new Date().toLocaleDateString('zh-TW')+'）';
+    } else {
+      if(note) note.textContent='資料：金門航空站（內建・即時抓取暫時失敗）';
+    }
+  }catch(e){
+    if(note) note.textContent='資料：金門航空站（內建・即時抓取暫時失敗，請稍後重試）';
+  }
+  renderAirAll();
+}
+
+function renderAirAll(){
+  renderAirKpis();
+  renderAirMonthChart();
+  renderAirVsBoat();
+  renderAirYearTable();
+  renderAirSeason();
+}
+
+// 找最新有資料的年（民國）
+function airLatestYear(){
+  const yrs=Object.keys(AIR_YEARLY).map(Number).sort((a,b)=>b-a);
+  return yrs[0];
+}
+
+function renderAirKpis(){
+  const box=document.getElementById('airKpis'); if(!box) return;
+  const cy=airLatestYear(), py=cy-1;
+  const cur=AIR_YEARLY[cy]||[], prev=AIR_YEARLY[py]||[];
+  const curSum=airSumYear(cur);
+  // 已有資料的月數
+  const monthsWithData=cur.filter(v=>v>0).length;
+  // 去年同期（前 monthsWithData 個月）
+  const prevSamePeriod=prev.slice(0,monthsWithData).reduce((a,b)=>a+b,0);
+  const yoy=prevSamePeriod>0?((curSum-prevSamePeriod)/prevSamePeriod*100):null;
+  const prevFull=airSumYear(prev);
+  box.innerHTML=
+    `<div class="sum-card"><div class="sum-lbl">${cy}年 累計（1-${monthsWithData}月）</div>
+      <div class="sum-val" style="font-size:13px;color:var(--ac2);">${(curSum/10000).toFixed(1)}萬</div>
+      <div class="sum-sub">空運旅客</div></div>`+
+    `<div class="sum-card"><div class="sum-lbl">較去年同期</div>
+      <div class="sum-val" style="font-size:13px;color:${yoy>=0?'var(--green)':'var(--red)'};">${yoy===null?'—':(yoy>=0?'+':'')+yoy.toFixed(1)+'%'}</div>
+      <div class="sum-sub">YoY</div></div>`+
+    `<div class="sum-card"><div class="sum-lbl">${py}年 全年</div>
+      <div class="sum-val" style="font-size:13px;color:var(--tx);">${(prevFull/10000).toFixed(0)}萬</div>
+      <div class="sum-sub">參考</div></div>`;
+}
+
+function renderAirMonthChart(){
+  const svg=document.getElementById('airMonthSvg'); if(!svg) return;
+  const cy=airLatestYear(), py=cy-1;
+  const cur=AIR_YEARLY[cy]||[], prev=AIR_YEARLY[py]||[];
+  const W=svg.clientWidth||360, H=180, pL=34,pT=10,pB=24,pR=8;
+  const iW=W-pL-pR, iH=H-pT-pB;
+  const maxV=Math.max(...cur,...prev,1);
+  const bw=iW/12, bin=bw*0.34;
+  let s='';
+  [0.25,0.5,0.75,1].forEach(f=>{
+    const y=pT+(1-f)*iH;
+    s+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="rgba(255,255,255,.05)"/>`;
+    s+=`<text x="${pL-3}" y="${y+3}" text-anchor="end" fill="#4A6070" font-size="7" font-family="DM Mono">${Math.round(maxV*f/10000)}萬</text>`;
+  });
+  for(let i=0;i<12;i++){
+    const x0=pL+i*bw;
+    const ph=prev[i]?prev[i]/maxV*iH:0, ch=cur[i]?cur[i]/maxV*iH:0;
+    s+=`<rect x="${x0+bw/2-bin-1}" y="${pT+iH-ph}" width="${bin}" height="${ph}" fill="#3B6EA5" rx="1"/>`;
+    s+=`<rect x="${x0+bw/2+1}" y="${pT+iH-ch}" width="${bin}" height="${ch}" fill="#C8963E" rx="1"/>`;
+    s+=`<text x="${x0+bw/2}" y="${H-9}" text-anchor="middle" fill="#6A8090" font-size="7">${i+1}</text>`;
+  }
+  svg.innerHTML=s;
+}
+
+function renderAirVsBoat(){
+  const svg=document.getElementById('airVsBoatSvg'); if(!svg) return;
+  // 取近10年：空運（民國轉西元加總）vs 水運（TRI_DATA 西元 tot）
+  const boatMap={}; (typeof TRI_DATA!=='undefined'?TRI_DATA:[]).forEach(d=>{ if(/^\d{4}$/.test(d.y)) boatMap[+d.y]=d.tot; });
+  const yrsROC=Object.keys(AIR_YEARLY).map(Number).sort((a,b)=>a-b);
+  const series=yrsROC.map(roc=>{
+    const ad=airSumYear(AIR_YEARLY[roc]);
+    const west=roc+1911;
+    return {label:String(roc), air:ad, boat:boatMap[west]||0};
+  }).filter(d=>d.air>0).slice(-8);
+  const W=svg.clientWidth||360, H=180, pL=34,pT=10,pB=24,pR=8;
+  const iW=W-pL-pR, iH=H-pT-pB;
+  const maxV=Math.max(...series.map(d=>Math.max(d.air,d.boat)),1);
+  const bw=iW/series.length, bin=bw*0.32;
+  let s='';
+  [0.5,1].forEach(f=>{
+    const y=pT+(1-f)*iH;
+    s+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="rgba(255,255,255,.05)"/>`;
+    s+=`<text x="${pL-3}" y="${y+3}" text-anchor="end" fill="#4A6070" font-size="7" font-family="DM Mono">${Math.round(maxV*f/10000)}萬</text>`;
+  });
+  series.forEach((d,i)=>{
+    const x0=pL+i*bw;
+    const ah=d.air/maxV*iH, bh=d.boat/maxV*iH;
+    s+=`<rect x="${x0+bw/2-bin-1}" y="${pT+iH-ah}" width="${bin}" height="${ah}" fill="#C8963E" rx="1"/>`;
+    s+=`<rect x="${x0+bw/2+1}" y="${pT+iH-bh}" width="${bin}" height="${bh}" fill="#16A085" rx="1"/>`;
+    s+=`<text x="${x0+bw/2}" y="${H-9}" text-anchor="middle" fill="#6A8090" font-size="7">${d.label}</text>`;
+  });
+  svg.innerHTML=s;
+}
+
+function renderAirYearTable(){
+  const box=document.getElementById('airYearTable'); if(!box) return;
+  const yrs=Object.keys(AIR_YEARLY).map(Number).sort((a,b)=>b-a).slice(0,10);
+  box.innerHTML=yrs.map((roc,idx)=>{
+    const sum=airSumYear(AIR_YEARLY[roc]);
+    const prevSum=AIR_YEARLY[roc-1]?airSumYear(AIR_YEARLY[roc-1]):0;
+    const monthsWithData=AIR_YEARLY[roc].filter(v=>v>0).length;
+    const partial=monthsWithData<12?` <span style="color:var(--tx3);font-size:9px;">(1-${monthsWithData}月)</span>`:'';
+    let yoyTag='';
+    if(prevSum>0 && monthsWithData===12){
+      const y=((sum-prevSum)/prevSum*100);
+      yoyTag=`<span style="font-size:10px;font-family:'DM Mono',monospace;color:${y>=0?'var(--green)':'var(--red)'};">${y>=0?'+':''}${y.toFixed(1)}%</span>`;
+    }
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 11px;">
+      <span style="font-size:12px;color:var(--tx);font-weight:600;">${roc}年${partial}</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:13px;font-family:'DM Mono',monospace;color:var(--ac2);">${(sum/10000).toFixed(1)}萬</span>
+        ${yoyTag}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAirSeason(){
+  const box=document.getElementById('airSeason'); if(!box) return;
+  // 近3個完整年度的各月平均
+  const fullYears=Object.keys(AIR_YEARLY).map(Number).filter(roc=>AIR_YEARLY[roc].filter(v=>v>0).length===12).sort((a,b)=>b-a).slice(0,3);
+  if(!fullYears.length){ box.textContent='資料不足'; return; }
+  const avg=Array(12).fill(0);
+  fullYears.forEach(roc=>AIR_YEARLY[roc].forEach((v,i)=>avg[i]+=v));
+  for(let i=0;i<12;i++) avg[i]/=fullYears.length;
+  const ranked=avg.map((v,i)=>({m:i+1,v})).sort((a,b)=>b.v-a.v);
+  const top=ranked.slice(0,3).map(r=>r.m+'月').join('、');
+  const low=ranked.slice(-3).reverse().map(r=>r.m+'月').join('、');
+  box.innerHTML=`旺季（近${fullYears.length}年平均最高）：<b style="color:var(--ac2);">${top}</b><br>`+
+    `淡季（最低）：<b style="color:var(--tx3);">${low}</b><br>`+
+    `<span style="font-size:10px;color:var(--tx3);">※ 7月、10月通常為暑假與連假高峰；5–6月相對較淡。可作為住宿促銷時機參考。</span>`;
+}
+
+// 交通頁 子分頁切換
+function triView(mode, btn){
+  document.getElementById('tri-sub-boat').style.display=(mode==='boat')?'block':'none';
+  document.getElementById('tri-sub-air').style.display=(mode==='air')?'block':'none';
+  const bBoat=document.getElementById('tri-tab-boat'), bAir=document.getElementById('tri-tab-air');
+  [bBoat,bAir].forEach(b=>{ b.style.background='var(--sf)'; b.style.color='var(--tx3)'; b.style.border='1px solid var(--bd)'; b.style.fontWeight='500'; });
+  btn.style.background='var(--ac)'; btn.style.color='#0F1923'; btn.style.border='none'; btn.style.fontWeight='700';
+  if(mode==='air' && !window._airLoaded){ window._airLoaded=true; fetchAirStats(); }
 }
 
 // ── 小三通新聞自動抓取 ──────────────────────────────────────────
