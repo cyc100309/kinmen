@@ -860,8 +860,10 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   </div>
   <div id="aiContent"></div>
   <div class="ai-footer">
-    <span id="aiLastUpdate" style="font-size:10px;color:var(--tx3);">每次開啟自動更新</span>
-    <span style="font-size:10px;color:var(--tx3);">AI 分析</span>
+    <span id="aiLastUpdate" style="font-size:10px;color:var(--tx3);">每日最多分析一次</span>
+    <button onclick="genAI(true)" style="font-size:10px;color:var(--ac2);background:var(--ad);
+      border:1px solid var(--bd2);border-radius:20px;padding:3px 10px;cursor:pointer;
+      font-family:'Noto Sans TC',sans-serif;">🔄 重新分析</button>
   </div>
 </div>
 
@@ -3429,11 +3431,40 @@ function renderAI(loading){
   c.innerHTML='<div style="font-size:11px;color:var(--tx3);padding:8px;line-height:1.7;">請上傳本月住宿報表，即可自動生成 AI 行銷建議。</div>';
   document.getElementById('aiBadge').textContent='待資料';
 }
-async function genAI(){
+// 還原快取的 AI 結果到畫面
+function showCachedAI(cache){
+  const c=document.getElementById('aiContent');
+  if(c) c.innerHTML=cache.html;
+  const badge=document.getElementById('aiBadge'); if(badge) badge.textContent='✓ AI';
+  const upd=document.getElementById('aiLastUpdate');
+  if(upd) upd.textContent=(cache.dateLabel||'')+'（沿用上次分析）';
+}
+// 計算資料指紋：年月＋關鍵數據，資料一變指紋就變
+function aiDataSig(d,p){
+  return [curYear,d.m,d.stays,d.guests,d.rev,d.rest_total,
+          (d.venue?d.venue.total:0),(p?p.stays:0)].join('|');
+}
+async function genAI(force){
   const d=curRows[curIdx], p=prevRows[curIdx];
   if(!d||d.stays===undefined){
     renderAI(false); // show "請上傳報表" prompt
     return;
+  }
+  // ── 每日最多一次 + 資料未更新就沿用上次結果 ──
+  const sig=aiDataSig(d,p);
+  const today=new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  const cacheKey='aiCache_'+curYear+'_'+d.m;
+  if(!force){
+    try{
+      const raw=localStorage.getItem(cacheKey);
+      if(raw){
+        const cache=JSON.parse(raw);
+        // 資料相同 → 直接沿用；或今天已跑過 → 也沿用，避免重複消耗額度
+        if((cache.sig===sig || cache.date===today) && cache.html){
+          showCachedAI(cache); return;
+        }
+      }
+    }catch(e){}
   }
   renderAI(true);
   try{
@@ -3570,11 +3601,17 @@ ${newsCtx}
       html+=`<div class="ai-item"><div class="ai-num">0${num}</div><div class="ai-text">${fmt}</div></div>`;
       num++;
     });
-    document.getElementById('aiContent').innerHTML=html||`<div class="ai-item"><div class="ai-num">💡</div><div class="ai-text">${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
+    const finalHtml=html||`<div class="ai-item"><div class="ai-num">💡</div><div class="ai-text">${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
+    document.getElementById('aiContent').innerHTML=finalHtml;
     const now=new Date();
     const ts=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} 更新`;
     document.getElementById('aiBadge').textContent='✓ AI';
     document.getElementById('aiLastUpdate').textContent=ts;
+    // 存快取（資料指紋＋日期），下次資料沒變或同一天就沿用
+    try{
+      const dateLabel=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${ts}`;
+      localStorage.setItem(cacheKey, JSON.stringify({sig, date:today, dateLabel, html:finalHtml}));
+    }catch(e){}
   }catch(e){
     renderAI(false);
     const msg=e.message||'未知錯誤';
