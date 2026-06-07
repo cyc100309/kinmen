@@ -5072,16 +5072,30 @@ async function pullFromCloud(){
 // 一次性遷移：把舊版「無前綴」的金門資料搬到 kinmen_ 前綴（只搬一次，不覆蓋既有）
 function migrateLegacyKeys(){
   try{
-    if(localStorage.getItem('_migratedV8')) return;
-    const legacy=['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt','occ_pushedAt','comp_prices','comp_savedAt','cloudUrl','sheetsUrl','cfg'];
-    legacy.forEach(k=>{
+    if(localStorage.getItem('_migratedV9')) {  // 已執行新版遷移則略過
+      return;
+    }
+    // 只遷移「與單位資料無關」的設定（這些不會被劍潭污染）
+    const safeKeys=['cloudUrl','sheetsUrl','cfg'];
+    safeKeys.forEach(k=>{
       const oldVal=localStorage.getItem(k);
       const newKey='kinmen_'+k;
       if(oldVal!==null && localStorage.getItem(newKey)===null){
-        localStorage.setItem(newKey,oldVal);   // 舊資料視為金門的
+        localStorage.setItem(newKey,oldVal);
       }
     });
-    localStorage.setItem('_migratedV8','1');
+    // 重要修正：舊版曾把「無前綴的營運資料」當成金門搬移，但劍潭測試階段
+    // 共用過無前綴 key，導致金門資料可能被劍潭污染。
+    // 因此清掉 kinmen 的本機營運資料與同步時間戳，強制下次從雲端重新拉正確的金門資料。
+    if(localStorage.getItem('_migratedV8')){
+      ['kinmen_occ_cur','kinmen_occ_prev','kinmen_occ_curY','kinmen_occ_prevY',
+       'kinmen_occ_idx','kinmen_occ_daily','kinmen_occ_savedAt','kinmen_occ_pushedAt']
+        .forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+    }
+    // 同時清掉無前綴的舊殘留，避免再次被誤判
+    ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt','occ_pushedAt']
+      .forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+    localStorage.setItem('_migratedV9','1');
   }catch(e){}
 }
 
