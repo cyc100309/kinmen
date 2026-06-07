@@ -2439,16 +2439,19 @@ function occDataset(){
 // ── State ─────────────────────────────────────────────────────
 let curYear=2026, prevYear=2025;
 let curRows=DEMO_CUR, prevRows=DEMO_PREV;
+let _occLoaded=false;  // 是否已嘗試載入當前單位的營運資料
 let dailyData={year:2026,month:'五月',rows:DEMO_DAILY};
 // 預設當月（0-indexed，1月=0，5月=4）
 let curIdx=new Date().getMonth();
 
 // ── Init ──────────────────────────────────────────────────────
 function init(){
-  // 依目前單位選用對應營運資料集
-  const ds=occDataset();
-  curRows=ds.cur; prevRows=ds.prev;
-  resetDailyForUnit();
+  // 資料載入：優先用此單位已儲存的上傳資料，否則用內建資料集
+  // （loadSavedOccData 會在 loadCfg 階段先跑；此處確保 init 直接呼叫時也正確）
+  if(!_occLoaded){ loadSavedOccData(); _occLoaded=true; }
+  // 逐日資料：若此單位無已儲存的逐日 slot，才用單位預設（金門示範／劍潭空白）
+  const hasDaily=Array.isArray(dailyMonths)&&dailyMonths.some(m=>m&&m.rows&&m.rows.length);
+  if(!hasDaily) resetDailyForUnit();
   document.getElementById('yrB').textContent=curYear+'年';
   document.getElementById('yl1').textContent=curYear;
   document.getElementById('yl2').textContent=prevYear;
@@ -2663,23 +2666,31 @@ const LEVEL_LABEL = {
 // 封面：選擇單位（裝置記憶版）
 function enterUnit(unit){
   if(unit==='kinmen'){
-    applyUnitBranding('kinmen');
     const cover=document.getElementById('unitCover');
     if(cover) cover.style.display='none';
     try{ localStorage.setItem('chosenUnit','kinmen'); }catch(e){}
+    bootUnit();
   } else if(unit==='jiantan'){
     // 測試階段：需輸入驗證碼
     const code=prompt('劍潭花園會館為測試儀表板，請輸入驗證碼：');
     if(code===null) return;              // 取消
     if(code.trim()!=='0000'){ alert('驗證碼錯誤，無法進入。'); return; }
-    applyUnitBranding('jiantan');
     const cover=document.getElementById('unitCover');
     if(cover) cover.style.display='none';
     try{ localStorage.setItem('chosenUnit','jiantan'); }catch(e){}
+    bootUnit();
   } else {
     const hint=document.getElementById('otherHint');
     if(hint) hint.style.display='block';
   }
+}
+// 切換單位後：清狀態、重新載入該單位的設定與資料
+function bootUnit(){
+  _occLoaded=false;
+  dailyMonths=[null,null,null];
+  applyUnitBranding(getUnit());
+  loadCfg();           // 載入該單位品牌與已存營運資料（內含 loadSavedOccData）
+  init();              // 重繪
 }
 // 依單位套用品牌名稱（從 UNITS 設定取，單一來源）
 function applyUnitBranding(unit){
@@ -2729,13 +2740,41 @@ const UNITS={
     logo:'金門戰地文旅', name:'救國團金門青年活動中心', city:'金門縣',
     ordersApi:'https://script.google.com/macros/s/AKfycbxjff5GwoPAGbQjn9U05KLPSowKP1lePEj3Yq1_431KE0-4RScexlL8nwhuRMB_Nm26nA/exec',
     sheetsUrl:'https://docs.google.com/spreadsheets/d/e/2PACX-1vTaluvqiqTvp4VWqYqVDBbCt4n_T7cNGHSjFXqvblt9YiK0Xn7o7LHYgGbyuFlW8xs2SRlSjlHGl8Em/pub?output=csv',
-    seedKey:'kinmen'   // 對應 ORDERS_SEED（金門 1360 筆）
+    seedKey:'kinmen',  // 對應 ORDERS_SEED（金門 1360 筆）
+    // AI 行銷顧問的單位背景（會帶入 prompt）
+    aiIntro:'你現在服務的客戶是「救國團金門青年活動中心（金門戰地文旅）」，提供住宿、中式餐廳（採預約制）、會議室租借三項服務，位於金門，主要客源含小三通陸客、台灣本島旅客、機關團體與學校。\n\n你深知金門的特殊性：離島交通受船班與航班影響大、戰地文化與閩南聚落是觀光賣點、旺季集中暑假與連假、淡季需靠團體與在地活動填補。',
+    aiProfile:`- 歷史定位：33年歷史建物，隸屬救國團（非營利組織），早期為辦青年活動（夏令營等）而設立。除旅宿外，亦需兼辦公益活動與服務（兼做金門縣團委會角色）。
+- 財務現況：因設備老舊＋疫情影響，連年約虧損200萬；今年將編列200萬整修1、2樓木質地板與淋浴拉門、3樓防火門與浴室門；去年已更新軟體備品。
+- 客房結構：1樓10間、2樓11間、3樓9間。1、2樓約10-15年前整修過、較新；3樓仍為33年前裝潢、較舊。
+- 擴增規劃：擬於3樓新增「背包客棧」房型增營收，另規劃小型招待所（附KTV）供租用、一間桌遊室出租。
+- 市場現況：金門旅遊環境近年不佳。小三通雖帶來陸客，但台灣本島客多把金門當成往廈門的跳板，難有效留客。全島年度住宿率約3成初，本中心靠低價搶市維持近2年約50%住宿率。
+- 通路結構：官網（賣套裝行程）＋OTA（主賣純房間），官網訂房約佔30%。
+- 異業與優惠：與3家機票經銷旅行社合作超低房價、計程車推薦退佣；金門籍/在地朋友限定主管訂房超低價，主攻滯留旅客。
+- 服務特色：櫃檯免費泡麵零食、咖啡一杯10元、販售高粱酒。
+- 餐飲：中式餐廳採預約制，今年餐廳營收明顯成長，計畫年中更新菜單。
+- 在地關係：與金門大學、金門高中、金城國中、中正國小、縣政府、文化局關係良好；在地社團眾多。
+- 團隊：共11位同仁。
+
+【經營者方針與偏好】
+- 客群定位：不主打高檔客群，務實親民路線。
+- 行銷風格：喜歡創新的行銷方式，樂於嘗試新點子。
+- 季節機會：暑假有許多球賽（棒球、籃球等）帶來團體住宿需求。
+- 核心使命：兼顧旅宿營收與救國團公益服務雙重身分。`,
+    aiMarket:'【小三通旅客動態】\n${triCtx}\n陸客自由行比例高，為金門重要客源',
+    useKinmenData:true   // 是否帶入小三通/金門競品/金門新聞
   },
   jiantan:{
     logo:'劍潭花園會館', name:'救國團劍潭青年活動中心', city:'臺北市',
     ordersApi:'',      // 測試階段：尚未建立劍潭自己的訂單 API（拿到 /exec 再填）
     sheetsUrl:'',      // 測試階段：尚未建立劍潭自己的營運試算表
-    seedKey:null       // 劍潭暫無種子資料（顯示空白，等填入真實來源）
+    seedKey:null,      // 劍潭暫無種子資料
+    aiIntro:'你現在服務的客戶是「救國團劍潭青年活動中心（劍潭花園會館）」，提供住宿、中式餐廳、研習／會議場地三項服務，位於臺北市劍潭、緊鄰捷運與圓山花博、士林夜市商圈。主要客源含研習團體、學校與社團、企業會議、國旅散客與背包旅客。\n\n你深知劍潭的特殊性：位處台北市區、交通便利（捷運劍潭站）、鄰近士林夜市與圓山花博為觀光賣點、研習與會議場地需求穩定、住宿與餐飲受台北都會與會展檔期影響大。',
+    aiProfile:`- 定位：隸屬救國團（非營利組織）之青年活動中心，主力為研習營隊、會議場地與住宿，地點位於台北市精華地段、交通便利。
+- 三大部門：住宿、餐飲（早／午／晚）、研習場地（早場／午場／晚場），三者皆為核心營收來源，場地使用率與營收為重要指標。
+- 市場現況：位於台北都會，競爭者多（商旅、會館、商務旅館），但地利與救國團品牌、團體承接能力為優勢。
+- （以下為待補充的單位細節，可由劍潭單位補上：客房結構、通路結構、異業合作、團隊規模、經營者方針）`,
+    aiMarket:'【市場背景】\n台北都會旅宿市場競爭激烈，研習與會議檔期、士林夜市與圓山周邊觀光、學校與企業團體為主要需求來源。',
+    useKinmenData:false  // 劍潭不帶金門限定的小三通/競品/新聞
   }
 };
 // 目前單位（依封面選擇 / 裝置記憶；預設金門）
@@ -4170,7 +4209,7 @@ function buildTrendChart(){
   svg.innerHTML+=`<text x="${W-pt.r+2}" y="${yp(50)+3}" fill="rgba(200,150,62,.5)" font-size="8">50%</text>`;
 
   // ── Draw STRAIGHT polyline (no bezier) ──────────────────────
-  function drawPolyline(arr, color, area=false, dashed=false){
+  function drawPolyline(arr, color, area=false, dashed=false, labelPos='above'){
     const lastIdx = arr.reduce((a,v,i) => v>0?i:a, -1);
     if(lastIdx < 0) return;
 
@@ -4198,23 +4237,23 @@ function buildTrendChart(){
     // Main line
     svg.innerHTML+=`<polyline points="${points}" fill="none" stroke="${color}" stroke-width="${area?2.5:1.8}" stroke-linecap="round" stroke-linejoin="round" ${dashed?'stroke-dasharray="5,3"':''} opacity="${dashed?.75:1}"/>`;
 
-    // Dots on each data point
+    // Dots + 每個月標數值（本年標上方、去年標下方，避免重疊）
     for(let i=0; i<=lastIdx; i++){
       if(arr[i]===0 && i>0) continue;
       const x=xp(i), y=yp(arr[i]||0);
       const isLast=(i===lastIdx);
-      svg.innerHTML+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isLast?5:2.5}" fill="${isLast?color:'var(--bg)'}" stroke="${color}" stroke-width="${isLast?0:1.5}"/>`;
-      // Label for last point
-      if(isLast && arr[i]>0){
-        svg.innerHTML+=`<text x="${x.toFixed(1)}" y="${(y-8).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="10" font-family="DM Mono" font-weight="500">${arr[i].toFixed(1)}%</text>`;
+      svg.innerHTML+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isLast?4:2.3}" fill="${isLast?color:'var(--bg)'}" stroke="${color}" stroke-width="${isLast?0:1.4}"/>`;
+      if(arr[i]>0){
+        const dy=labelPos==='above'?-6:11;
+        svg.innerHTML+=`<text x="${x.toFixed(1)}" y="${(y+dy).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="8" font-family="DM Mono" font-weight="${isLast?600:500}" opacity="${dashed?.85:1}">${Math.round(arr[i])}</text>`;
       }
     }
   }
 
   const d25 = prevRows.map(r=>r.room||0);
   const d26 = curRows.map(r=>r.room||0);
-  drawPolyline(d25,'#E8B86D',false,true);   // 去年 - 虛線
-  drawPolyline(d26,'#C8963E',true,false);    // 本年 - 實線+填色
+  drawPolyline(d25,'#E8B86D',false,true,'below');   // 去年 - 虛線，標下方
+  drawPolyline(d26,'#C8963E',true,false,'above');    // 本年 - 實線+填色，標上方
 }
 
 // ── YoY table (達成率) ───────────────────────────────────────
@@ -4294,7 +4333,7 @@ async function genAI(force){
   // ── 每日最多一次 + 資料未更新就沿用上次結果 ──
   const sig=aiDataSig(d,p);
   const today=new Date().toISOString().slice(0,10); // YYYY-MM-DD
-  const cacheKey='aiCache_'+curYear+'_'+d.m;
+  const cacheKey='aiCache_'+getUnit()+'_'+curYear+'_'+d.m;
   if(!force){
     try{
       const raw=localStorage.getItem(cacheKey);
@@ -4362,36 +4401,20 @@ async function genAI(force){
       10:'秋季（國慶連假）',11:'初冬（金門馬拉松季）',12:'冬季（年末尾牙季）'};
     const seasonCtx=seasons[monthIdx]||'';
 
-    const prompt=`你是一位資深旅宿營運暨行銷顧問，擁有15年離島與觀光區飯店實戰經驗，同時精通營運管理（收益管理 RevPAR/ADR/住宿率優化、成本控管、淡旺季調節）與行銷推廣（OTA 平台操作、社群經營、節慶活動行銷、客群分眾、異業合作）。你現在服務的客戶是「救國團金門青年活動中心（金門戰地文旅）」，提供住宿、中式餐廳（採預約制）、會議室租借三項服務，位於金門，主要客源含小三通陸客、台灣本島旅客、機關團體與學校。
-
-你深知金門的特殊性：離島交通受船班與航班影響大、戰地文化與閩南聚落是觀光賣點、旺季集中暑假與連假、淡季需靠團體與在地活動填補。
+    const u=unitCfg();
+    const prompt=`你是一位資深旅宿營運暨行銷顧問，擁有15年觀光區與都會飯店實戰經驗，同時精通營運管理（收益管理 RevPAR/ADR/住宿率優化、成本控管、淡旺季調節）與行銷推廣（OTA 平台操作、社群經營、節慶活動行銷、客群分眾、異業合作）。${u.aiIntro}
 
 【中心背景檔案】
-- 歷史定位：33年歷史建物，隸屬救國團（非營利組織），早期為辦青年活動（夏令營等）而設立。除旅宿外，亦需兼辦公益活動與服務（兼做金門縣團委會角色）。
-- 財務現況：因設備老舊＋疫情影響，連年約虧損200萬；今年將編列200萬整修1、2樓木質地板與淋浴拉門、3樓防火門與浴室門；去年已更新軟體備品（沐浴乳、洗髮精、床鋪備品）。
-- 客房結構：1樓10間、2樓11間、3樓9間。1、2樓約10-15年前整修過、較新；3樓仍為33年前裝潢、較舊。
-- 擴增規劃：擬於3樓新增「背包客棧」房型增營收，另規劃小型招待所（附KTV）供租用、一間桌遊室出租。
-- 市場現況：金門旅遊環境近年不佳。小三通雖帶來陸客，但台灣本島客多把金門當成往廈門的跳板，難有效留客。全島年度住宿率約3成初，本中心靠低價搶市維持近2年約50%住宿率。
-- 通路結構：官網（賣套裝行程，結合機車租借住宿套裝、買二送一等方案）＋OTA（主賣純房間），官網訂房約佔30%。
-- 異業與優惠：與3家主要機票經銷旅行社合作超低房價、計程車推薦退佣；金門籍/在地朋友限定找主管訂房超低價（1000元含早餐、客房升等），主攻滯留旅客。
-- 服務特色：櫃檯免費泡麵零食、咖啡一杯10元、販售高粱酒（經營者親試把關才推薦）。
-- 餐飲：中式餐廳採預約制，今年餐廳營收明顯成長，計畫年中更新菜單。
-- 在地關係：與金門大學、金門高中、金城國中、中正國小關係良好；與縣政府關係良好；周邊為縣府文化局，常有藝文活動；在地社團眾多；經營者與各方士紳、機關互動良好。
-- 團隊：共11位同仁。
+${u.aiProfile}
 
-【經營者方針與偏好】
-- 客群定位：不主打高檔客群，務實親民路線。
-- 行銷風格：喜歡創新的行銷方式，樂於嘗試新點子。
-- 季節機會：暑假有許多球賽（棒球、籃球等）帶來團體住宿需求。
-- 核心使命：兼顧旅宿營收與救國團公益服務雙重身分。
-
-請用繁體中文提供4點具體行銷建議，每點以**粗體標題**開頭。建議須務實、可立即執行、貼合上述背景與經營者偏好，避免空泛口號與不切實際的高檔路線。
+請用繁體中文提供4點具體行銷建議，每點以**粗體標題**開頭。建議須務實、可立即執行、貼合上述背景，避免空泛口號與不切實際的高檔路線。
 
 【本月住宿數據】（${curYear}年 ${d.m}，${seasonCtx}）
-- 房使用率：${d.room}%（目標50%，同比${yoy}%，去年${p?.room||'—'}%）
+- 房使用率：${d.room}%（同比${yoy}%，去年${p?.room||'—'}%）
 - 住宿人次：${d.guests}人 / 住房數：${d.stays}晚 / 每房均 ${gpr} 人
 - 住宿收入：${d.rev.toLocaleString()}元 / 均房單價：${d.adr}元
-- 餐飲：早${(d.rest_am/10000).toFixed(1)}萬 / 午${(d.rest_noon/10000).toFixed(1)}萬 / 晚${(d.rest_pm/10000).toFixed(1)}萬
+- 餐飲：早${(d.rest_am/10000).toFixed(1)}萬 / 午${(d.rest_noon/10000).toFixed(1)}萬 / 晚${(d.rest_pm/10000).toFixed(1)}萬 / 消夜${((d.rest_night||0)/10000).toFixed(1)}萬 / 合計${(d.rest_total/10000).toFixed(1)}萬
+- 場地：${d.venue?`早場${d.venue.am}場 / 午場${d.venue.noon}場 / 晚場${d.venue.pm}場 / 合計${d.venue.total}場・使用率${(d.venue.total_u*100).toFixed(1)}%・收入${(d.venue.total_r/10000).toFixed(1)}萬`:'無場地資料'}
 - 低住宿日（<20%）：${lowDays||'無'}
 
 【客群結構分析】
@@ -4399,7 +4422,7 @@ ${segCtx}
 
 【本月在地活動】${curFests||'無重大活動'}
 【下月預告】${nextFests||'無'}
-
+${u.useKinmenData?`
 【競爭對手最低房價】（${compDate||'近期'}）
 ${compInfo}
 
@@ -4409,17 +4432,14 @@ ${triCtx}
 
 【最新旅遊市場新聞】
 ${newsCtx}
-
-【全台旅宿市場參考】
-- 觀光旅館全年住宿率：72.1%（2024年）
-- 觀光旅館均房價：4,531元
-- 旅館業整體住宿率：55.8%
-
+`:`
+${u.aiMarket}
+`}
 請針對以上資訊，提供4點具體建議：
 ①針對本月客群結構（團體／散客比重、每房均人數與人次同比變化）的客群經營策略
-②結合當月節慶與小三通旅客特性的差異化行銷方案
-③根據競爭對手現況的定價與促銷策略調整
-④低住宿率日的即時填補方案
+②結合當月節慶${u.useKinmenData?'與小三通旅客特性':'與都會會展／觀光檔期'}的差異化行銷方案
+③根據住宿、餐飲、場地三部門表現的營收與促銷策略調整
+④低使用率時段（住宿低住日／餐飲弱時段／場地空檔）的即時填補方案
 
 每點含2-3個具體可執行步驟，直接寫建議，不用開頭說「根據數據」。`;
 
@@ -4588,6 +4608,7 @@ function loadCfg(){
   try{const s=uGet('cfg');if(s)cfg=JSON.parse(s);}catch(e){}
   applyCfg();
   loadSavedOccData();
+  _occLoaded=true;
 }
 
 // ── 頁面啟動 ──────────────────────────────────────────────────
@@ -4680,19 +4701,19 @@ function saveCfg(){
 // ── 資料持久化（儲存上傳的數據）──────────────────────────────
 function saveOccData(){
   try{
-    localStorage.setItem('occ_cur',    JSON.stringify(curRows));
-    localStorage.setItem('occ_prev',   JSON.stringify(prevRows));
-    localStorage.setItem('occ_curY',   curYear);
-    localStorage.setItem('occ_prevY',  prevYear);
-    localStorage.setItem('occ_idx',    curIdx);
-    localStorage.setItem('occ_daily',  JSON.stringify(dailyMonths));
+    uSet('occ_cur',    JSON.stringify(curRows));
+    uSet('occ_prev',   JSON.stringify(prevRows));
+    uSet('occ_curY',   curYear);
+    uSet('occ_prevY',  prevYear);
+    uSet('occ_idx',    curIdx);
+    uSet('occ_daily',  JSON.stringify(dailyMonths));
     const now=new Date();
     const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-    localStorage.setItem('occ_savedAt', ts);
+    uSet('occ_savedAt', ts);
     showDataDate(ts);
   }catch(e){}
-  // Auto push to cloud if configured
-  if(getCloudUrl()) pushToCloud();
+  // 僅金門推雲端（劍潭等其他單位純本機儲存，未設定各自雲端前不推送）
+  if(getUnit()==='kinmen' && getCloudUrl()) pushToCloud();
 }
 
 function showDataDate(ts){
@@ -4722,20 +4743,25 @@ function refreshDisplay(){
 
 function loadSavedOccData(){
   try{
-    const cr=localStorage.getItem('occ_cur');
-    const pr=localStorage.getItem('occ_prev');
-    if(!cr||!pr) return false;
+    const cr=uGet('occ_cur');
+    const pr=uGet('occ_prev');
+    if(!cr||!pr){
+      // 此單位尚無上傳記錄 → 用內建資料集（金門 DEMO／劍潭 JT）
+      const ds=occDataset();
+      curRows=ds.cur; prevRows=ds.prev;
+      return false;
+    }
     curRows=JSON.parse(cr);
     prevRows=JSON.parse(pr);
-    curYear=parseInt(localStorage.getItem('occ_curY'))||2026;
-    prevYear=parseInt(localStorage.getItem('occ_prevY'))||2025;
+    curYear=parseInt(uGet('occ_curY'))||2026;
+    prevYear=parseInt(uGet('occ_prevY'))||2025;
     // 優先用當月，若當月無資料才用儲存的index
     const nowM=new Date().getMonth();
     curIdx=curRows[nowM]&&curRows[nowM].room>0 ? nowM :
-           (parseInt(localStorage.getItem('occ_idx'))||nowM);
-    const dm=localStorage.getItem('occ_daily');
+           (parseInt(uGet('occ_idx'))||nowM);
+    const dm=uGet('occ_daily');
     if(dm) dailyMonths=JSON.parse(dm);
-    const ts=localStorage.getItem('occ_savedAt')||'';
+    const ts=uGet('occ_savedAt')||'';
 
     // Restore UI badges
     document.getElementById('ib1').classList.add('ok');
