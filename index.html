@@ -4197,15 +4197,15 @@ function saveCompData(){
   try{
     // Save prices and availability for each competitor
     const toSave = COMPETITORS.map(c=>({price:c.price,avail:c.avail,rating:c.rating}));
-    localStorage.setItem('comp_prices', JSON.stringify(toSave));
-    localStorage.setItem('comp_savedAt', document.getElementById('updateTime').textContent);
+    uSet('comp_prices', JSON.stringify(toSave));
+    uSet('comp_savedAt', document.getElementById('updateTime').textContent);
   }catch(e){}
 }
 
 function loadCompData(){
   try{
-    const saved = localStorage.getItem('comp_prices');
-    const ts    = localStorage.getItem('comp_savedAt');
+    const saved = uGet('comp_prices');
+    const ts    = uGet('comp_savedAt');
     if(!saved) return false;
     const data = JSON.parse(saved);
     data.forEach((d,i)=>{
@@ -4398,7 +4398,7 @@ function buildTrendChart(){
   svg.innerHTML+=`<text x="${W-pt.r+2}" y="${yp(50)+3}" fill="rgba(200,150,62,.5)" font-size="8">50%</text>`;
 
   // ── Draw STRAIGHT polyline (no bezier) ──────────────────────
-  function drawPolyline(arr, color, area=false, dashed=false, labelPos='above'){
+  function drawPolyline(arr, color, area=false, dashed=false, labelPos='above', compareArr=null){
     const lastIdx = arr.reduce((a,v,i) => v>0?i:a, -1);
     if(lastIdx < 0) return;
 
@@ -4426,15 +4426,25 @@ function buildTrendChart(){
     // Main line
     svg.innerHTML+=`<polyline points="${points}" fill="none" stroke="${color}" stroke-width="${area?2.5:1.8}" stroke-linecap="round" stroke-linejoin="round" ${dashed?'stroke-dasharray="5,3"':''} opacity="${dashed?.75:1}"/>`;
 
-    // Dots + 每個月標數值（本年標上方、去年標下方，避免重疊）
+    // Dots + 每個月標數值（本年標上方、去年標下方，加底框避免兩排數字糊在一起）
     for(let i=0; i<=lastIdx; i++){
       if(arr[i]===0 && i>0) continue;
       const x=xp(i), y=yp(arr[i]||0);
       const isLast=(i===lastIdx);
+      // 數字顏色：有對照資料（本年）依漲跌綠/紅；否則維持原色（去年淡黃）
+      let txtColor=color, growUp=null;
+      if(compareArr && arr[i]>0 && compareArr[i]>0){ growUp = arr[i]>=compareArr[i]; txtColor = growUp ? '#3DCB8E' : '#E05C5C'; }
       svg.innerHTML+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isLast?4:2.3}" fill="${isLast?color:'var(--bg)'}" stroke="${color}" stroke-width="${isLast?0:1.4}"/>`;
       if(arr[i]>0){
-        const dy=labelPos==='above'?-6:11;
-        svg.innerHTML+=`<text x="${x.toFixed(1)}" y="${(y+dy).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="8" font-family="DM Mono" font-weight="${isLast?600:500}" opacity="${dashed?.85:1}">${Math.round(arr[i])}</text>`;
+        const txt=String(Math.round(arr[i]));
+        // 方向：本年依漲跌（成長綠放上方、衰退紅放下方）；去年維持原 labelPos
+        const pos = (growUp===null) ? labelPos : (growUp ? 'above' : 'below');
+        const dy = pos==='above' ? -12 : 16;
+        const ty=y+dy;
+        const w=txt.length*6+6;                       // 底框寬度
+        // 半透明深色底框，墊在數字下方避免被線或另一排數字蓋住
+        svg.innerHTML+=`<rect x="${(x-w/2).toFixed(1)}" y="${(ty-7).toFixed(1)}" width="${w}" height="13" rx="3" fill="var(--bg)" opacity="0.82"/>`;
+        svg.innerHTML+=`<text x="${x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${txtColor}" font-size="9.5" font-family="DM Mono" font-weight="${isLast?700:600}" opacity="${dashed?.9:1}">${txt}</text>`;
       }
     }
   }
@@ -4442,7 +4452,7 @@ function buildTrendChart(){
   const d25 = prevRows.map(r=>r.room||0);
   const d26 = curRows.map(r=>r.room||0);
   drawPolyline(d25,'#E8B86D',false,true,'below');   // 去年 - 虛線，標下方
-  drawPolyline(d26,'#C8963E',true,false,'above');    // 本年 - 實線+填色，標上方
+  drawPolyline(d26,'#C8963E',true,false,'above',d25);    // 本年 - 實線；數字依漲跌綠/紅
 }
 
 // ── YoY table (達成率) ───────────────────────────────────────
@@ -4562,7 +4572,7 @@ async function genAI(force){
     const compInfo=COMPETITORS.filter(c=>!c.self)
       .map(c=>c.price>0?`${c.name}(${c.price.toLocaleString()}元)`:null)
       .filter(Boolean).slice(0,8).join('、')||'尚無競價資料';
-    const compDate=localStorage.getItem('comp_savedAt')||'';
+    const compDate=uGet('comp_savedAt')||'';
 
     // ── 最新新聞標題（最多3則）──
     let newsCtx='（尚無最新新聞）';
@@ -4991,8 +5001,15 @@ function loadSavedOccData(){
 
 // ── 雲端同步（Google Apps Script）──────────────────────────
 function getCloudUrl(){
-  const DEFAULT='https://script.google.com/macros/s/AKfycbwinsU-QJg_9zWlQp0ByTINq-bEBXH-mFI6Rswh0xa-owagFAa5iY5Cc_qiYjrq3D4o/exec';
-  try{ return localStorage.getItem('cloudUrl')||DEFAULT; }catch(e){ return DEFAULT; }
+  // 金門：沿用既有預設雲端網址（或曾自訂的前綴值）；其他單位：用各自前綴的自訂網址
+  const KINMEN_DEFAULT='https://script.google.com/macros/s/AKfycbwinsU-QJg_9zWlQp0ByTINq-bEBXH-mFI6Rswh0xa-owagFAa5iY5Cc_qiYjrq3D4o/exec';
+  try{
+    const custom=uGet('cloudUrl');           // 單位前綴的自訂網址
+    if(custom) return custom;
+    // 相容舊版：金門曾存過無前綴的 cloudUrl
+    if(getUnit()==='kinmen'){ return localStorage.getItem('cloudUrl')||KINMEN_DEFAULT; }
+    return '';                                 // 其他單位未設定 → 不同步
+  }catch(e){ return getUnit()==='kinmen'?KINMEN_DEFAULT:''; }
 }
 
 function showSyncStatus(msg,ok){
@@ -5004,15 +5021,16 @@ function showSyncStatus(msg,ok){
 
 function buildSyncPayload(){
   return JSON.stringify({
-    occ_cur:localStorage.getItem('occ_cur')||'',
-    occ_prev:localStorage.getItem('occ_prev')||'',
-    occ_curY:localStorage.getItem('occ_curY')||'',
-    occ_prevY:localStorage.getItem('occ_prevY')||'',
-    occ_idx:localStorage.getItem('occ_idx')||'',
-    occ_daily:localStorage.getItem('occ_daily')||'',
-    occ_savedAt:localStorage.getItem('occ_savedAt')||'',
-    comp_prices:localStorage.getItem('comp_prices')||'',
-    comp_savedAt:localStorage.getItem('comp_savedAt')||'',
+    unit:getUnit(),                          // 標記來源單位
+    occ_cur:uGet('occ_cur')||'',
+    occ_prev:uGet('occ_prev')||'',
+    occ_curY:uGet('occ_curY')||'',
+    occ_prevY:uGet('occ_prevY')||'',
+    occ_idx:uGet('occ_idx')||'',
+    occ_daily:uGet('occ_daily')||'',
+    occ_savedAt:uGet('occ_savedAt')||'',
+    comp_prices:uGet('comp_prices')||'',
+    comp_savedAt:uGet('comp_savedAt')||'',
     pushedAt:Date.now()
   });
 }
@@ -5037,17 +5055,38 @@ async function pullFromCloud(){
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
     if(!d||!d.occ_cur) return false;
-    const localTs=parseInt(localStorage.getItem('occ_pushedAt')||'0');
+    const localTs=parseInt(uGet('occ_pushedAt')||'0');
     const cloudTs=parseInt(d.pushedAt||'0');
     if(cloudTs>0&&cloudTs<=localTs) return false;
-    ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily',
-     'occ_savedAt','comp_prices','comp_savedAt'].forEach(k=>{ if(d[k]) localStorage.setItem(k,d[k]); });
-    if(d.pushedAt) localStorage.setItem('occ_pushedAt',String(d.pushedAt));
+    // 測試階段單位（preferBuiltin）：營運用內建，不接受雲端覆蓋 cur/prev，僅接受逐日與競品
+    const builtin=unitCfg().preferBuiltin;
+    const keys=builtin
+      ? ['occ_daily','comp_prices','comp_savedAt']
+      : ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt','comp_prices','comp_savedAt'];
+    keys.forEach(k=>{ if(d[k]) uSet(k,d[k]); });
+    if(d.pushedAt) uSet('occ_pushedAt',String(d.pushedAt));
     return true;
   }catch(e){ return false; }
 }
 
+// 一次性遷移：把舊版「無前綴」的金門資料搬到 kinmen_ 前綴（只搬一次，不覆蓋既有）
+function migrateLegacyKeys(){
+  try{
+    if(localStorage.getItem('_migratedV8')) return;
+    const legacy=['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt','occ_pushedAt','comp_prices','comp_savedAt','cloudUrl','sheetsUrl','cfg'];
+    legacy.forEach(k=>{
+      const oldVal=localStorage.getItem(k);
+      const newKey='kinmen_'+k;
+      if(oldVal!==null && localStorage.getItem(newKey)===null){
+        localStorage.setItem(newKey,oldVal);   // 舊資料視為金門的
+      }
+    });
+    localStorage.setItem('_migratedV8','1');
+  }catch(e){}
+}
+
 async function initWithCloudSync(){
+  migrateLegacyKeys();
   loadCfg();
   loadCompData();
   const synced=await pullFromCloud();
@@ -5057,7 +5096,7 @@ async function initWithCloudSync(){
 function saveCloudSettings(){
   const url=document.getElementById('cloudUrlInput')?.value?.trim();
   if(!url||!url.startsWith('https://')){ showSyncStatus('請貼上正確的 Apps Script 網址',false); return; }
-  localStorage.setItem('cloudUrl',url);
+  uSet('cloudUrl',url);
   document.getElementById('cloudSetupPanel').style.display='none';
   showSyncStatus('✓ 已儲存，下次上傳資料自動同步',true);
 }
