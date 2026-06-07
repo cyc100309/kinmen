@@ -2688,6 +2688,8 @@ function enterUnit(unit){
 function bootUnit(){
   _occLoaded=false;
   dailyMonths=[null,null,null];
+  // 測試階段單位：清掉可能殘留的舊營運存檔（避免顯示到舊的金門式空資料）
+  if(unitCfg().preferBuiltin){ uDel('occ_cur'); uDel('occ_prev'); uDel('occ_idx'); }
   applyUnitBranding(getUnit());
   loadCfg();           // 載入該單位品牌與已存營運資料（內含 loadSavedOccData）
   init();              // 重繪
@@ -2774,7 +2776,8 @@ const UNITS={
 - 市場現況：位於台北都會，競爭者多（商旅、會館、商務旅館），但地利與救國團品牌、團體承接能力為優勢。
 - （以下為待補充的單位細節，可由劍潭單位補上：客房結構、通路結構、異業合作、團隊規模、經營者方針）`,
     aiMarket:'【市場背景】\n台北都會旅宿市場競爭激烈，研習與會議檔期、士林夜市與圓山周邊觀光、學校與企業團體為主要需求來源。',
-    useKinmenData:false  // 劍潭不帶金門限定的小三通/競品/新聞
+    useKinmenData:false, // 劍潭不帶金門限定的小三通/競品/新聞
+    preferBuiltin:true   // 測試階段：永遠用內建 JT 資料集，忽略殘留舊存檔（接真實資料後改 false）
   }
 };
 // 目前單位（依封面選擇 / 裝置記憶；預設金門）
@@ -4701,14 +4704,21 @@ function saveCfg(){
 // ── 資料持久化（儲存上傳的數據）──────────────────────────────
 function saveOccData(){
   try{
+    const now=new Date();
+    const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    if(unitCfg().preferBuiltin){
+      // 測試階段單位：營運數據用內建，不寫存檔（避免殘留）；只存逐日資料
+      uSet('occ_daily',  JSON.stringify(dailyMonths));
+      uSet('occ_savedAt', ts);
+      showDataDate(ts);
+      return;
+    }
     uSet('occ_cur',    JSON.stringify(curRows));
     uSet('occ_prev',   JSON.stringify(prevRows));
     uSet('occ_curY',   curYear);
     uSet('occ_prevY',  prevYear);
     uSet('occ_idx',    curIdx);
     uSet('occ_daily',  JSON.stringify(dailyMonths));
-    const now=new Date();
-    const ts=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
     uSet('occ_savedAt', ts);
     showDataDate(ts);
   }catch(e){}
@@ -4743,6 +4753,18 @@ function refreshDisplay(){
 
 function loadSavedOccData(){
   try{
+    // 測試階段單位（preferBuiltin）：營運數據永遠用內建資料集，忽略殘留舊存檔；
+    // 但逐日資料仍從本機讀回（使用者實際會上傳的部分）
+    if(unitCfg().preferBuiltin){
+      const ds=occDataset();
+      curRows=ds.cur; prevRows=ds.prev;
+      curYear=2026; prevYear=2025;
+      const nowM=new Date().getMonth();
+      curIdx=(curRows[nowM]&&curRows[nowM].room>0)?nowM:nowM;
+      const dm=uGet('occ_daily');
+      if(dm){ try{ dailyMonths=JSON.parse(dm); }catch(e){} }
+      return false;
+    }
     const cr=uGet('occ_cur');
     const pr=uGet('occ_prev');
     if(!cr||!pr){
