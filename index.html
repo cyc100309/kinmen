@@ -2590,6 +2590,14 @@ function renderMonth(i){
   const vtd=document.getElementById('vd-total');
   const vtDiff=v.total-(pv.total||0);
   vtd.innerHTML=vtDiff!==0?`<span class="${vtDiff>=0?'up':'dn'}">${vtDiff>=0?'+':''}${vtDiff} 場</span>`:'<span class="neu">—</span>';
+  // 場地說明（依單位）
+  const vnote=document.getElementById('venueNote');
+  if(vnote){
+    const isJT=(typeof getUnit==='function'&&getUnit()==='jiantan');
+    vnote.textContent=isJT
+      ? '場地收入計入研習服務（早場／午場／晚場）。資料來源：805_6_1 使用率統計表。'
+      : '場地收入計入研習服務。金門若有研習／會議場次將自動顯示。';
+  }
 
   genAI();
 }
