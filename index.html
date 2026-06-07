@@ -475,6 +475,29 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .gd-ct h3{font-size:15px;font-weight:700;line-height:1.25;color:var(--tx);}
 .gd-cat{font-family:'DM Mono',monospace;font-size:10px;color:var(--cc,var(--ac));text-transform:uppercase;letter-spacing:1px;}
 .gd-card p{font-size:12.5px;color:var(--tx2);line-height:1.6;}
+.gd-card{cursor:pointer;}
+.gd-x{margin-left:auto;font-size:18px;color:var(--cc,var(--ac));font-weight:300;
+  transition:transform .25s;align-self:flex-start;flex-shrink:0;}
+.gd-card.exp .gd-x{transform:rotate(45deg);}
+.gd-detail{max-height:0;overflow:hidden;transition:max-height .4s ease;
+  font-size:12px;color:var(--tx2);line-height:1.65;}
+.gd-card.exp .gd-detail{max-height:900px;margin-top:12px;}
+.gd-detail b{color:var(--ac2);font-weight:600;display:block;margin-bottom:8px;font-size:12px;}
+.gd-step{display:flex;gap:9px;margin-bottom:8px;align-items:flex-start;}
+.gd-step span{flex-shrink:0;min-width:18px;height:18px;border-radius:5px;
+  background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;
+  justify-content:center;font-size:10px;color:var(--cc,var(--ac));font-family:'DM Mono',monospace;
+  margin-top:1px;padding:0 4px;}
+.gd-step code{background:var(--bg);border:1px solid var(--bd);border-radius:4px;
+  padding:1px 5px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ac2);
+  word-break:break-all;}
+.gd-step b{display:inline;margin:0;color:var(--tx);font-size:12px;}
+/* 響應式：手機單欄、流程項目單欄 */
+@media(max-width:600px){
+  .gd-cards{grid-template-columns:1fr;}
+  .gd-items{flex-direction:column;}
+  .gd-fi{width:100%;}
+}
 .ord-kpi{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:11px 12px;}
 .ord-kpi-l{font-size:10px;color:var(--tx3);margin-bottom:5px;}
 .ord-kpi-v{font-size:20px;font-weight:700;color:var(--ac2);font-family:'DM Mono',monospace;line-height:1.1;}
@@ -605,18 +628,79 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <div style="flex:1;height:1px;background:linear-gradient(90deg,var(--bd2),transparent);"></div>
     </div>
     <div class="gd-cards">
-      <div class="gd-card" style="--cc:var(--ac);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">⚙️</div><div><div class="gd-cat">Automation</div><h3>Google Apps Script</h3></div></div><p>自動讀取 Gmail 訂房信，解析成結構化資料寫入試算表，並提供 API 給儀表板即時讀取。整套自動化的核心引擎。</p></div>
-      <div class="gd-card" style="--cc:var(--ac);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">📊</div><div><div class="gd-cat">Database</div><h3>Google 試算表</h3></div></div><p>當作免費的雲端資料庫，存放訂單與營運數據。前端直接讀取，不需架伺服器、零維護成本。</p></div>
-      <div class="gd-card" style="--cc:var(--blue);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(91,155,213,.15);">📨</div><div><div class="gd-cat">Source</div><h3>OTA 訂房信件</h3></div></div><p>Trip.com、Agoda、官網的訂房與取消通知信，是訂單分析的原始資料來源，由程式自動攔截解析。</p></div>
-      <div class="gd-card" style="--cc:var(--pur);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(167,139,250,.15);">🤖</div><div><div class="gd-cat">AI</div><h3>Groq AI</h3></div></div><p>高速 AI 推論服務，產生每日行銷建議與產業趨勢摘要，每天自動更新一次以節省資源。</p></div>
-      <div class="gd-card" style="--cc:var(--blue);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(91,155,213,.15);">🏛️</div><div><div class="gd-cat">Open Data</div><h3>交通部觀光署</h3></div></div><p>全國 22 縣市飯店/民宿住用率、旅遊市場進出統計等開放資料，支撐「外在環境」分析。</p></div>
-      <div class="gd-card" style="--cc:var(--blue);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(91,155,213,.15);">🚢</div><div><div class="gd-cat">Source</div><h3>小三通·航班資料</h3></div></div><p>金門水運人次與空運航班歷史，用於交通概況的旺淡季與運具比較分析。</p></div>
-      <div class="gd-card" style="--cc:var(--green);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(76,175,130,.15);">🐙</div><div><div class="gd-cat">Hosting</div><h3>GitHub Pages</h3></div></div><p>免費網頁託管，把儀表板發佈成公開網址，手機電腦皆可開啟，更新只需推送檔案。</p></div>
-      <div class="gd-card" style="--cc:var(--green);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(76,175,130,.15);">📱</div><div><div class="gd-cat">Frontend</div><h3>PWA 漸進式網頁</h3></div></div><p>讓網站能像 App 一樣安裝到手機桌面，全螢幕開啟、載入更快，無需上架商店。</p></div>
-      <div class="gd-card" style="--cc:var(--green);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(76,175,130,.15);">📈</div><div><div class="gd-cat">Frontend</div><h3>Chart.js · SVG</h3></div></div><p>繪製折線、長條、雷達等圖表。輕量的 SVG 自製圖則用於訂單分析，配合暗色主題。</p></div>
-      <div class="gd-card" style="--cc:var(--ac);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">📰</div><div><div class="gd-cat">Source</div><h3>金門日報 RSS</h3></div></div><p>自動抓取在地新聞，整合進觀光行事曆，掌握地方動態與活動訊息。</p></div>
-      <div class="gd-card" style="--cc:var(--ac);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">🐍</div><div><div class="gd-cat">Automation</div><h3>Python · Playwright</h3></div></div><p>航班空位爬蟲，模擬瀏覽器自動查詢各航空訂位系統，排程每日更新座位資料。</p></div>
-      <div class="gd-card" style="--cc:var(--tx3);"><div class="gd-ct"><div class="gd-ci" style="background:rgba(106,126,146,.18);">🔗</div><div><div class="gd-cat">Proxy</div><h3>AllOrigins 代理</h3></div></div><p>跨來源代理服務，協助前端讀取部分受 CORS 限制的外部資料來源。</p></div>
+      <div class="gd-card" style="--cc:var(--ac);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">⚙️</div><div><div class="gd-cat">Automation</div><h3>Google Apps Script</h3></div><span class="gd-x">＋</span></div><p>自動讀取 Gmail 訂房信，解析成結構化資料寫入試算表，並提供 API 給儀表板即時讀取。整套自動化的核心引擎。</p>
+        <div class="gd-detail"><b>運作細節：</b>
+          <div class="gd-step"><span>1</span>每 10 分鐘掃描 Gmail，搜尋來自三個寄件信箱的新信：<code>auto_reservation@trip.com</code>、<code>no-reply@agoda.com</code>、<code>no-reply@surehigh.com.tw</code>（官網）</div>
+          <div class="gd-step"><span>2</span>排除非訂單信（評鑑、放房通知、電子報等），只留訂房／取消通知</div>
+          <div class="gd-step"><span>3</span>逐封解析出 18 個欄位：系統、狀態、訂單編號、客人姓名、房型、入住/退房、金額、提前天數…</div>
+          <div class="gd-step"><span>4</span>寫入「訂房紀錄」試算表，並為信件貼上「已入表」標籤避免重複處理</div>
+          <div class="gd-step"><span>5</span>另提供 <code>doGet()</code> API，把資料轉成 JSON 供儀表板即時讀取</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--blue);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(91,155,213,.15);">📨</div><div><div class="gd-cat">Source</div><h3>OTA 訂房信件</h3></div><span class="gd-x">＋</span></div><p>Trip.com、Agoda、官網的訂房與取消通知信，是訂單分析的原始資料來源，由程式自動攔截解析。</p>
+        <div class="gd-detail"><b>三個來源信箱：</b>
+          <div class="gd-step"><span>🌐</span><b>Trip.com</b>：<code>auto_reservation@trip.com</code>，解析訂單號、收入、住宿日期</div>
+          <div class="gd-step"><span>🅰️</span><b>Agoda</b>：<code>no-reply@agoda.com</code>，解析 Booking ID、客人姓名、房型</div>
+          <div class="gd-step"><span>🏠</span><b>官網</b>：<code>no-reply@surehigh.com.tw</code>，解析套裝名稱、預付金額</div>
+          <div class="gd-step"><span>🔜</span><b>Booking.com</b>：規則已預留，拿到實際信件後即可啟用</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--ac);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">📊</div><div><div class="gd-cat">Database</div><h3>Google 試算表</h3></div><span class="gd-x">＋</span></div><p>當作免費的雲端資料庫，存放訂單與營運數據。前端直接讀取，不需架伺服器、零維護成本。</p>
+        <div class="gd-detail"><b>串接方式：</b>
+          <div class="gd-step"><span>1</span>Apps Script 把訂房資料寫入「訂房紀錄」分頁</div>
+          <div class="gd-step"><span>2</span>由於公司網域限制「發布為 CSV」，改用 Apps Script 的 <code>doGet()</code> 輸出 JSON</div>
+          <div class="gd-step"><span>3</span>儀表板的「網路訂單」分頁打這個 API，即時取得最新訂單並計算 KPI</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--pur);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(167,139,250,.15);">🤖</div><div><div class="gd-cat">AI</div><h3>Groq AI · Claude</h3></div><span class="gd-x">＋</span></div><p>AI 推論服務，產生每日行銷建議與產業趨勢摘要，每天自動更新一次以節省資源。</p>
+        <div class="gd-detail"><b>兩處 AI 應用：</b>
+          <div class="gd-step"><span>1</span><b>營運數據</b>的「AI 行銷建議」：根據當月住宿/餐飲/場地表現給經營建議，每日快取一次，可手動 🔄 強制重算</div>
+          <div class="gd-step"><span>2</span><b>產業分析</b>的「AI 摘要」：對抓取到的三大機構文章做摘要與在地化建議</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--ac2);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(232,184,109,.15);">🔍</div><div><div class="gd-cat">Industry</div><h3>產業分析（三大機構）</h3></div><span class="gd-x">＋</span></div><p>自動抓取三大產業研究機構的最新文章，並用 AI 摘要重點、轉成對金門文旅的在地化建議。</p>
+        <div class="gd-detail"><b>抓取來源與內容：</b>
+          <div class="gd-step"><span>①</span><b>未來流通研究所</b>（mirai.com.tw）：抓旅遊產業分析文章標題與連結</div>
+          <div class="gd-step"><span>②</span><b>台灣趨勢研究</b>（twtrend.com）：抓產業報告列表</div>
+          <div class="gd-step"><span>③</span><b>Social Lab 社群實驗室</b>（social-lab.cc）：抓旅遊娛樂類社群聲量分析</div>
+          <div class="gd-step"><span>🔗</span>透過 AllOrigins 代理跨來源抓取網頁，整理出文章清單</div>
+          <div class="gd-step"><span>🤖</span>再請 AI 針對抓到的內容做摘要，並轉化為金門青年活動中心可用的行銷洞察</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--blue);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(91,155,213,.15);">🏛️</div><div><div class="gd-cat">Open Data</div><h3>交通部觀光署</h3></div><span class="gd-x">＋</span></div><p>全國 22 縣市飯店/民宿住用率、旅遊市場進出統計等開放資料，支撐「外在環境」分析。</p>
+        <div class="gd-detail"><b>用於：</b>
+          <div class="gd-step"><span>·</span>全國飯店/民宿住用率與房價（2016–2025），金門縣特別標示</div>
+          <div class="gd-step"><span>·</span>來台旅客與國人出國統計，看大環境旅遊動向</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--blue);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(91,155,213,.15);">🚢</div><div><div class="gd-cat">Source</div><h3>小三通·航班資料</h3></div><span class="gd-x">＋</span></div><p>金門水運人次與空運航班歷史，用於交通概況的旺淡季與運具比較分析。</p>
+        <div class="gd-detail"><b>內容：</b>
+          <div class="gd-step"><span>·</span>小三通水運：逐季人次、國籍結構、航線</div>
+          <div class="gd-step"><span>·</span>空運：航班歷史逐月年比較、與水運的運具對比</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--ac);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">🐍</div><div><div class="gd-cat">Automation</div><h3>Python · Playwright</h3></div><span class="gd-x">＋</span></div><p>航班空位爬蟲，模擬瀏覽器自動查詢各航空訂位系統，排程每日更新座位資料。</p>
+        <div class="gd-detail"><b>運作：</b>
+          <div class="gd-step"><span>1</span>用 Playwright 模擬瀏覽器查詢立榮、華信、德安各航線空位</div>
+          <div class="gd-step"><span>2</span>透過 GitHub Actions 每日台灣時間 07:00 自動執行</div>
+          <div class="gd-step"><span>3</span>結果寫入 Google 試算表供查閱</div>
+        </div>
+      </div>
+      <div class="gd-card" style="--cc:var(--green);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(76,175,130,.15);">🐙</div><div><div class="gd-cat">Hosting</div><h3>GitHub Pages</h3></div><span class="gd-x">＋</span></div><p>免費網頁託管，把儀表板發佈成公開網址，手機電腦皆可開啟，更新只需推送檔案。</p>
+        <div class="gd-detail"><b>網址：</b><div class="gd-step"><span>·</span>cyc100309.github.io/kinmen，單一 index.html 即整個儀表板</div></div>
+      </div>
+      <div class="gd-card" style="--cc:var(--green);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(76,175,130,.15);">📱</div><div><div class="gd-cat">Frontend</div><h3>PWA 漸進式網頁</h3></div><span class="gd-x">＋</span></div><p>讓網站能像 App 一樣安裝到手機桌面，全螢幕開啟、載入更快，無需上架商店。</p>
+        <div class="gd-detail"><b>安裝：</b><div class="gd-step"><span>·</span>Android 點安裝橫幅；iPhone 用 Safari「加入主畫面」</div></div>
+      </div>
+      <div class="gd-card" style="--cc:var(--green);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(76,175,130,.15);">📈</div><div><div class="gd-cat">Frontend</div><h3>Chart.js · SVG</h3></div><span class="gd-x">＋</span></div><p>繪製折線、長條、雷達等圖表。輕量的 SVG 自製圖則用於訂單分析，配合暗色主題。</p>
+        <div class="gd-detail"><b>用途：</b><div class="gd-step"><span>·</span>Chart.js 畫營運趨勢；訂單分析的提前天數、月份趨勢用手刻 SVG，更輕量</div></div>
+      </div>
+      <div class="gd-card" style="--cc:var(--ac);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(200,150,62,.15);">📰</div><div><div class="gd-cat">Source</div><h3>金門日報 RSS</h3></div><span class="gd-x">＋</span></div><p>自動抓取在地新聞，整合進觀光行事曆，掌握地方動態與活動訊息。</p>
+        <div class="gd-detail"><b>用途：</b><div class="gd-step"><span>·</span>在觀光行事曆下方顯示最新地方新聞，可重新整理</div></div>
+      </div>
+      <div class="gd-card" style="--cc:var(--tx3);" onclick="this.classList.toggle('exp')"><div class="gd-ct"><div class="gd-ci" style="background:rgba(106,126,146,.18);">🔗</div><div><div class="gd-cat">Proxy</div><h3>AllOrigins 代理</h3></div><span class="gd-x">＋</span></div><p>跨來源代理服務，協助前端讀取部分受 CORS 限制的外部資料來源。</p>
+        <div class="gd-detail"><b>用途：</b><div class="gd-step"><span>·</span>產業分析抓三大機構網頁、RSS 新聞時繞過瀏覽器跨來源限制</div></div>
+      </div>
     </div>
 
     <div style="text-align:center;margin-top:46px;padding-top:22px;border-top:1px solid var(--bd);
