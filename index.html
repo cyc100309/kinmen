@@ -2399,6 +2399,43 @@ const DEMO_DAILY = [
   {d:'05/31',w:'日',r:16.67},
 ];
 
+// ── 劍潭花園會館 營運數據（2026 本年度 / 2025 去年度，三部門）──
+const JT_CUR = [
+  {m:'一月',stays:3167,guests:9085,room:39.44,rev:7187484,adr:2269,adr_p:791,rest_am:789060,rest_noon:1957595,rest_pm:1690025,rest_night:357130,rest_total:4793810,venue:{am:250,am_u:0.2520,noon:269,noon_u:0.2712,pm:219,pm_u:0.2208,total:738,total_u:0.2480,total_r:2615939}},
+  {m:'二月',stays:2306,guests:7169,room:31.80,rev:6076340,adr:2635,adr_p:848,rest_am:1059800,rest_noon:1113516,rest_pm:1713470,rest_night:365013,rest_total:4251799,venue:{am:189,am_u:0.2109,noon:183,noon_u:0.2042,pm:175,pm_u:0.1953,total:547,total_u:0.2035,total_r:1180150}},
+  {m:'三月',stays:4735,guests:13095,room:58.97,rev:9327724,adr:1970,adr_p:712,rest_am:637780,rest_noon:1493044,rest_pm:1763190,rest_night:445070,rest_total:4339084,venue:{am:247,am_u:0.2490,noon:256,noon_u:0.2581,pm:203,pm_u:0.2046,total:706,total_u:0.2372,total_r:2234732}},
+  {m:'四月',stays:3881,guests:9866,room:49.95,rev:6448898,adr:1662,adr_p:654,rest_am:760040,rest_noon:955408,rest_pm:834270,rest_night:501330,rest_total:3051048,venue:{am:240,am_u:0.2500,noon:247,noon_u:0.2573,pm:197,pm_u:0.2052,total:684,total_u:0.2375,total_r:2944420}},
+  {m:'五月',stays:4889,guests:13050,room:60.89,rev:7848949,adr:1605,adr_p:601,rest_am:1003820,rest_noon:1911030,rest_pm:1605332,rest_night:368972,rest_total:4889154,venue:{am:435,am_u:0.4385,noon:360,noon_u:0.3629,pm:236,pm_u:0.2379,total:1031,total_u:0.3464,total_r:3750023}},
+  {m:'六月',stays:4595,guests:12319,room:59.14,rev:7499043,adr:1632,adr_p:609,rest_am:376840,rest_noon:2062645,rest_pm:1139594,rest_night:294680,rest_total:3873759,venue:{am:279,am_u:0.2906,noon:272,noon_u:0.2833,pm:205,pm_u:0.2135,total:756,total_u:0.2625,total_r:2972605}},
+  {m:'七月',stays:3500,guests:10335,room:43.59,rev:9618835,adr:2748,adr_p:931,rest_am:72000,rest_noon:459940,rest_pm:1221050,rest_night:138930,rest_total:1891920,venue:{am:109,am_u:0.1099,noon:113,noon_u:0.1139,pm:69,pm_u:0.0696,total:291,total_u:0.0978,total_r:3583400}},
+  {m:'八月',stays:3043,guests:7913,room:37.90,rev:7402175,adr:2433,adr_p:935,rest_am:68000,rest_noon:635000,rest_pm:360000,rest_night:4560,rest_total:1067560,venue:{am:126,am_u:0.1270,noon:145,noon_u:0.1462,pm:38,pm_u:0.0383,total:309,total_u:0.1038,total_r:3419600}},
+  {m:'九月',stays:2505,guests:4318,room:32.24,rev:2479535,adr:990,adr_p:574,rest_am:40000,rest_noon:969150,rest_pm:229720,rest_night:30000,rest_total:1268870,venue:{am:41,am_u:0.0427,noon:49,noon_u:0.0510,pm:17,pm_u:0.0177,total:107,total_u:0.0372,total_r:1952050}},
+  {m:'十月',stays:4738,guests:12251,room:59.01,rev:8881995,adr:1875,adr_p:725,rest_am:106000,rest_noon:573640,rest_pm:360500,rest_night:6000,rest_total:1046140,venue:{am:48,am_u:0.0484,noon:57,noon_u:0.0575,pm:34,pm_u:0.0343,total:139,total_u:0.0467,total_r:1960700}},
+  {m:'十一月',stays:3171,guests:5934,room:40.81,rev:4584445,adr:1446,adr_p:773,rest_am:0,rest_noon:586820,rest_pm:487020,rest_night:29400,rest_total:1103240,venue:{am:70,am_u:0.0729,noon:83,noon_u:0.0865,pm:19,pm_u:0.0198,total:172,total_u:0.0597,total_r:2590050}},
+  {m:'十二月',stays:3023,guests:5909,room:37.65,rev:4053960,adr:1341,adr_p:686,rest_am:0,rest_noon:432000,rest_pm:439040,rest_night:0,rest_total:871040,venue:{am:33,am_u:0.0333,noon:35,noon_u:0.0353,pm:15,pm_u:0.0151,total:83,total_u:0.0279,total_r:1723350}},
+];
+const JT_PREV = [
+  {m:'一月',stays:2386,guests:7352,room:29.72,rev:6035882,adr:2530,adr_p:821,rest_am:761200,rest_noon:1893301,rest_pm:2385980,rest_night:215869,rest_total:5256350,venue:{am:225,am_u:0.2268,noon:238,noon_u:0.2399,pm:210,pm_u:0.2117,total:673,total_u:0.2261,total_r:1700933}},
+  {m:'二月',stays:2241,guests:6984,room:30.90,rev:6163607,adr:2750,adr_p:883,rest_am:492330,rest_noon:2163679,rest_pm:1692636,rest_night:300822,rest_total:4649467,venue:{am:194,am_u:0.2165,noon:206,noon_u:0.2299,pm:165,pm_u:0.1842,total:565,total_u:0.2102,total_r:2114646}},
+  {m:'三月',stays:3247,guests:9842,room:40.44,rev:8187864,adr:2522,adr_p:832,rest_am:671060,rest_noon:2031370,rest_pm:1313580,rest_night:188150,rest_total:4204160,venue:{am:257,am_u:0.2591,noon:275,noon_u:0.2772,pm:171,pm_u:0.1724,total:703,total_u:0.2362,total_r:2983471}},
+  {m:'四月',stays:2769,guests:7733,room:35.64,rev:6154774,adr:2223,adr_p:796,rest_am:819820,rest_noon:1069580,rest_pm:949830,rest_night:273286,rest_total:3112516,venue:{am:235,am_u:0.2448,noon:248,noon_u:0.2583,pm:199,pm_u:0.2073,total:682,total_u:0.2368,total_r:2929295}},
+  {m:'五月',stays:3477,guests:10742,room:43.31,rev:7372228,adr:2120,adr_p:686,rest_am:1336530,rest_noon:1946264,rest_pm:1502770,rest_night:206849,rest_total:4992413,venue:{am:349,am_u:0.3518,noon:320,noon_u:0.3226,pm:189,pm_u:0.1905,total:858,total_u:0.2883,total_r:2951347}},
+  {m:'六月',stays:3969,guests:13070,room:51.08,rev:9313155,adr:2346,adr_p:713,rest_am:1519430,rest_noon:1790695,rest_pm:2525910,rest_night:262730,rest_total:6098765,venue:{am:440,am_u:0.4583,noon:374,noon_u:0.3896,pm:244,pm_u:0.2542,total:1058,total_u:0.3674,total_r:4518631}},
+  {m:'七月',stays:3122,guests:11213,room:38.88,rev:8363449,adr:2679,adr_p:746,rest_am:1195210,rest_noon:1467310,rest_pm:2619400,rest_night:438360,rest_total:5720280,venue:{am:426,am_u:0.4294,noon:358,noon_u:0.3609,pm:232,pm_u:0.2339,total:1016,total_u:0.3414,total_r:3211073}},
+  {m:'八月',stays:2820,guests:9579,room:35.12,rev:8273539,adr:2934,adr_p:864,rest_am:873258,rest_noon:1367732,rest_pm:1228818,rest_night:394910,rest_total:3864718,venue:{am:342,am_u:0.3448,noon:347,noon_u:0.3498,pm:237,pm_u:0.2389,total:926,total_u:0.3112,total_r:4132365}},
+  {m:'九月',stays:2296,guests:5784,room:29.55,rev:5179070,adr:2256,adr_p:895,rest_am:391484,rest_noon:1253640,rest_pm:1093256,rest_night:209740,rest_total:2948120,venue:{am:299,am_u:0.3115,noon:301,noon_u:0.3135,pm:209,pm_u:0.2177,total:809,total_u:0.2809,total_r:3302772}},
+  {m:'十月',stays:3493,guests:14893,room:43.50,rev:8564573,adr:2452,adr_p:575,rest_am:626940,rest_noon:2434650,rest_pm:1512350,rest_night:397970,rest_total:4971910,venue:{am:264,am_u:0.2661,noon:236,noon_u:0.2379,pm:192,pm_u:0.1935,total:692,total_u:0.2325,total_r:3417857}},
+  {m:'十一月',stays:3993,guests:12308,room:51.39,rev:9703008,adr:2430,adr_p:788,rest_am:1014360,rest_noon:2094381,rest_pm:1559622,rest_night:695220,rest_total:5363583,venue:{am:262,am_u:0.2729,noon:283,noon_u:0.2948,pm:203,pm_u:0.2115,total:748,total_u:0.2597,total_r:3024665}},
+  {m:'十二月',stays:3804,guests:12097,room:47.38,rev:8771569,adr:2306,adr_p:725,rest_am:988220,rest_noon:1367112,rest_pm:1740411,rest_night:232460,rest_total:4328203,venue:{am:200,am_u:0.2016,noon:207,noon_u:0.2087,pm:162,pm_u:0.1633,total:569,total_u:0.1912,total_r:1889976}},
+];
+
+// ── 依單位選營運資料集（金門用 DEMO，劍潭用 JT）──────────────────
+function occDataset(){
+  return (typeof getUnit==='function' && getUnit()==='jiantan')
+    ? {cur:JT_CUR, prev:JT_PREV}
+    : {cur:DEMO_CUR, prev:DEMO_PREV};
+}
+
 // ── State ─────────────────────────────────────────────────────
 let curYear=2026, prevYear=2025;
 let curRows=DEMO_CUR, prevRows=DEMO_PREV;
@@ -2408,6 +2445,10 @@ let curIdx=new Date().getMonth();
 
 // ── Init ──────────────────────────────────────────────────────
 function init(){
+  // 依目前單位選用對應營運資料集
+  const ds=occDataset();
+  curRows=ds.cur; prevRows=ds.prev;
+  resetDailyForUnit();
   document.getElementById('yrB').textContent=curYear+'年';
   document.getElementById('yl1').textContent=curYear;
   document.getElementById('yl2').textContent=prevYear;
@@ -3548,6 +3589,15 @@ const COMPETITORS = [
 // ── Daily chart with month selector ──────────────────────────
 let dailyMonths=[{year:2026,month:'五月',rows:DEMO_DAILY},null,null];
 let dailyViewIdx=0;
+// 依單位重設日別資料：金門保留五月示範，劍潭暫無逐日資料
+function resetDailyForUnit(){
+  if(typeof getUnit==='function' && getUnit()==='jiantan'){
+    dailyMonths=[null,null,null];
+  } else {
+    dailyMonths=[{year:2026,month:'五月',rows:DEMO_DAILY},null,null];
+  }
+  dailyViewIdx=0;
+}
 
 function setDailyMonth(idx){
   dailyViewIdx=parseInt(idx);
@@ -3575,10 +3625,11 @@ function updateDailyMonthSelector(){
 
 function buildDailyChart(){
   const slot=dailyMonths[dailyViewIdx];
-  const rows=slot?.rows||DEMO_DAILY;
+  const isJT=(typeof getUnit==='function' && getUnit()==='jiantan');
+  const rows=slot?.rows||(isJT?[]:DEMO_DAILY);
   const title=slot
     ?`${slot.year}年 ${slot.month}・日別房使用率`
-    :`示範（請上傳第${dailyViewIdx+1}個月 810_3）`;
+    :(isJT?'本單位尚無逐日資料（上傳 810_3 後顯示）':`示範（請上傳第${dailyViewIdx+1}個月 810_3）`);
   const n=rows.length;
   const bW=9,gap=2,pL=26,pT=10,pB=26,H=140,iH=H-pT-pB;
   const totalW=pL+n*(bW+gap)+10;
