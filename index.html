@@ -565,12 +565,32 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       </div>
       <div style="font-size:18px;color:#C8963E;flex-shrink:0;">→</div>
     </button>
+    <button onclick="openUnitCheck()" style="display:flex;align-items:center;gap:14px;
+      background:#13202E;border:1px solid #3A4A5A;border-radius:16px;
+      padding:18px 18px;cursor:pointer;text-align:left;font-family:'Noto Sans TC',sans-serif;">
+      <div style="font-size:30px;flex-shrink:0;">🔍</div>
+      <div style="flex:1;">
+        <div style="font-size:16px;font-weight:700;color:#F5F0E6;">單位檢查</div>
+        <div style="font-size:11px;color:#A8B4C0;margin-top:3px;">掃描所有單位設定缺漏與資料問題（維護用）</div>
+      </div>
+      <div style="font-size:18px;color:#C8963E;flex-shrink:0;">→</div>
+    </button>
   </div>
   <div id="otherHint" style="display:none;margin-top:18px;font-size:12px;color:#C8963E;
     background:rgba(200,150,62,.1);border:1px solid rgba(200,150,62,.3);border-radius:10px;padding:10px 16px;max-width:340px;text-align:center;line-height:1.6;">
     🚧 其他單位儀表板開發中，敬請期待！<br>目前先提供金門戰地文旅完整版。
   </div>
   <div style="margin-top:32px;font-size:9px;color:#4A5866;">救國團 CYC・AI 智慧行銷 © 2026</div>
+</div>
+
+<!-- 單位檢查頁（維護用，動態填入） -->
+<div id="unitCheckPage" style="position:fixed;inset:0;z-index:100001;background:#0F1923;display:none;overflow-y:auto;padding:0 0 60px;font-family:'Noto Sans TC',sans-serif;">
+  <div style="position:sticky;top:0;background:#0F1923;border-bottom:1px solid #2A3A4A;display:flex;align-items:center;gap:12px;padding:14px 18px;z-index:2;">
+    <button onclick="closeUnitCheck()" style="background:#13202E;border:1px solid #3A4A5A;border-radius:20px;color:#A8B4C0;padding:6px 14px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:13px;">← 返回</button>
+    <div style="font-size:14px;font-weight:700;color:#F5F0E6;">🔍 單位檢查報告</div>
+    <button onclick="renderUnitCheck()" style="margin-left:auto;background:#13202E;border:1px solid #3A4A5A;border-radius:20px;color:#C8963E;padding:6px 14px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:13px;">🔄 重新檢查</button>
+  </div>
+  <div id="unitCheckBody" style="padding:16px 18px;"></div>
 </div>
 
 <!-- 系統說明書（技術與資源圖說） -->
@@ -1203,7 +1223,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 
 <!-- Sub: 觀光行事曆 -->
 <div id="occ-sub-cal" style="display:none;padding:12px 14px 80px;">
-  <div style="font-size:11px;color:var(--tx3);margin-bottom:12px;line-height:1.6;">
+  <div id="calIntro" style="font-size:11px;color:var(--tx3);margin-bottom:12px;line-height:1.6;">
     金門全年觀光節慶與假期行事曆，每月日曆下方附當月活動說明，有確定日期者已於日曆上標記。
   </div>
 
@@ -2719,6 +2739,128 @@ function closeGuide(){
   const g=document.getElementById('guidePage');
   if(g) g.style.display='none';
 }
+
+// ── 單位檢查（維護用）────────────────────────────────────────────
+function openUnitCheck(){
+  const p=document.getElementById('unitCheckPage');
+  if(p){ p.style.display='block'; p.scrollTop=0; }
+  renderUnitCheck();
+}
+function closeUnitCheck(){
+  const p=document.getElementById('unitCheckPage');
+  if(p) p.style.display='none';
+}
+// 各單位的內建資料集對應（檢查用，不依賴目前單位）
+function unitDatasets(key){
+  const occ={ kinmen:{cur:typeof DEMO_CUR!=='undefined'?DEMO_CUR:null, prev:typeof DEMO_PREV!=='undefined'?DEMO_PREV:null},
+              jiantan:{cur:typeof JT_CUR!=='undefined'?JT_CUR:null, prev:typeof JT_PREV!=='undefined'?JT_PREV:null} };
+  return occ[key]||{cur:null,prev:null};
+}
+// 驗證單一營運資料列格式，回傳問題陣列
+function checkOccRows(rows,label){
+  const errs=[];
+  if(!Array.isArray(rows)){ errs.push(`${label}：無資料（未建立或未接 occDataset）`); return errs; }
+  if(rows.length!==12) errs.push(`${label}：月數為 ${rows.length}，應為 12`);
+  rows.forEach((r,i)=>{
+    const mn=(i+1)+'月';
+    if(typeof r.room==='number' && r.room>0 && r.room<=1)
+      errs.push(`${label} ${mn}：房使用率 ${r.room} 疑似小數，應為百分比數字（如 60.89）`);
+    if(r.venue){
+      ['am_u','noon_u','pm_u','total_u'].forEach(k=>{
+        if(typeof r.venue[k]==='number' && r.venue[k]>1.5)
+          errs.push(`${label} ${mn}：場地 ${k}=${r.venue[k]} 疑似百分比，應為小數（如 0.34）`);
+      });
+      const sum=(r.rest_am||0)+(r.rest_noon||0)+(r.rest_pm||0)+(r.rest_night||0);
+      if(r.rest_total && Math.abs(sum-r.rest_total)>1)
+        errs.push(`${label} ${mn}：餐飲早午晚消夜合計 ${sum} ≠ rest_total ${r.rest_total}`);
+    }
+  });
+  return errs;
+}
+// 驗證行事曆事件格式
+function checkCalEvents(arr,label){
+  const errs=[]; const types=['major','cultural','holiday','season','sport','exhibit'];
+  if(!Array.isArray(arr)) return [`${label}：非陣列`];
+  arr.forEach((e,i)=>{
+    if(!e.name) errs.push(`${label}[${i}]：缺 name`);
+    if(!e.y||!e.m) errs.push(`${label}[${i}]（${e.name||'?'}）：缺 y 或 m`);
+    if(e.type && !types.includes(e.type)) errs.push(`${label}[${i}]（${e.name||'?'}）：type「${e.type}」非合法值`);
+    if(e.m && (e.m<1||e.m>12)) errs.push(`${label}[${i}]：月份 ${e.m} 超出範圍`);
+  });
+  return errs;
+}
+function renderUnitCheck(){
+  const body=document.getElementById('unitCheckBody');
+  if(!body || typeof UNITS==='undefined'){ if(body) body.innerHTML='<div style="color:#E05C5C;">找不到 UNITS 設定</div>'; return; }
+  const REQUIRED=['logo','name','aiIntro','aiProfile','useKinmenData'];
+  const keys=Object.keys(UNITS);
+  let html=`<div style="color:#A8B4C0;font-size:12px;line-height:1.7;margin-bottom:14px;">共 ${keys.length} 個單位。逐項檢查必填欄位、資料來源接點、營運與行事曆格式、本機殘留。</div>`;
+
+  keys.forEach(key=>{
+    const u=UNITS[key];
+    const issues=[]; const warns=[]; const oks=[];
+
+    // 1) 必填欄位
+    REQUIRED.forEach(f=>{
+      if(u[f]===undefined||u[f]===null||u[f]==='') issues.push(`缺必填欄位：${f}`);
+    });
+    if(u.logo&&u.name) oks.push('品牌名稱已設定');
+
+    // 2) 選填但影響功能
+    if(!u.ordersApi) warns.push('未設訂單 API（訂單頁將顯示提示）');
+    else oks.push('訂單 API 已設定');
+    if(!u.sheetsUrl) warns.push('未設競品試算表（無競品比較）');
+
+    // 3) 營運資料接點
+    const ds=unitDatasets(key);
+    if(!ds.cur||!ds.prev){
+      warns.push('無內建營運資料集（occDataset 未加分支，將顯示空白等上傳）');
+    } else {
+      oks.push('營運資料集已接（occDataset）');
+      checkOccRows(ds.cur,'本年度').forEach(e=>issues.push(e));
+      checkOccRows(ds.prev,'去年度').forEach(e=>issues.push(e));
+    }
+
+    // 4) 行事曆接點
+    const cd=(typeof CAL_DATA!=='undefined')?CAL_DATA[key]:null;
+    if(!cd){
+      warns.push('CAL_DATA 無此單位分支（行事曆只顯示國定假日）');
+    } else {
+      const ne=(cd.events||[]).length, ns=(cd.sports||[]).length;
+      oks.push(`行事曆已接（觀光 ${ne} 筆／體育 ${ns} 筆）`);
+      checkCalEvents(cd.events||[],'觀光活動').forEach(e=>issues.push(e));
+      checkCalEvents(cd.sports||[],'體育活動').forEach(e=>issues.push(e));
+      if(!cd.festivals) warns.push('行事曆無 festivals（AI 月份節慶將為空）');
+    }
+
+    // 5) 本機殘留與旗標
+    if(u.preferBuiltin){
+      oks.push('preferBuiltin=true（測試階段，用內建資料）');
+      try{ if(localStorage.getItem(key+'_occ_cur')) warns.push('本機有殘留 '+key+'_occ_cur（preferBuiltin 下會被忽略，可清）'); }catch(e){}
+    }
+    // 跨單位汙染檢查：此單位前綴的 key 是否存在
+    let lsCount=0;
+    try{ for(let i=0;i<localStorage.length;i++){ if(localStorage.key(i).indexOf(key+'_')===0) lsCount++; } }catch(e){}
+    if(lsCount>0) oks.push(`本機儲存 ${lsCount} 筆（單位前綴正確）`);
+
+    // 組裝卡片
+    const status = issues.length?'#E05C5C':(warns.length?'#C8963E':'#3DCB8E');
+    const statusTxt = issues.length?`${issues.length} 個問題`:(warns.length?`${warns.length} 個提醒`:'全部正常');
+    html+=`<div style="background:#13202E;border:1px solid #2A3A4A;border-left:3px solid ${status};border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="font-size:15px;font-weight:700;color:#F5F0E6;">${u.logo||key}</div>
+        <div style="font-size:10px;color:#6A7886;">(${key})</div>
+        <div style="margin-left:auto;font-size:11px;font-weight:700;color:${status};">${statusTxt}</div>
+      </div>`;
+    if(issues.length) html+=issues.map(e=>`<div style="font-size:12px;color:#E05C5C;line-height:1.7;">✗ ${e}</div>`).join('');
+    if(warns.length) html+=warns.map(e=>`<div style="font-size:12px;color:#C8963E;line-height:1.7;">⚠ ${e}</div>`).join('');
+    if(oks.length) html+=oks.map(e=>`<div style="font-size:11px;color:#5A8A6A;line-height:1.6;">✓ ${e}</div>`).join('');
+    html+=`</div>`;
+  });
+
+  body.innerHTML=html;
+}
+
 // 開啟時：若已記住單位，直接進入、跳過封面
 function applyUnitMemory(){
   let chosen=null;
@@ -3257,6 +3399,42 @@ const SPORTS_EVENTS = [
   // ── 在此貼上更多體育研習／競賽 ──
 ];
 
+// ── 劍潭觀光行事曆（測試階段先空白，由劍潭單位自行填入）──────────────
+// 填寫格式同金門 CAL_EVENTS：{y:2026,m:6,d:5,name:'活動名稱',type:'major',end:7,note:'說明',icon:'🎪',src:'來源'}
+// type 可用：major(大型活動) / cultural(節慶文化) / holiday(國定假日) / season(旅遊旺季) / sport(體育活動) / exhibit(展覽)
+const CAL_EVENTS_JT = [
+  // ── 劍潭活動請填在這裡 ──
+];
+const SPORTS_EVENTS_JT = [
+  // ── 劍潭體育／研習競賽請填在這裡 ──
+];
+// 劍潭 AI 月份節慶（每月關鍵檔期；先放台北通用節慶，劍潭可自行增修）
+const FESTIVALS_JT = {
+  1:['元旦連假','尾牙企業聚餐旺季','寒假研習營隊檔期'],
+  2:['農曆春節連假','元宵節','228連假','寒假尾聲'],
+  3:['春季旅遊','學校戶外教學旺季','企業春酒'],
+  4:['清明連假','兒童節','春季踏青'],
+  5:['勞動節連假','母親節','畢業旅行與謝師宴旺季'],
+  6:['端午連假','畢業季','暑假前夕'],
+  7:['暑假旺季','夏令營與研習營隊高峰','親子旅遊'],
+  8:['暑假高峰','父親節','營隊與會議檔期'],
+  9:['中秋連假','開學季','秋季會議旺季'],
+  10:['國慶連假','重陽節','秋季旅遊與校外教學'],
+  11:['企業年度會議旺季','研習營隊'],
+  12:['聖誕節','跨年','年終尾牙與企業聚餐旺季'],
+};
+
+// ── 依單位選用行事曆資料（新單位在此加一筆）─────────────────────
+const CAL_DATA = {
+  kinmen:  {events:CAL_EVENTS,    sports:SPORTS_EVENTS,    festivals:FESTIVALS},
+  jiantan: {events:CAL_EVENTS_JT, sports:SPORTS_EVENTS_JT, festivals:FESTIVALS_JT},
+};
+function calData(){ return CAL_DATA[getUnit()]||CAL_DATA.kinmen; }
+function calEvents(){ return calData().events||[]; }
+function calSports(){ return calData().sports||[]; }
+function festivalsOf(mi){ return (calData().festivals||{})[mi]||[]; }
+
+
 // 顏色與分類設定
 const CAL_TYPE = {
   major:   {bg:'rgba(200,150,62,.18)',border:'var(--ac)',dot:'var(--ac)',   tag:'大型活動'},
@@ -3271,14 +3449,22 @@ function buildCalendar(){
   const grid=document.getElementById('calGrid');
   if(!grid) return;
   grid.innerHTML='';
+  // 行事曆說明（依單位）
+  const introEl=document.getElementById('calIntro');
+  if(introEl){
+    const hasEvt=calEvents().length>0;
+    introEl.textContent=hasEvt
+      ? `${cfg.logo}全年觀光節慶與假期行事曆，每月日曆下方附當月活動說明，有確定日期者已於日曆上標記。`
+      : `本單位尚未建立觀光活動，目前僅顯示全台國定假日與連假。可於程式 CAL_DATA 的本單位區塊填入活動。`;
+  }
 
   const TODAY=new Date(); // 自動使用今天日期，每月自動滾動
   const CY=TODAY.getFullYear(), CM=TODAY.getMonth()+1;
   const MN=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
   const DNAMES=['日','一','二','三','四','五','六'];
 
-  // 合併觀光活動 + 體育活動
-  const ALL_EVENTS=CAL_EVENTS.concat(typeof SPORTS_EVENTS!=='undefined'?SPORTS_EVENTS:[]);
+  // 合併觀光活動 + 體育活動（依目前單位）
+  const ALL_EVENTS=calEvents().concat(calSports());
 
   // 圖例
   const leg=document.createElement('div');
@@ -4355,9 +4541,9 @@ async function genAI(force){
     const yoy=p&&p.room>0?(d.room-p.room).toFixed(1):'未知';
     const lowDays=dailyMonths[0]?.rows||[].filter(r=>r.r<20).map(r=>r.d).join('、')||'無';
     const monthIdx=MONTHS.indexOf(d.m)+1||new Date().getMonth()+1;
-    const curFests=(FESTIVALS[monthIdx]||[]).join('、');
+    const curFests=festivalsOf(monthIdx).join('、');
     const nextIdx=monthIdx>=12?1:monthIdx+1;
-    const nextFests=(FESTIVALS[nextIdx]||[]).join('、');
+    const nextFests=festivalsOf(nextIdx).join('、');
 
     // ── 客群結構判讀（每房均人數 + YoY）──
     const gprNum=parseFloat(gpr);
