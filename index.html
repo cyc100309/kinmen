@@ -459,7 +459,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .gd-dot{width:9px;height:9px;border-radius:50%;background:var(--lc,var(--ac));box-shadow:0 0 10px var(--lc,var(--ac));}
 .gd-lt{font-size:14px;font-weight:700;color:var(--tx);}
 .gd-ls{font-family:'DM Mono',monospace;font-size:10px;color:var(--tx3);margin-left:auto;}
-.gd-items{display:flex;flex-wrap:wrap;gap:9px;}
+.gd-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:9px;}
 .gd-fi{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:9px 13px;}
 .gd-fi span{font-size:16px;}
 .gd-fi b{font-weight:500;font-size:13px;color:var(--tx);display:block;}
@@ -481,21 +481,21 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .gd-card.exp .gd-x{transform:rotate(45deg);}
 .gd-detail{max-height:0;overflow:hidden;transition:max-height .4s ease;
   font-size:12px;color:var(--tx2);line-height:1.65;}
-.gd-card.exp .gd-detail{max-height:900px;margin-top:12px;}
+.gd-card.exp .gd-detail{max-height:1400px;margin-top:12px;}
 .gd-detail b{color:var(--ac2);font-weight:600;display:block;margin-bottom:8px;font-size:12px;}
-.gd-step{display:flex;gap:9px;margin-bottom:8px;align-items:flex-start;}
-.gd-step span{flex-shrink:0;min-width:18px;height:18px;border-radius:5px;
-  background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;
+.gd-step{display:block;margin-bottom:9px;line-height:1.7;}
+.gd-step span{display:inline-flex;flex-shrink:0;min-width:18px;height:18px;border-radius:5px;
+  background:var(--bg);border:1px solid var(--bd);align-items:center;
   justify-content:center;font-size:10px;color:var(--cc,var(--ac));font-family:'DM Mono',monospace;
-  margin-top:1px;padding:0 4px;}
-.gd-step code{background:var(--bg);border:1px solid var(--bd);border-radius:4px;
+  padding:0 4px;margin-right:7px;vertical-align:middle;}
+.gd-step code{display:inline;background:var(--bg);border:1px solid var(--bd);border-radius:4px;
   padding:1px 5px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ac2);
-  word-break:break-all;}
+  white-space:nowrap;word-break:keep-all;}
 .gd-step b{display:inline;margin:0;color:var(--tx);font-size:12px;}
 /* 響應式：手機單欄、流程項目單欄 */
 @media(max-width:600px){
   .gd-cards{grid-template-columns:1fr;}
-  .gd-items{flex-direction:column;}
+  .gd-items{grid-template-columns:1fr 1fr;}
   .gd-fi{width:100%;}
 }
 .ord-kpi{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:11px 12px;}
@@ -4469,6 +4469,39 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyUnitMemory();
   initWithCloudSync();
 });
+
+// ── 從後台回到前台時自動重新整理資料（PWA 常駐後重開不會停在舊資料）──
+let _bgHiddenAt=0;
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){
+    _bgHiddenAt=Date.now();
+  } else if(document.visibilityState==='visible'){
+    // 離開超過 30 秒才重抓，避免短暫切換就刷新
+    const away=Date.now()-_bgHiddenAt;
+    if(_bgHiddenAt && away>30000){
+      refreshActivePage();
+    }
+  }
+});
+// 依目前所在分頁，重新抓該頁最新資料
+function refreshActivePage(){
+  try{
+    const active=document.querySelector('.page.active');
+    const id=active?active.id.replace('page-',''):'';
+    if(id==='occ'){
+      // 營運分析：若正在看「網路訂單」子頁，強制重抓即時訂單
+      const ordSub=document.getElementById('occ-sub-ord');
+      if(ordSub && ordSub.style.display!=='none'){ ordScrolled=false; loadOrders(true); }
+      // 觀光行事曆新聞
+      const calSub=document.getElementById('occ-sub-cal');
+      if(calSub && calSub.style.display!=='none'){ try{ fetchKmdnNews(); }catch(e){} }
+    }
+    else if(id==='comp'){ try{ autoLoadSheets(); }catch(e){} }
+    else if(id==='tri'){ try{ loadTriData(); fetchTriNews(); }catch(e){} }
+    else if(id==='mkt'){ try{ loadIntelPage(); }catch(e){} }
+    else if(id==='edu'){ try{ fetchTourNews(); }catch(e){} }
+  }catch(e){}
+}
 function applyCfg(){
   document.getElementById('hdrLogo').textContent=cfg.logo||'青年活動中心';
   document.getElementById('hdrSub').textContent=(cfg.name||'救國團青年活動中心')+'・住宿分析';
