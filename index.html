@@ -2882,6 +2882,7 @@ function applyUnitMemory(){
 const UNITS={
   kinmen:{
     logo:'金門戰地文旅', name:'救國團金門青年活動中心', city:'金門縣',
+    ordersCsv:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSyKGXsmNov21aAHKlykG38Pq5UmtkzMIgzFDzgTi3k0GiZhgF8ZBioSiIzx_X9AlVhXsezQL4nm1F6/pub?gid=1880038165&single=true&output=csv',
     ordersApi:'https://script.google.com/macros/s/AKfycbxjff5GwoPAGbQjn9U05KLPSowKP1lePEj3Yq1_431KE0-4RScexlL8nwhuRMB_Nm26nA/exec',
     sheetsUrl:'https://docs.google.com/spreadsheets/d/e/2PACX-1vTaluvqiqTvp4VWqYqVDBbCt4n_T7cNGHSjFXqvblt9YiK0Xn7o7LHYgGbyuFlW8xs2SRlSjlHGl8Em/pub?output=csv',
     seedKey:'kinmen',  // 對應 ORDERS_SEED（金門 1360 筆）
@@ -2967,6 +2968,42 @@ function ordParseDate(s){
   const d=new Date(+m[1],+m[2]-1,+m[3]);
   return isNaN(d)?null:d;
 }
+// ── CSV 解析（字元級，正確處理引號包欄、欄內逗號/換行、"" 跳脫）──
+function ordParseCSV(text){
+  // 去除 BOM
+  text=text.replace(/^\uFEFF/,'');
+  const rows=[]; let row=[], cell='', inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){
+        if(text[i+1]==='"'){ cell+='"'; i++; }   // "" → 一個 "
+        else inQ=false;
+      } else cell+=c;
+    }else{
+      if(c==='"') inQ=true;
+      else if(c===','){ row.push(cell); cell=''; }
+      else if(c==='\r'){ /* 略過，等 \n */ }
+      else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+      else cell+=c;
+    }
+  }
+  // 收尾（最後一列若無換行）
+  if(cell.length||row.length){ row.push(cell); rows.push(row); }
+  if(!rows.length) return [];
+  // 第一列為表頭；過濾掉尾端空白表頭欄
+  const headers=rows[0].map(h=>h.trim());
+  const out=[];
+  for(let r=1;r<rows.length;r++){
+    const cells=rows[r];
+    // 整列皆空白 → 跳過
+    if(cells.every(v=>!v||!v.trim())) continue;
+    const obj={};
+    headers.forEach((h,idx)=>{ if(h) obj[h]=(cells[idx]!==undefined?cells[idx]:'').trim(); });
+    out.push(obj);
+  }
+  return out;
+}
 // 把一筆 JSON 物件（欄位名與試算表表頭相同）轉成內部格式
 function ordMapRow(o){
   const checkin=ordParseDate(o['入住日期']);
@@ -2991,49 +3028,67 @@ async function loadOrders(force){
   const errEl=document.getElementById('ordError');
   if(ORDERS_RAW.length&&!force){ renderOrders(); return; }
   loadEl.style.display='block'; bodyEl.style.display='none'; errEl.style.display='none';
+  const csvUrl=(unitCfg().ordersCsv||'').trim();
   const apiUrl=ordersApiUrl();
-  // 此單位是否有內建種子資料（目前僅金門）
   const hasSeed=(unitCfg().seedKey==='kinmen')&&(typeof ORDERS_SEED!=='undefined')&&ORDERS_SEED.length>0;
-  // 尚未設定 API 網址 → 有種子用種子，沒種子顯示空白提示
-  if(!apiUrl||apiUrl.indexOf('script.google')<0){
-    if(hasSeed){
-      ORDERS_RAW=ORDERS_SEED.map(ordMapRow);
-      document.getElementById('ordDataDate').textContent=
-        `資料：內建範例（共 ${ORDERS_RAW.length} 筆）・設定 Apps Script 後自動改為即時`;
+  const dateEl=document.getElementById('ordDataDate');
+  const stamp=()=>{ const n=new Date(); return `${n.getFullYear()}/${n.getMonth()+1}/${n.getDate()} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`; };
+
+  // ── 優先：發布為 CSV 的 Google 試算表 ──
+  if(csvUrl){
+    try{
+      const res=await fetch(csvUrl+(csvUrl.includes('?')?'&':'?')+'t='+Date.now());
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const text=await res.text();
+      const rows=ordParseCSV(text);
+      if(!rows.length) throw new Error('CSV 沒有資料列');
+      ORDERS_RAW=rows.map(ordMapRow);
+      dateEl.textContent=`資料：${stamp()}　共 ${ORDERS_RAW.length} 筆（CSV 即時）`;
       renderOrders();
       return;
+    }catch(e){
+      console.warn('CSV 讀取失敗，嘗試退回 API／種子：',e.message);
     }
-    ORDERS_RAW=[];
-    loadEl.style.display='none'; bodyEl.style.display='none';
-    errEl.style.display='block';
-    errEl.innerHTML='⚙️ 本單位尚未設定訂單資料來源。<br>建立此單位專屬的 Apps Script 訂單 API 後，把 /exec 網址填入程式碼 UNITS 設定的 ordersApi。';
+  }
+
+  // ── 退回：Apps Script /exec API ──
+  if(apiUrl&&apiUrl.indexOf('script.google')>=0){
+    try{
+      const res=await fetch(apiUrl+(apiUrl.includes('?')?'&':'?')+'t='+Date.now());
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data=await res.json();
+      if(!data.ok) throw new Error(data.error||'API 回傳錯誤');
+      ORDERS_RAW=(data.rows||[]).map(ordMapRow);
+      if(!ORDERS_RAW.length) throw new Error('沒有讀到訂單資料');
+      dateEl.textContent=`資料：${stamp()}　共 ${ORDERS_RAW.length} 筆（API 即時）`;
+      renderOrders();
+      return;
+    }catch(e){
+      if(hasSeed){
+        ORDERS_RAW=ORDERS_SEED.map(ordMapRow);
+        dateEl.textContent=`資料：內建備援（共 ${ORDERS_RAW.length} 筆）・即時讀取失敗：${e.message}`;
+        renderOrders();
+        return;
+      }
+      ORDERS_RAW=[];
+      loadEl.style.display='none'; bodyEl.style.display='none';
+      errEl.style.display='block';
+      errEl.innerHTML=`⚠️ 載入失敗：${e.message}<br><br>請確認 CSV 發布網址正確，或 Apps Script 已部署為「網頁應用程式」、存取權設「任何人」。`;
+      return;
+    }
+  }
+
+  // ── 都沒設來源 → 有種子用種子，否則顯示提示 ──
+  if(hasSeed){
+    ORDERS_RAW=ORDERS_SEED.map(ordMapRow);
+    dateEl.textContent=`資料：內建範例（共 ${ORDERS_RAW.length} 筆）・設定資料來源後自動改為即時`;
+    renderOrders();
     return;
   }
-  try{
-    const res=await fetch(apiUrl+(apiUrl.includes('?')?'&':'?')+'t='+Date.now());
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    if(!data.ok) throw new Error(data.error||'API 回傳錯誤');
-    ORDERS_RAW=(data.rows||[]).map(ordMapRow);
-    if(!ORDERS_RAW.length) throw new Error('沒有讀到訂單資料');
-    const now=new Date();
-    document.getElementById('ordDataDate').textContent=
-      `資料：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}　共 ${ORDERS_RAW.length} 筆（即時）`;
-    renderOrders();
-  }catch(e){
-    // 即時抓取失敗 → 有種子退回種子（僅金門），否則顯示錯誤
-    if(hasSeed){
-      ORDERS_RAW=ORDERS_SEED.map(ordMapRow);
-      document.getElementById('ordDataDate').textContent=
-        `資料：內建備援（共 ${ORDERS_RAW.length} 筆）・即時讀取失敗：${e.message}`;
-      renderOrders();
-      return;
-    }
-    ORDERS_RAW=[];
-    loadEl.style.display='none'; bodyEl.style.display='none';
-    errEl.style.display='block';
-    errEl.innerHTML=`⚠️ 載入失敗：${e.message}<br><br>請確認此單位的 Apps Script 已部署為「網頁應用程式」、存取權設「任何人」，且 UNITS 設定的 ordersApi 正確。`;
-  }
+  ORDERS_RAW=[];
+  loadEl.style.display='none'; bodyEl.style.display='none';
+  errEl.style.display='block';
+  errEl.innerHTML='⚙️ 本單位尚未設定訂單資料來源。<br>把發布的 CSV 網址填入程式碼 UNITS 設定的 ordersCsv，或設定 Apps Script 的 ordersApi。';
 }
 function setOrdRange(r,btn){
   ordRange=r;
