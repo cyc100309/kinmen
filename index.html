@@ -354,7 +354,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .env-tab.on{color:var(--ac);border-bottom-color:var(--ac);font-weight:600;}
 .env-sub{padding:0;}
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-.bar-name{font-size:10px;color:var(--tx2);min-width:72px;text-align:right;
+.bar-name{font-size:10px;color:var(--tx2);min-width:84px;max-width:84px;text-align:right;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bar-track{flex:1;height:14px;background:var(--sf3);border-radius:3px;overflow:hidden;
   position:relative;}
@@ -363,6 +363,12 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .bar-val{font-size:9px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.8);
   white-space:nowrap;}
 .bar-row.self .bar-name{color:#FFE234;font-weight:500;}
+.bar-fill.soldout-fill{background:repeating-linear-gradient(45deg,
+  rgba(255,255,255,.06),rgba(255,255,255,.06) 5px,
+  rgba(255,255,255,.02) 5px,rgba(255,255,255,.02) 10px);
+  justify-content:center;padding-right:0;}
+.bar-val.soldout-val{color:var(--red,#E66);font-weight:500;letter-spacing:1px;}
+.bar-row.soldout .bar-name{color:var(--tx3);}
 
 /* Competitor list */
 .comp-section{margin:10px 18px 0;}
@@ -3836,7 +3842,7 @@ async function fetchKmdnNews(){
 // ── Real competitors with Agoda URLs ─────────────────────────
 // ── 14家競爭對手（對應 Thunderbit 抓取欄位）────────────────
 const COMPETITORS = [
-  { name:'金門青年活動中心（無電梯）', sheetName:'金門青年活動中心',
+  { name:'金門青年活動中心（無電梯）', shortLabel:'金門青年活動中心', sheetName:'金門青年活動中心',
     cat:'self',  hostel:false, self:true,  price:0, avail:true, rating:8.5,
     note:'本中心・金城鎮', agoda:'https://www.agoda.com/zh-tw/kinmen-youth-activity-center/hotel/kinmen-tw.html' },
   { name:'不倒翁輕旅', sheetName:'不倒翁輕旅',
@@ -3851,7 +3857,7 @@ const COMPETITORS = [
   { name:'總兵招待所', sheetName:'總兵招待所',
     cat:'suite',  hostel:false, self:false, price:0, avail:true, rating:7.4,
     note:'套房・金城鎮', agoda:'https://www.agoda.com/zh-tw/h76106414/hotel/kinmen-islands-tw.html' },
-  { name:'金門市區背包客棧民宿', sheetName:'金門市區背包客棧',
+  { name:'金門市區背包客棧民宿', shortLabel:'金門市區背包客棧', sheetName:'金門市區背包客棧',
     cat:'hostel', hostel:true, self:false, price:0, avail:true, rating:9.0,
     note:'背包客棧・金城鎮', agoda:'https://www.agoda.com/zh-tw/kinmen-backpacker_2/hotel/kinmen-tw.html' },
   { name:'浯島魁星背包棧', sheetName:'浯島魁星背包棧',
@@ -3875,6 +3881,9 @@ const COMPETITORS = [
   { name:'IN99精品旅館', sheetName:'IN99精品旅館',
     cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:7.7,
     note:'精品旅館・金城鎮', agoda:'https://www.agoda.com/zh-tw/in99-hotel/hotel/kinmen-tw.html' },
+  { name:'金湖飯店', sheetName:'金湖飯店',
+    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:9.1,
+    note:'星級飯店・金湖鎮', agoda:'https://www.agoda.com/zh-tw/golden-lake-hotel/hotel/kinmen-tw.html' },
 ];
 
 // ── Daily chart with month selector ──────────────────────────
@@ -4118,17 +4127,20 @@ function parseAndApplyCSV(text){
   if(rows.length < 2){ showCSVStatus('❌ 資料太少，請確認格式','var(--red)'); return; }
 
   // Detect header row and column indices
+  // Thunderbit 匯出格式：飯店名稱,飯店URL,飯店圖片,地點,評分,評鑑數量,每晚價格(TWD),房源類型
   let dataRows = rows;
-  let colName=0, colRating=2, colPrice=4, colAvail=6;
+  let colName=0, colRating=4, colPrice=6, colAvail=-1, colReviews=-1;
 
   const header = rows[0].map(h=>h.toLowerCase());
   if(header[0].includes('飯店') || header[0].includes('hotel') || header[0].includes('name')){
     dataRows = rows.slice(1); // skip header
-    // Auto-detect columns from header
+    // 依表頭精準偵測欄位
     header.forEach((h,i)=>{
+      if(i===0) return; // 第0欄固定為名稱
       if(h.includes('評分')||h.includes('rating')||h.includes('score')) colRating=i;
-      if(h.includes('價格')||h.includes('price')||h.includes('twd')) colPrice=i;
-      if(h.includes('售完')||h.includes('avail')||h.includes('空房')) colAvail=i;
+      else if(h.includes('價格')||h.includes('price')||h.includes('twd')) colPrice=i;
+      else if(h.includes('評鑑')||h.includes('評論')||h.includes('review')) colReviews=i;
+      else if(h.includes('售完')||h.includes('avail')||h.includes('空房')||h.includes('狀態')) colAvail=i;
     });
   }
 
@@ -4136,10 +4148,12 @@ function parseAndApplyCSV(text){
   dataRows.forEach(row=>{
     if(!row[colName]) return;
     const shName = row[colName].trim();
-    const price  = parseFloat(row[colPrice]) || 0;
+    const priceRaw = (row[colPrice]||'').replace(/[,，\s]/g,''); // 去除千分位
+    const price  = parseFloat(priceRaw) || 0;
     const rating = parseFloat(row[colRating]) || 0;
-    const availTxt = row[colAvail] || '';
-    // 無空房文字 OR 沒有價格 → 視為售完／未提供
+    const availTxt = colAvail>=0 ? (row[colAvail]||'') : '';
+    // 空房判斷：有價格才有空房；若有獨立空房欄則一併檢查文字
+    // Thunderbit 格式無空房欄 → 價格空白即代表無房可訂（售完）
     const avail = price > 0 &&
       !availTxt.includes('無空房') &&
       !availTxt.includes('售完') &&
@@ -4158,6 +4172,7 @@ function parseAndApplyCSV(text){
       if(price>0) found.price = price;
       found.avail = avail;
       if(rating>0) found.rating = parseFloat(rating.toFixed(1));
+      if(colReviews>=0){ const rv=parseInt((row[colReviews]||'').replace(/[,，\s]/g,''))||0; if(rv>0) found.reviews=rv; }
       matched++;
     } else {
       skipped.push(shName);
@@ -4305,28 +4320,43 @@ function updateCompAvail(idx,val){ COMPETITORS[idx].avail=val; }
 
 // ── 長條圖 ────────────────────────────────────────────────────
 function buildBarChart(){
+  // 有房價的依價格排序在前，售完（price=0）排在最後
   const priced=COMPETITORS.filter(h=>h.price>0).sort((a,b)=>a.price-b.price);
+  const soldout=COMPETITORS.filter(h=>h.price===0);
+  const list=[...priced,...soldout];
   const el=document.getElementById('barChart');
   if(!el) return;
-  if(!priced.length){
+  if(!list.length){
     el.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:8px;">上傳 CSV 後自動顯示</div>';
     return;
   }
-  const max=Math.max(...priced.map(h=>h.price));
+  const max=priced.length?Math.max(...priced.map(h=>h.price)):1;
   const colors={self:'#FFE234',luxury:'var(--blue)',general:'#A78BFA',suite:'var(--pur)',hostel:'var(--green)'};
   let html='';
-  priced.forEach(h=>{
-    const pct=Math.round(h.price/max*100);
-    const col=colors[h.cat]||'var(--blue)';
-    const shortName=h.name.length>6?h.name.slice(0,6)+'…':h.name;
-    html+=`<div class="bar-row ${h.self?'self':''}">
-      <div class="bar-name">${shortName}</div>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:${pct}%;background:${col};">
-          <span class="bar-val">${h.price.toLocaleString()}</span>
+  list.forEach(h=>{
+    const label=h.shortLabel||h.name;
+    if(h.price>0){
+      const pct=Math.round(h.price/max*100);
+      const col=colors[h.cat]||'var(--blue)';
+      html+=`<div class="bar-row ${h.self?'self':''}">
+        <div class="bar-name">${label}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${col};">
+            <span class="bar-val">${h.price.toLocaleString()}</span>
+          </div>
         </div>
-      </div>
-    </div>`;
+      </div>`;
+    } else {
+      // 售完／無房價：灰色滿條 + 售完標示
+      html+=`<div class="bar-row soldout ${h.self?'self':''}">
+        <div class="bar-name">${label}</div>
+        <div class="bar-track">
+          <div class="bar-fill soldout-fill" style="width:100%;">
+            <span class="bar-val soldout-val">售完</span>
+          </div>
+        </div>
+      </div>`;
+    }
   });
   el.innerHTML=html;
 }
