@@ -408,9 +408,9 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .avail-toggle.sold-out .avail-lbl{color:var(--red);font-weight:500;}
 /* Sold out overlay on card */
 .comp-item.sold{opacity:.75;position:relative;}
-.sold-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+.sold-badge{position:absolute;top:50%;right:14px;left:auto;transform:translateY(-50%);
   background:rgba(224,92,92,.92);color:#fff;
-  font-size:14px;font-weight:700;padding:6px 18px;border-radius:30px;
+  font-size:12px;font-weight:700;padding:5px 14px;border-radius:30px;
   letter-spacing:.08em;white-space:nowrap;
   box-shadow:0 2px 12px rgba(224,92,92,.4);
   backdrop-filter:blur(2px);z-index:2;}
@@ -1429,6 +1429,14 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <div style="font-size:11px;color:var(--tx3);margin-bottom:14px;line-height:1.7;">
       從 Thunderbit 或 Google Sheets 下載 CSV，上傳後自動更新全部房價
     </div>
+
+    <!-- 清除資料：上傳前先清空，避免售完飯店殘留舊價 -->
+    <button onclick="clearCompData()"
+      style="width:100%;margin-bottom:12px;background:transparent;border:1px solid var(--red,#E05C5C);
+      border-radius:var(--rs);padding:9px;font-size:12px;font-weight:500;color:var(--red,#E05C5C);
+      cursor:pointer;font-family:'Noto Sans TC',sans-serif;">
+      🗑️ 清除目前房價資料（上傳前建議先清除）
+    </button>
 
     <!-- Method 1: CSV file upload -->
     <div style="background:var(--sf2);border-radius:var(--rs);padding:12px;margin-bottom:10px;">
@@ -4065,14 +4073,14 @@ function buildLists(){
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
             <div class="comp-rank" id="rank-${idx}" style="flex-shrink:0;">★</div>
             <div style="flex:1;font-size:12px;font-weight:500;color:#FFE234;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🎖️ ${h.name}</div>
-            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#FFE234;white-space:nowrap;">
+            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#FFE234;white-space:nowrap;text-align:right;">
               ${h.price>0?h.price.toLocaleString()+'元':'—'}
             </div>
-            <div class="self-badge" style="flex-shrink:0;">本中心</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;padding-left:28px;">
             <span style="font-size:11px;color:var(--tx3);">★ ${h.rating}</span>
             <a class="agoda-btn" href="${agodaUrl}" target="_blank" style="font-size:10px;">🔗 Agoda</a>
+            <div class="self-badge" style="flex-shrink:0;">本中心</div>
           </div>
         </div>`;
       } else {
@@ -4082,14 +4090,14 @@ function buildLists(){
             <div class="comp-rank" id="rank-${idx}" style="flex-shrink:0;">—</div>
             <div style="flex:1;font-size:12px;font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.name}</div>
             <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;
-              color:${h.avail?'var(--tx)':'var(--red)'};white-space:nowrap;">
+              color:${h.avail?'var(--tx)':'var(--red)'};white-space:nowrap;text-align:right;">
               ${h.price>0?h.price.toLocaleString()+'元':'—'}
             </div>
-            <div class="comp-type" style="flex-shrink:0;">${h.cat==='hostel'?'🎒背包':h.note.split('・')[0]}</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;padding-left:28px;">
             <span style="font-size:11px;color:var(--tx3);">★ ${h.rating}</span>
             <a class="agoda-btn" href="${agodaUrl}" target="_blank" style="font-size:10px;">🔗 Agoda</a>
+            <div class="comp-type" style="flex-shrink:0;">${h.cat==='hostel'?'🎒背包':h.note.split('・')[0]}</div>
           </div>
         </div>`;
       }
@@ -4169,8 +4177,14 @@ function parseAndApplyCSV(text){
     });
 
     if(found){
-      if(price>0) found.price = price;
-      found.avail = avail;
+      if(price>0){
+        found.price = price;
+        found.avail = avail;
+      } else {
+        // 價格空白＝當日無房可訂（售完）→ 清掉舊價，標記售完
+        found.price = 0;
+        found.avail = false;
+      }
       if(rating>0) found.rating = parseFloat(rating.toFixed(1));
       if(colReviews>=0){ const rv=parseInt((row[colReviews]||'').replace(/[,，\s]/g,''))||0; if(rv>0) found.reviews=rv; }
       matched++;
@@ -4272,6 +4286,22 @@ function saveCompData(){
   }catch(e){}
 }
 
+function clearCompData(){
+  if(!confirm('確定清除目前所有競品房價資料嗎？\n（清除後可重新上傳 CSV）')) return;
+  // 全部歸零
+  COMPETITORS.forEach(c=>{ c.price=0; c.avail=true; });
+  // 清掉本機儲存
+  try{ uDel('comp_prices'); uDel('comp_savedAt'); }catch(e){}
+  // 重置更新時間顯示
+  const el=document.getElementById('updateTime');
+  if(el) el.textContent='尚未更新今日房價';
+  const badge=document.getElementById('dataUpdateBadge');
+  if(badge) badge.textContent='';
+  // 重畫
+  buildLists(); buildBarChart(); calcStats();
+  showCSVStatus('✅ 已清除，請上傳新的 CSV','var(--green)');
+}
+
 function loadCompData(){
   try{
     const saved = uGet('comp_prices');
@@ -4280,7 +4310,7 @@ function loadCompData(){
     const data = JSON.parse(saved);
     data.forEach((d,i)=>{
       if(COMPETITORS[i]){
-        if(d.price>0) COMPETITORS[i].price = d.price;
+        COMPETITORS[i].price  = (typeof d.price==='number') ? d.price : 0;
         COMPETITORS[i].avail  = d.avail;
         if(d.rating>0) COMPETITORS[i].rating = d.rating;
       }
