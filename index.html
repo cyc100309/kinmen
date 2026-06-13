@@ -1405,7 +1405,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   </div>
   <div class="sum-card">
     <div class="sum-lbl">本中心定價</div>
-    <div class="sum-val" style="color:var(--ac);font-size:13px;">1,035</div>
+    <div class="sum-val" id="selfPrice" style="color:var(--ac);font-size:13px;">—</div>
     <div class="sum-sub" id="pricePosi" style="color:var(--green);">—</div>
   </div>
 </div>
@@ -4127,11 +4127,24 @@ function importCSVText(){
 }
 
 function parseAndApplyCSV(text){
-  // Detect separator (tab or comma)
+  // 偵測分隔符：有 Tab 用 Tab（Google Sheets 複製），否則逗號（CSV 檔）
   const sep = text.includes('\t') ? '\t' : ',';
-  const rows = text.trim().split('\n').map(r =>
-    r.split(sep).map(c => c.trim().replace(/^"|"$/g,'').trim())
-  );
+  // 正確解析：處理「引號內的分隔符」（例如地點欄 "金湖鎮, 金門縣" 內含逗號）
+  const parseLine = (line)=>{
+    const out=[]; let cur=''; let inQ=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){
+        if(inQ && line[i+1]==='"'){ cur+='"'; i++; } // 跳脫的雙引號 ""
+        else inQ=!inQ;
+      } else if(ch===sep && !inQ){
+        out.push(cur); cur='';
+      } else cur+=ch;
+    }
+    out.push(cur);
+    return out.map(c=>c.trim());
+  };
+  const rows = text.trim().split(/\r?\n/).map(parseLine);
   if(rows.length < 2){ showCSVStatus('❌ 資料太少，請確認格式','var(--red)'); return; }
 
   // Detect header row and column indices
@@ -4414,10 +4427,20 @@ function calcStats(){
   if(soldEl) soldEl.textContent=soldCount;
   if(totalEl) totalEl.textContent=priced.length;
 
+  const selfPriceEl=document.getElementById('selfPrice');
+  if(selfPriceEl){
+    if(self && self.price>0) selfPriceEl.textContent=self.price.toLocaleString();
+    else if(self && !self.avail) selfPriceEl.textContent='售完';
+    else selfPriceEl.textContent='—';
+  }
+
   if(posiEl&&self&&self.price>0){
     const diff=self.price-avg;
     posiEl.textContent=diff<=0?`低於均價 ${Math.abs(diff).toLocaleString()}元`:`高於均價 ${diff.toLocaleString()}元`;
     posiEl.style.color=diff<=0?'var(--green)':'var(--red)';
+  } else if(posiEl){
+    posiEl.textContent= (self && !self.avail) ? '本中心今日無房' : '—';
+    posiEl.style.color='var(--tx3)';
   }
 
   // Ranks on cards
