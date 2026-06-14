@@ -4212,8 +4212,12 @@ function parseAndApplyCSV(text){
     return;
   }
   buildLists(); buildBarChart(); calcStats(); stampUpdateTime(); saveCompData();
+  // 自動推送至雲端，讓手機等其他裝置開頁時能拉到同一份房價
+  if(typeof pushToCloud==='function'){
+    pushToCloud().catch(()=>{});
+  }
   const skipMsg = skipped.length > 0 ? `（${skipped.length} 家未找到）` : '';
-  showCSVStatus(`✅ 成功更新 ${matched} 家房價！${skipMsg}`, 'var(--green)');
+  showCSVStatus(`✅ 成功更新 ${matched} 家房價！${skipMsg}（已同步雲端）`, 'var(--green)');
   setTimeout(()=>{ document.getElementById('csvModal').style.display='none'; }, 2500);
 }
 
@@ -5189,10 +5193,10 @@ async function pullFromCloud(){
   const url=getCloudUrl();
   if(!url) return false;
   try{
-    const r=await fetch(url+'?t='+Date.now());
+    const r=await fetch(url+'?unit='+encodeURIComponent(getUnit())+'&t='+Date.now());
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
-    if(!d||!d.occ_cur) return false;
+    if(!d || (!d.occ_cur && !d.comp_prices)) return false;
     const localTs=parseInt(uGet('occ_pushedAt')||'0');
     const cloudTs=parseInt(d.pushedAt||'0');
     if(cloudTs>0&&cloudTs<=localTs) return false;
@@ -5242,6 +5246,10 @@ async function initWithCloudSync(){
   loadCfg();
   loadCompData();
   const synced=await pullFromCloud();
+  if(synced){
+    // 雲端可能帶回更新的競品房價，重新套用到 COMPETITORS 後再由 init 重畫
+    loadCompData();
+  }
   setTimeout(()=>{ init(); if(synced) showSyncStatus('✓ 已同步最新資料',true); },50);
 }
 
