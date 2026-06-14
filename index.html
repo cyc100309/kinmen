@@ -1322,6 +1322,14 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <div class="ord-kpi"><div class="ord-kpi-l">取消率</div><div class="ord-kpi-v" id="ordKpiCancel">—</div><div class="ord-kpi-s" id="ordKpiCancelSub">—</div></div>
     </div>
 
+    <!-- 今日動態（基準：訂房日/收信日 = 今天） -->
+    <div class="lbl" style="margin-bottom:8px;"><span>📨 今日動態</span><span class="lbl-r" id="ordTodayDate" style="font-size:9px;color:var(--tx3);">—</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div class="ord-kpi"><div class="ord-kpi-l">今日新增</div><div class="ord-kpi-v" id="ordTodayNew" style="color:var(--green);">—</div><div class="ord-kpi-s">筆</div></div>
+      <div class="ord-kpi"><div class="ord-kpi-l">今日取消</div><div class="ord-kpi-v" id="ordTodayCancel" style="color:var(--red);">—</div><div class="ord-kpi-s">筆</div></div>
+      <div class="ord-kpi"><div class="ord-kpi-l">今日訂單總額</div><div class="ord-kpi-v" id="ordTodayRev">—</div><div class="ord-kpi-s">新增訂房</div></div>
+    </div>
+
     <!-- 各通路訂單數 / 營收占比 -->
     <div class="lbl" style="margin-bottom:8px;"><span>📊 各通路表現</span><span class="lbl-r" style="font-size:9px;color:var(--tx3);">有效訂單</span></div>
     <div id="ordChannelBars" style="display:flex;flex-direction:column;gap:9px;margin-bottom:8px;"></div>
@@ -1345,6 +1353,14 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <svg id="ordTrendChart" viewBox="0 0 360 200" style="width:100%;height:auto;margin-bottom:6px;"></svg>
     <div style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;">
       <span style="color:var(--ac2);">▬</span> 訂單數　<span style="color:var(--blue);">▬</span> 訂房金額（萬）
+    </div>
+
+    <!-- 每日新增/取消（跟隨上方月份篩選） -->
+    <div class="lbl" style="margin-bottom:4px;"><span>🗓️ 每日新增／取消</span><span class="lbl-r" id="ordDailyTitle" style="font-size:9px;color:var(--tx3);">—</span></div>
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">依下訂日統計所選月份每一天的新增與取消訂單數。選季別／累計時則改以月為單位。</div>
+    <svg id="ordDailyChart" viewBox="0 0 360 200" style="width:100%;height:auto;margin-bottom:6px;"></svg>
+    <div id="ordDailyLegend" style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;line-height:1.6;">
+      <span style="color:var(--green);">▬</span> 新增　<span style="color:var(--red);">▬</span> 取消
     </div>
 
     <!-- 今年 vs 去年 逐月折線（YoY，僅多年度資料時顯示） -->
@@ -3201,6 +3217,8 @@ function renderOrders(){
   renderOrdAvg(valid);
   renderOrdLead(valid);
   renderOrdTrend();
+  renderOrdDaily();
+  renderOrdToday();
   renderOrdCancel(all);
   renderOrdYoYChart();
   scrollOrdToCurrentMonth();
@@ -3327,6 +3345,75 @@ function renderOrdTrend(){
   svg+=line(counts,yCt,'var(--ac2)');
   svg+=line(revs,yRv,'var(--blue)');
   svgEl.innerHTML=svg;
+}
+// 今日動態：基準＝訂房日(收信日)=今天
+function renderOrdToday(){
+  const now=new Date();
+  const sameDay=d=>d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&d.getDate()===now.getDate();
+  let nNew=0,nCancel=0,rev=0;
+  ORDERS_RAW.forEach(o=>{
+    if(!sameDay(o.recv)) return;
+    if(o.cancel){ nCancel++; } else { nNew++; rev+=o.rev; }
+  });
+  document.getElementById('ordTodayDate').textContent=`${now.getMonth()+1}/${now.getDate()}（依下訂日）`;
+  document.getElementById('ordTodayNew').textContent=nNew;
+  document.getElementById('ordTodayCancel').textContent=nCancel;
+  document.getElementById('ordTodayRev').textContent=rev?fmtRev(rev):'0';
+}
+// 每日新增/取消折線：跟隨上方月份篩選（選月→該月每日；選季/累計→以月為單位）
+function renderOrdDaily(){
+  const svgEl=document.getElementById('ordDailyChart');
+  const titleEl=document.getElementById('ordDailyTitle');
+  const year=ordYear||(ordYears().length?ordYears()[0]:new Date().getFullYear());
+  let labels=[], newArr=[], cancelArr=[];
+  if(ordRange&&ordRange[0]==='m'){
+    // 單月：畫該月每一天
+    const mi=parseInt(ordRange.slice(1))-1;
+    const days=new Date(year,mi+1,0).getDate();
+    for(let d=1;d<=days;d++){ labels.push(d); newArr.push(0); cancelArr.push(0); }
+    ORDERS_RAW.forEach(o=>{ const d=o.recv; if(!d||d.getFullYear()!==year||d.getMonth()!==mi) return;
+      const idx=d.getDate()-1;
+      if(o.cancel) cancelArr[idx]++; else newArr[idx]++;
+    });
+    titleEl.textContent=`${year} 年 ${mi+1} 月・逐日`;
+  }else{
+    // 季別/今年累計：以月為單位（落在篩選範圍內的月份）
+    let months=[];
+    if(ordRange&&ordRange[0]==='q'){ months={1:[1,2,3],2:[4,5,6],3:[7,8,9],4:[10,11,12]}[parseInt(ordRange.slice(1))]||[]; titleEl.textContent=`${year} 年 第${ordRange.slice(1)}季・逐月`; }
+    else { months=[1,2,3,4,5,6,7,8,9,10,11,12]; titleEl.textContent=`${year} 年・逐月`; }
+    months.forEach(m=>{ labels.push(m+'月'); newArr.push(0); cancelArr.push(0); });
+    ORDERS_RAW.forEach(o=>{ const d=o.recv; if(!d||d.getFullYear()!==year) return;
+      const idx=months.indexOf(d.getMonth()+1); if(idx<0) return;
+      if(o.cancel) cancelArr[idx]++; else newArr[idx]++;
+    });
+  }
+  const n=labels.length;
+  const W=360,H=200,padL=24,padR=14,padB=26,padT=14;
+  const maxV=Math.max(...newArr,...cancelArr,1);
+  const xStep=n>1?(W-padL-padR)/(n-1):0;
+  const xAt=i=>padL+i*xStep;
+  const yAt=v=>H-padB-(v/maxV)*(H-padB-padT);
+  const line=(arr,col)=>{
+    let pts=arr.map((v,i)=>`${xAt(i)},${yAt(v)}`).join(' ');
+    let s=`<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+    // 資料點少時才畫圓點，避免逐日 31 點太密
+    if(n<=14) arr.forEach((v,i)=>{ s+=`<circle cx="${xAt(i)}" cy="${yAt(v)}" r="2.5" fill="${col}"/>`; });
+    return s;
+  };
+  let svg='';
+  // y 軸刻度線（0 與 max）
+  svg+=`<line x1="${padL}" y1="${yAt(0)}" x2="${W-padR}" y2="${yAt(0)}" stroke="var(--bd)" stroke-width="1"/>`;
+  svg+=`<text x="${padL-4}" y="${yAt(maxV)+3}" font-size="8" fill="var(--tx3)" text-anchor="end" font-family="DM Mono">${maxV}</text>`;
+  svg+=`<text x="${padL-4}" y="${yAt(0)+3}" font-size="8" fill="var(--tx3)" text-anchor="end" font-family="DM Mono">0</text>`;
+  // x 軸標籤：逐日時每隔幾天標一次，避免太密
+  const labelStep=n>16?5:(n>10?2:1);
+  labels.forEach((lb,i)=>{ if(i%labelStep===0||i===n-1){ svg+=`<text x="${xAt(i)}" y="${H-padB+13}" font-size="8" fill="var(--tx3)" text-anchor="middle">${lb}</text>`; } });
+  svg+=line(cancelArr,'var(--red)');
+  svg+=line(newArr,'var(--green)');
+  svgEl.innerHTML=svg;
+  const totN=newArr.reduce((a,b)=>a+b,0), totC=cancelArr.reduce((a,b)=>a+b,0);
+  document.getElementById('ordDailyLegend').innerHTML=
+    `<span style="color:var(--green);">▬</span> 新增 ${totN} 筆　<span style="color:var(--red);">▬</span> 取消 ${totC} 筆`;
 }
 function renderOrdCancel(all){
   const g=ordGroupBy(all,'sys');
