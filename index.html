@@ -4341,8 +4341,18 @@ function loadCompData(){
       }
     });
     if(ts){
+      // ts 形如「資料更新：2026/6/14（日）10:57」；統一更新右上角時間與 badge
       const el=document.getElementById('updateTime');
       if(el) el.textContent = ts;
+      // 取出純時間戳（去掉「資料更新：」前綴）寫進 compLastUpdate，
+      // 讓 loadUpdateTime 之後不會用空值把顯示蓋掉（修 iPhone「資料：—」）
+      const pure = ts.replace(/^資料更新：/,'');
+      try{ localStorage.setItem('compLastUpdate', pure); }catch(e){}
+      const badge=document.getElementById('dataUpdateBadge');
+      if(badge){
+        const short = pure.split('（')[0].slice(5); // 取「6/14」這種短日期
+        badge.textContent = '資料：'+(short||pure)+'更新';
+      }
     }
     return true;
   }catch(e){ return false; }
