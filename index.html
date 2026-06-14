@@ -4941,7 +4941,12 @@ function switchPage(id){
   if(id==='comp'){ 
     loadCompData();
     try{ buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); }catch(e){}
-    autoLoadSheets();
+    // 從雲端拉最新房價（取代舊的 prices.json 爬蟲路徑），拉到後重新套用重畫
+    if(getCloudUrl()){
+      pullFromCloud().then(synced=>{
+        if(synced){ loadCompData(); try{ buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); }catch(e){} }
+      });
+    }
   }
   if(id==='tri'){ setTimeout(()=>{ loadTriData(); buildTriMonthChart(); buildTriChart(); fetchTriNews(); },80); }
   if(id==='mkt'){ setTimeout(()=>{ loadIntelPage(); },80); }
@@ -4992,7 +4997,7 @@ function refreshActivePage(){
       const calSub=document.getElementById('occ-sub-cal');
       if(calSub && calSub.style.display!=='none'){ try{ fetchKmdnNews(); }catch(e){} }
     }
-    else if(id==='comp'){ try{ autoLoadSheets(); }catch(e){} }
+    else if(id==='comp'){ try{ if(getCloudUrl()){ pullFromCloud().then(s=>{ if(s){ loadCompData(); buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); } }); } }catch(e){} }
     else if(id==='tri'){ try{ loadTriData(); fetchTriNews(); }catch(e){} }
     else if(id==='mkt'){ try{ loadIntelPage(); }catch(e){} }
     else if(id==='edu'){ try{ fetchTourNews(); }catch(e){} }
