@@ -4212,13 +4212,21 @@ function parseAndApplyCSV(text){
     return;
   }
   buildLists(); buildBarChart(); calcStats(); stampUpdateTime(); saveCompData();
-  // 自動推送至雲端，讓手機等其他裝置開頁時能拉到同一份房價
-  if(typeof pushToCloud==='function'){
-    pushToCloud().catch(()=>{});
-  }
   const skipMsg = skipped.length > 0 ? `（${skipped.length} 家未找到）` : '';
-  showCSVStatus(`✅ 成功更新 ${matched} 家房價！${skipMsg}（已同步雲端）`, 'var(--green)');
-  setTimeout(()=>{ document.getElementById('csvModal').style.display='none'; }, 2500);
+  // 自動推送至雲端，依實際結果顯示，讓手機等其他裝置開頁時能拉到同一份房價
+  if(typeof pushToCloud==='function' && getCloudUrl()){
+    showCSVStatus(`✅ 已更新 ${matched} 家房價${skipMsg}，雲端同步中…`, 'var(--green)');
+    pushToCloud().then(ok=>{
+      showCSVStatus(ok
+        ? `✅ 成功更新 ${matched} 家房價${skipMsg}（已同步雲端 ☁️）`
+        : `⚠️ 已更新 ${matched} 家房價，但雲端同步失敗，手機可能讀不到`,
+        ok?'var(--green)':'var(--red)');
+      if(ok) setTimeout(()=>{ const m=document.getElementById('csvModal'); if(m)m.style.display='none'; }, 2000);
+    });
+  }else{
+    showCSVStatus(`✅ 成功更新 ${matched} 家房價！${skipMsg}`, 'var(--green)');
+    setTimeout(()=>{ const m=document.getElementById('csvModal'); if(m)m.style.display='none'; }, 2500);
+  }
 }
 
 function showCSVStatus(msg,color){
@@ -5179,14 +5187,30 @@ function buildSyncPayload(){
 
 async function pushToCloud(){
   const url=getCloudUrl();
-  if(!url){ showSyncStatus('未設定雲端網址',false); return; }
+  if(!url){ showSyncStatus('未設定雲端網址',false); return false; }
   showSyncStatus('上傳中...',true);
   try{
-    // 用 text/plain 避免 CORS preflight 問題
-    fetch(url,{method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'text/plain'},body:buildSyncPayload()});
-    showSyncStatus('✓ 已推送至雲端',true);
-  }catch(e){ showSyncStatus('推送失敗：'+e.message,false); }
+    // Apps Script /exec 支援 CORS；用 text/plain 避免 preflight，並 await 讀回應確認成敗
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:buildSyncPayload()
+    });
+    const txt=await res.text();
+    let ok=false;
+    try{ ok=JSON.parse(txt).ok===true; }catch(_){ ok=false; }
+    if(ok){
+      showSyncStatus('✓ 已推送至雲端',true);
+      return true;
+    }else{
+      showSyncStatus('✗ 雲端未確認，請檢查網址/部署',false);
+      console.log('push 回應:',txt);
+      return false;
+    }
+  }catch(e){
+    showSyncStatus('推送失敗：'+e.message,false);
+    return false;
+  }
 }
 
 async function pullFromCloud(){
@@ -5197,17 +5221,35 @@ async function pullFromCloud(){
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
     if(!d || (!d.occ_cur && !d.comp_prices)) return false;
+
+    let applied=false;
+    const builtin=unitCfg().preferBuiltin;
+
+    // ── 競品房價：獨立判斷，只要雲端的 comp_savedAt 與本機不同就套用 ──
+    // （房價是「電腦推、各裝置看」單向同步，雲端永遠是真相源，不受 occ 時間戳影響）
+    if(d.comp_prices){
+      const localCompTs = uGet('comp_savedAt')||'';
+      const cloudCompTs = d.comp_savedAt||'';
+      if(cloudCompTs !== localCompTs || !uGet('comp_prices')){
+        uSet('comp_prices', d.comp_prices);
+        if(d.comp_savedAt) uSet('comp_savedAt', d.comp_savedAt);
+        applied=true;
+      }
+    }
+
+    // ── 入住率等營運資料：維持原本時間戳保護，避免覆蓋本機較新的編輯 ──
     const localTs=parseInt(uGet('occ_pushedAt')||'0');
     const cloudTs=parseInt(d.pushedAt||'0');
-    if(cloudTs>0&&cloudTs<=localTs) return false;
-    // 測試階段單位（preferBuiltin）：營運用內建，不接受雲端覆蓋 cur/prev，僅接受逐日與競品
-    const builtin=unitCfg().preferBuiltin;
-    const keys=builtin
-      ? ['occ_daily','comp_prices','comp_savedAt']
-      : ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt','comp_prices','comp_savedAt'];
-    keys.forEach(k=>{ if(d[k]) uSet(k,d[k]); });
-    if(d.pushedAt) uSet('occ_pushedAt',String(d.pushedAt));
-    return true;
+    const occFresh = !(cloudTs>0 && cloudTs<=localTs);
+    if(occFresh){
+      const occKeys=builtin
+        ? ['occ_daily']
+        : ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt'];
+      occKeys.forEach(k=>{ if(d[k]){ uSet(k,d[k]); applied=true; } });
+      if(d.pushedAt) uSet('occ_pushedAt',String(d.pushedAt));
+    }
+
+    return applied;
   }catch(e){ return false; }
 }
 
