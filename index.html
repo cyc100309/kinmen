@@ -1323,7 +1323,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     </div>
 
     <!-- 今日動態（基準：訂房日/收信日 = 今天） -->
-    <div class="lbl" style="margin-bottom:8px;"><span>📨 今日動態</span><span class="lbl-r" id="ordTodayDate" style="font-size:9px;color:var(--tx3);">—</span></div>
+    <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;"><span>📨 今日動態</span><span class="lbl-r" id="ordTodayDate" style="font-size:9px;color:var(--tx3);">—</span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
       <div class="ord-kpi"><div class="ord-kpi-l">今日新增</div><div class="ord-kpi-v" id="ordTodayNew" style="color:var(--green);">—</div><div class="ord-kpi-s">筆</div></div>
       <div class="ord-kpi"><div class="ord-kpi-l">今日取消</div><div class="ord-kpi-v" id="ordTodayCancel" style="color:var(--red);">—</div><div class="ord-kpi-s">筆</div></div>
@@ -1331,37 +1331,71 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     </div>
 
     <!-- 各通路訂單數 / 營收占比 -->
-    <div class="lbl" style="margin-bottom:8px;"><span>📊 各通路表現</span><span class="lbl-r" style="font-size:9px;color:var(--tx3);">有效訂單</span></div>
+    <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;"><span>📊 各通路表現</span><span class="lbl-r" style="font-size:9px;color:var(--tx3);">有效訂單</span></div>
     <div id="ordChannelBars" style="display:flex;flex-direction:column;gap:9px;margin-bottom:8px;"></div>
     <div style="font-size:9px;color:var(--tx3);margin-bottom:20px;line-height:1.6;">
       長條左為訂單數占比、右標營收。點通路名可切換營收／訂單數排序。
     </div>
 
     <!-- 各通路平均訂單金額 -->
-    <div class="lbl" style="margin-bottom:10px;"><span>💵 各通路平均訂單金額</span></div>
+    <div class="lbl" style="margin-bottom:10px;padding-left:0;padding-right:0;"><span>💵 各通路平均訂單金額</span></div>
     <div id="ordAvgBars" style="display:flex;flex-direction:column;gap:9px;margin-bottom:22px;"></div>
 
     <!-- 提前預訂天數分布 -->
-    <div class="lbl" style="margin-bottom:4px;"><span>📅 提前預訂天數分布</span></div>
+    <div class="lbl" style="margin-bottom:4px;padding-left:0;padding-right:0;"><span>📅 提前預訂天數分布</span></div>
     <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">收信日至入住日的提前天數，反映各客群訂房習慣。</div>
-    <svg id="ordLeadChart" viewBox="0 0 360 190" style="width:100%;height:auto;margin-bottom:8px;"></svg>
+    <svg id="ordLeadChart" viewBox="0 0 360 127" style="width:100%;height:auto;margin-bottom:2px;"></svg>
     <div id="ordLeadLegend" style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;line-height:1.6;"></div>
 
     <!-- 月份趨勢 -->
-    <div class="lbl" style="margin-bottom:4px;"><span>📈 月份訂單趨勢</span></div>
-    <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">依訂房月份（下訂日）統計有效訂單數與訂房金額（萬元）。</div>
-    <svg id="ordTrendChart" viewBox="0 0 360 200" style="width:100%;height:auto;margin-bottom:6px;"></svg>
+    <div class="lbl" style="margin-bottom:4px;padding-left:0;padding-right:0;"><span>📈 月份訂單趨勢</span></div>
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">依下訂月份統計每月新增訂單數與取消數。</div>
+    <svg id="ordTrendChart" viewBox="0 0 360 133" style="width:100%;height:auto;margin-bottom:2px;"></svg>
     <div style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;">
-      <span style="color:var(--ac2);">▬</span> 訂單數　<span style="color:var(--blue);">▬</span> 訂房金額（萬）
+      <span style="color:var(--ac2);">■</span> 訂單數（新增）　<span style="color:var(--red);">■</span> 取消數
     </div>
 
     <!-- 每日新增/取消（跟隨上方月份篩選） -->
-    <div class="lbl" style="margin-bottom:4px;"><span>🗓️ 每日新增／取消</span><span class="lbl-r" id="ordDailyTitle" style="font-size:9px;color:var(--tx3);">—</span></div>
+    <div class="lbl" style="margin-bottom:4px;padding-left:0;padding-right:0;"><span>🗓️ 每日新增／取消</span><span class="lbl-r" id="ordDailyTitle" style="font-size:9px;color:var(--tx3);">—</span></div>
     <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">依下訂日統計所選月份每一天的新增與取消訂單數。選季別／累計時則改以月為單位。</div>
-    <svg id="ordDailyChart" viewBox="0 0 360 200" style="width:100%;height:auto;margin-bottom:6px;"></svg>
+    <svg id="ordDailyChart" viewBox="0 0 360 133" style="width:100%;height:auto;margin-bottom:2px;"></svg>
     <div id="ordDailyLegend" style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;line-height:1.6;">
       <span style="color:var(--green);">▬</span> 新增　<span style="color:var(--red);">▬</span> 取消
     </div>
+
+    <!-- 週間 vs 週末 -->
+    <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;"><span>📆 週間 vs 週末</span><span class="lbl-r" id="ordWkTitle" style="font-size:9px;color:var(--tx3);">—</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div class="ord-kpi">
+        <div class="ord-kpi-l" style="margin-bottom:8px;">週間（一～五）</div>
+        <div style="display:flex;align-items:stretch;">
+          <div style="flex:1;text-align:center;">
+            <div class="ord-kpi-v" style="color:var(--green);"><span id="ordWdNew">—</span></div>
+            <div class="ord-kpi-s" style="margin-top:3px;">新增 <span id="ordWdNewPct"></span></div>
+          </div>
+          <div style="width:1px;background:var(--bd);margin:0 6px;"></div>
+          <div style="flex:1;text-align:center;">
+            <div class="ord-kpi-v" style="color:var(--red);"><span id="ordWdCancel">—</span></div>
+            <div class="ord-kpi-s" style="margin-top:3px;">取消 <span id="ordWdCancelPct"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="ord-kpi">
+        <div class="ord-kpi-l" style="margin-bottom:8px;">週末（六、日）</div>
+        <div style="display:flex;align-items:stretch;">
+          <div style="flex:1;text-align:center;">
+            <div class="ord-kpi-v" style="color:var(--green);"><span id="ordWeNew">—</span></div>
+            <div class="ord-kpi-s" style="margin-top:3px;">新增 <span id="ordWeNewPct"></span></div>
+          </div>
+          <div style="width:1px;background:var(--bd);margin:0 6px;"></div>
+          <div style="flex:1;text-align:center;">
+            <div class="ord-kpi-v" style="color:var(--red);"><span id="ordWeCancel">—</span></div>
+            <div class="ord-kpi-s" style="margin-top:3px;">取消 <span id="ordWeCancelPct"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:22px;line-height:1.6;">佔比＝該區間新增（或取消）÷ 全期間新增（或取消）總數。</div>
 
     <!-- 今年 vs 去年 逐月折線（YoY，僅多年度資料時顯示） -->
     <div id="ordYoYBlock" style="display:none;">
@@ -1372,7 +1406,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     </div>
 
     <!-- 取消率分通路 -->
-    <div class="lbl" style="margin-bottom:10px;"><span>❌ 各通路取消率</span></div>
+    <div class="lbl" style="margin-bottom:10px;padding-left:0;padding-right:0;"><span>❌ 各通路取消率</span></div>
     <div id="ordCancelBars" style="display:flex;flex-direction:column;gap:9px;margin-bottom:18px;"></div>
 
     <div style="font-size:9px;color:var(--tx3);line-height:1.6;background:var(--sf);
@@ -3218,6 +3252,7 @@ function renderOrders(){
   renderOrdLead(valid);
   renderOrdTrend();
   renderOrdDaily();
+  renderOrdWeekend();
   renderOrdToday();
   renderOrdCancel(all);
   renderOrdYoYChart();
@@ -3290,7 +3325,7 @@ function renderOrdLead(valid){
   const counts=buckets.map(b=>valid.filter(o=>o.lead>=b.min&&o.lead<=b.max).length);
   const maxC=Math.max(...counts,1);
   const tot=counts.reduce((a,b)=>a+b,0)||1;
-  const W=360,H=190,padL=8,padR=8,padB=28,padT=22;
+  const W=360,H=127,padL=8,padR=8,padB=14,padT=26;
   const bw=(W-padL-padR)/buckets.length;
   let svg='';
   buckets.forEach((b,i)=>{
@@ -3302,7 +3337,7 @@ function renderOrdLead(valid){
       svg+=`<text x="${x+bw/2}" y="${y-12}" font-size="10" fill="var(--ac2)" text-anchor="middle" font-family="DM Mono" font-weight="700">${pct}%</text>`;
       svg+=`<text x="${x+bw/2}" y="${y-3}" font-size="8" fill="var(--tx3)" text-anchor="middle" font-family="DM Mono">${counts[i]} 筆</text>`;
     }
-    svg+=`<text x="${x+bw/2}" y="${H-padB+13}" font-size="8.5" fill="var(--tx3)" text-anchor="middle">${b.l}</text>`;
+    svg+=`<text x="${x+bw/2}" y="${H-padB+10}" font-size="8.5" fill="var(--tx3)" text-anchor="middle">${b.l}</text>`;
   });
   document.getElementById('ordLeadChart').innerHTML=svg;
   const early=counts[4]+counts[5];
@@ -3316,35 +3351,57 @@ function renderOrdTrend(){
   const year=ordYear||(ys.length?ys[0]:new Date().getFullYear());
   const now=new Date();
   const lastMonth=(year===now.getFullYear())?(now.getMonth()+1):12; // 今年只畫到當月，往後留空
-  const counts=new Array(12).fill(null), revs=new Array(12).fill(null);
+  const counts=new Array(12).fill(null), cancels=new Array(12).fill(null);
   // 先把有資料的月份補 0（到 lastMonth 為止），未到月份維持 null=空白
-  for(let i=0;i<lastMonth;i++){ counts[i]=0; revs[i]=0; }
-  ORDERS_RAW.forEach(o=>{ if(o.cancel) return; const d=ordBaseDate(o);
+  for(let i=0;i<lastMonth;i++){ counts[i]=0; cancels[i]=0; }
+  ORDERS_RAW.forEach(o=>{ const d=ordBaseDate(o);
     if(!d||d.getFullYear()!==year) return;
     const mi=d.getMonth();
-    if(mi<lastMonth){ counts[mi]+=1; revs[mi]+=o.rev/10000; }
+    if(mi<lastMonth){ if(o.cancel) cancels[mi]+=1; else counts[mi]+=1; }
   });
   const svgEl=document.getElementById('ordTrendChart');
-  const W=360,H=200,padL=30,padR=30,padB=30,padT=12;
-  const maxCt=Math.max(...counts.filter(v=>v!=null),1), maxRv=Math.max(...revs.filter(v=>v!=null),1);
-  const xStep=(W-padL-padR)/11;
-  const xAt=i=>padL+i*xStep;
-  const yCt=v=>H-padB-(v/maxCt)*(H-padB-padT);
-  const yRv=v=>H-padB-(v/maxRv)*(H-padB-padT);
-  // 折線：遇 null 斷線（只連有資料的相鄰月）
-  const line=(arr,yf,col)=>{
-    let s='', seg=[];
-    const flush=()=>{ if(seg.length>=2) s+=`<polyline points="${seg.join(' ')}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`; seg=[]; };
-    arr.forEach((v,i)=>{ if(v==null){ flush(); } else { seg.push(`${xAt(i)},${yf(v)}`); } });
-    flush();
-    arr.forEach((v,i)=>{ if(v!=null) s+=`<circle cx="${xAt(i)}" cy="${yf(v)}" r="2.5" fill="${col}"/>`; });
-    return s;
-  };
+  const W=360,H=133,padL=24,padR=14,padB=14,padT=16;
+  const maxV=Math.max(...counts.filter(v=>v!=null),...cancels.filter(v=>v!=null),1);
+  const groupW=(W-padL-padR)/12;
+  const barW=Math.min(groupW*0.4,14), gap=2;
+  const yBase=H-padB;
   let svg='';
-  for(let i=0;i<12;i++) svg+=`<text x="${xAt(i)}" y="${H-padB+13}" font-size="8" fill="var(--tx3)" text-anchor="middle">${i+1}</text>`;
-  svg+=line(counts,yCt,'var(--ac2)');
-  svg+=line(revs,yRv,'var(--blue)');
+  svg+=`<line x1="${padL}" y1="${yBase}" x2="${W-padR}" y2="${yBase}" stroke="var(--bd)" stroke-width="1"/>`;
+  svg+=`<text x="${padL-4}" y="${yBase-(H-padB-padT)+3}" font-size="8" fill="var(--tx3)" text-anchor="end" font-family="DM Mono">${maxV}</text>`;
+  svg+=`<text x="${padL-4}" y="${yBase+3}" font-size="8" fill="var(--tx3)" text-anchor="end" font-family="DM Mono">0</text>`;
+  for(let i=0;i<12;i++){
+    const cx=padL+groupW*i+groupW/2;
+    svg+=`<text x="${cx}" y="${H-padB+12}" font-size="8" fill="var(--tx3)" text-anchor="middle">${i+1}</text>`;
+    if(counts[i]==null) continue;  // 未到月份不畫
+    const x1=cx-barW-gap/2, x2=cx+gap/2;
+    const hC=(counts[i]/maxV)*(H-padB-padT), hX=(cancels[i]/maxV)*(H-padB-padT);
+    if(hC>0) svg+=`<rect x="${x1}" y="${yBase-hC}" width="${barW}" height="${hC}" rx="1.5" fill="var(--ac2)"/>`;
+    if(hX>0) svg+=`<rect x="${x2}" y="${yBase-hX}" width="${barW}" height="${hX}" rx="1.5" fill="var(--red)"/>`;
+  }
   svgEl.innerHTML=svg;
+}
+// 週間 vs 週末（跟隨上方篩選；基準＝訂房日/收信日的星期）
+function renderOrdWeekend(){
+  const all=ordFiltered(ordYear||0);
+  let wd={nw:0,cx:0}, we={nw:0,cx:0};  // 週間 / 週末
+  all.forEach(o=>{ const d=o.recv; if(!d) return;
+    const dow=d.getDay(); const weekend=(dow===0||dow===6);
+    const t=weekend?we:wd;
+    if(o.cancel) t.cx++; else t.nw++;
+  });
+  const totNew=wd.nw+we.nw, totCx=wd.cx+we.cx;
+  const pct=(v,t)=>t? (v/t*100).toFixed(0)+'%':'—';
+  document.getElementById('ordWdNew').textContent=wd.nw;
+  document.getElementById('ordWdNewPct').textContent=totNew?`(${pct(wd.nw,totNew)})`:'';
+  document.getElementById('ordWdCancel').textContent=wd.cx;
+  document.getElementById('ordWdCancelPct').textContent=totCx?`(${pct(wd.cx,totCx)})`:'';
+  document.getElementById('ordWeNew').textContent=we.nw;
+  document.getElementById('ordWeNewPct').textContent=totNew?`(${pct(we.nw,totNew)})`:'';
+  document.getElementById('ordWeCancel').textContent=we.cx;
+  document.getElementById('ordWeCancelPct').textContent=totCx?`(${pct(we.cx,totCx)})`:'';
+  // 標題顯示目前範圍
+  const t=document.getElementById('ordDailyTitle');
+  document.getElementById('ordWkTitle').textContent=t?t.textContent:'';
 }
 // 今日動態：基準＝訂房日(收信日)=今天
 function renderOrdToday(){
@@ -3365,10 +3422,11 @@ function renderOrdDaily(){
   const svgEl=document.getElementById('ordDailyChart');
   const titleEl=document.getElementById('ordDailyTitle');
   const year=ordYear||(ordYears().length?ordYears()[0]:new Date().getFullYear());
-  let labels=[], newArr=[], cancelArr=[];
+  let labels=[], newArr=[], cancelArr=[], dailyMi=-1;
   if(ordRange&&ordRange[0]==='m'){
     // 單月：畫該月每一天
     const mi=parseInt(ordRange.slice(1))-1;
+    dailyMi=mi;
     const days=new Date(year,mi+1,0).getDate();
     for(let d=1;d<=days;d++){ labels.push(d); newArr.push(0); cancelArr.push(0); }
     ORDERS_RAW.forEach(o=>{ const d=o.recv; if(!d||d.getFullYear()!==year||d.getMonth()!==mi) return;
@@ -3388,32 +3446,57 @@ function renderOrdDaily(){
     });
   }
   const n=labels.length;
-  const W=360,H=200,padL=24,padR=14,padB=26,padT=14;
+  const isDaily=(ordRange&&ordRange[0]==='m');  // 逐日資料點多，長條較細
+  const W=360,H=133,padL=24,padR=14,padB=14,padT=16;
   const maxV=Math.max(...newArr,...cancelArr,1);
-  const xStep=n>1?(W-padL-padR)/(n-1):0;
-  const xAt=i=>padL+i*xStep;
   const yAt=v=>H-padB-(v/maxV)*(H-padB-padT);
-  const line=(arr,col)=>{
-    let pts=arr.map((v,i)=>`${xAt(i)},${yAt(v)}`).join(' ');
-    let s=`<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
-    // 資料點少時才畫圓點，避免逐日 31 點太密
-    if(n<=14) arr.forEach((v,i)=>{ s+=`<circle cx="${xAt(i)}" cy="${yAt(v)}" r="2.5" fill="${col}"/>`; });
-    return s;
-  };
   let svg='';
-  // y 軸刻度線（0 與 max）
+  // y 軸基準線 + 0/max 刻度
   svg+=`<line x1="${padL}" y1="${yAt(0)}" x2="${W-padR}" y2="${yAt(0)}" stroke="var(--bd)" stroke-width="1"/>`;
   svg+=`<text x="${padL-4}" y="${yAt(maxV)+3}" font-size="8" fill="var(--tx3)" text-anchor="end" font-family="DM Mono">${maxV}</text>`;
   svg+=`<text x="${padL-4}" y="${yAt(0)+3}" font-size="8" fill="var(--tx3)" text-anchor="end" font-family="DM Mono">0</text>`;
-  // x 軸標籤：逐日時每隔幾天標一次，避免太密
+
+  // ── 分組長條（每組 新增綠 + 取消紅）──
+  const groupW=(W-padL-padR)/n;
+  const barW=Math.min(groupW*0.4,16);
+  const gap=isDaily?0.5:2;
+  const showNum=n<=14;  // 逐日點多就不標數字，避免太擠
   const labelStep=n>16?5:(n>10?2:1);
-  labels.forEach((lb,i)=>{ if(i%labelStep===0||i===n-1){ svg+=`<text x="${xAt(i)}" y="${H-padB+13}" font-size="8" fill="var(--tx3)" text-anchor="middle">${lb}</text>`; } });
-  svg+=line(cancelArr,'var(--red)');
-  svg+=line(newArr,'var(--green)');
+  // 逐日：先鋪週末極淡背景欄
+  if(isDaily){
+    for(let i=0;i<n;i++){
+      const dow=new Date(year,dailyMi,i+1).getDay();
+      if(dow===0||dow===6){
+        const gx=padL+groupW*i;
+        svg+=`<rect x="${gx}" y="${padT-4}" width="${groupW}" height="${H-padB-(padT-4)}" fill="var(--ac2)" opacity="0.06"/>`;
+      }
+    }
+  }
+  labels.forEach((lb,i)=>{
+    const cx=padL+groupW*i+groupW/2;
+    const x1=cx-barW-gap/2, x2=cx+gap/2;
+    const hN=(newArr[i]/maxV)*(H-padB-padT), hC=(cancelArr[i]/maxV)*(H-padB-padT);
+    if(hN>0) svg+=`<rect x="${x1}" y="${H-padB-hN}" width="${barW}" height="${hN}" rx="1.5" fill="var(--green)"/>`;
+    if(hC>0) svg+=`<rect x="${x2}" y="${H-padB-hC}" width="${barW}" height="${hC}" rx="1.5" fill="var(--red)"/>`;
+    if(showNum){
+      if(newArr[i]>0) svg+=`<text x="${x1+barW/2}" y="${H-padB-hN-3}" font-size="7.5" fill="var(--green)" text-anchor="middle" font-family="DM Mono">${newArr[i]}</text>`;
+      if(cancelArr[i]>0) svg+=`<text x="${x2+barW/2}" y="${H-padB-hC-3}" font-size="7.5" fill="var(--red)" text-anchor="middle" font-family="DM Mono">${cancelArr[i]}</text>`;
+    }
+    if(isDaily){
+      // 逐日：每天都標日期，週六日用強調色
+      const dow=new Date(year,dailyMi,i+1).getDay(); // 0=日 6=六
+      const weekend=(dow===0||dow===6);
+      const col=weekend?'var(--ac2)':'var(--tx3)';
+      const fw=weekend?'700':'400';
+      svg+=`<text x="${cx}" y="${H-padB+11}" font-size="6.5" fill="${col}" font-weight="${fw}" text-anchor="middle" font-family="DM Mono">${lb}</text>`;
+    }else{
+      if(i%labelStep===0||i===n-1) svg+=`<text x="${cx}" y="${H-padB+12}" font-size="8" fill="var(--tx3)" text-anchor="middle">${lb}</text>`;
+    }
+  });
   svgEl.innerHTML=svg;
   const totN=newArr.reduce((a,b)=>a+b,0), totC=cancelArr.reduce((a,b)=>a+b,0);
   document.getElementById('ordDailyLegend').innerHTML=
-    `<span style="color:var(--green);">▬</span> 新增 ${totN} 筆　<span style="color:var(--red);">▬</span> 取消 ${totC} 筆`;
+    `<span style="color:var(--green);">■</span> 新增 ${totN} 筆　<span style="color:var(--red);">■</span> 取消 ${totC} 筆`;
 }
 function renderOrdCancel(all){
   const g=ordGroupBy(all,'sys');
