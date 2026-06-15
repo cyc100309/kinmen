@@ -82,8 +82,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 
 .lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);
   padding:14px 18px 8px;font-family:'DM Mono',monospace;
-  display:flex;align-items:center;justify-content:space-between;}
-.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;
+  display:flex;align-items:center;justify-content:flex-start;}
+.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;margin-left:auto;
   font-family:'Noto Sans TC',sans-serif;color:var(--tx3);}
 
 /* KPI */
@@ -324,8 +324,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 /* Section label */
 .lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);
   padding:14px 18px 8px;font-family:'DM Mono',monospace;
-  display:flex;align-items:center;justify-content:space-between;}
-.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;
+  display:flex;align-items:center;justify-content:flex-start;}
+.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;margin-left:auto;
   font-family:'Noto Sans TC',sans-serif;color:var(--tx3);}
 
 /* Summary cards */
@@ -348,7 +348,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .chart-card{margin:10px 18px 0;background:var(--sf);border-radius:var(--r);
   padding:14px;border:1px solid var(--bd);}
 .chart-title{font-size:12px;font-weight:500;color:var(--tx);margin-bottom:12px;
-  display:flex;align-items:center;justify-content:space-between;}
+  display:flex;align-items:center;justify-content:flex-start;}
 .env-tab{flex:1;padding:8px 4px;background:transparent;border:none;border-bottom:2px solid transparent;
   color:var(--tx3);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:400;}
 .env-tab.on{color:var(--ac);border-bottom-color:var(--ac);font-weight:600;}
@@ -1248,24 +1248,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <div id="annualEvents" style="display:none;flex-direction:column;gap:7px;"></div>
   </div>
 
-  <!-- 大巨蛋活動雷達（僅有設定 domeRadar 的單位顯示，例：劍潭）— 自動抓 Google 新聞 -->
-  <div id="domeRadarWrap" style="margin-top:22px;display:none;">
-    <div class="lbl" style="margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleDomeRadar()">
-      <span id="domeRadarTitle">🏟️ 大巨蛋活動雷達</span>
-      <span id="domeRadarArrow" style="font-size:12px;color:var(--tx3);">▼</span>
-    </div>
-    <div id="domeRadarBody" style="display:none;">
-      <div id="domeRadarDesc" style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5;">
-        自動抓取台北大巨蛋演唱會、售票、賽事新聞。看到新公告場次，可請管理者補進行事曆。
-      </div>
-      <div id="domeRadar" style="display:flex;flex-direction:column;gap:6px;">
-        <div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入大巨蛋新聞中...</div>
-      </div>
-      <button id="domeRadarRefresh" onclick="fetchDomeRadar()" style="margin-top:8px;width:100%;padding:7px;
-        background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);
-        font-size:10px;cursor:pointer;">🔄 重新整理大巨蛋新聞</button>
-    </div>
-  </div>
+
 
   <!-- 行事曆下方在地新聞（依單位：金門日報 RSS／劍潭 Google 觀光新聞）— 置於最下方 -->
   <div style="margin-top:22px;">
@@ -1292,7 +1275,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       border-radius:var(--rs);padding:10px 12px;">
       <span style="font-size:11px;color:var(--tx);">🏃 中華民國路跑協會・賽事行事曆</span>
       <span style="font-size:11px;color:var(--ac);">前往 →</span></a>
-    <a href="https://www.farglorydome.com.tw/news/" target="_blank" style="text-decoration:none;display:flex;
+    <a href="https://www.taipeidome.com.tw/Web/Dome/Calendar/" target="_blank" style="text-decoration:none;display:flex;
       align-items:center;justify-content:space-between;background:var(--sf2);border:1px solid var(--bd);
       border-radius:var(--rs);padding:10px 12px;">
       <span style="font-size:11px;color:var(--tx);">🏟️ 臺北大巨蛋・最新消息（賽程／活動）</span>
@@ -2862,7 +2845,7 @@ function applyUnitBranding(unit){
   try{ applyCfg(); }catch(e){}
   try{ applyTransportNav(u); }catch(e){}
   try{ applyCalNewsLabels(); }catch(e){}
-  try{ applyDomeRadar(); }catch(e){}
+  try{ applyCalSrcBtns(); }catch(e){}
 }
 // 交通概況分頁：依單位顯示/隱藏與改名（金門專屬；其他單位可自訂主題或關閉）
 function applyTransportNav(u){
@@ -3088,17 +3071,14 @@ const UNITS={
     // 把 enabled 改 true、navLabel 改成想要的分頁名稱，再於 page-tri 換上自訂內容。
     transport:{ enabled:false, navLabel:'交通概況', kinmenBuiltin:false },
     // 行事曆下方在地新聞來源：劍潭用 Google 新聞，抓台北旅遊／活動／住宿等觀光分類
-    calNews:{ type:'google', title:'台北觀光・即時新聞', desc:'自動抓取 Google 新聞中台北旅遊、活動、住宿等觀光類消息。標「疑似活動」者，可手動填入行事曆。',
+    calNews:{ type:'google', title:'台北觀光・即時新聞', desc:'自動抓取 Google 新聞中台北旅遊、活動、住宿等觀光類消息，預設顯示近三天，較早新聞可點下方展開。標「疑似活動」者可手動填入行事曆。',
       queries:[ {name:'旅遊', q:'台北 旅遊 觀光'},
                 {name:'活動', q:'台北 活動 展覽 OR 市集 OR 演唱會'},
                 {name:'住宿', q:'台北 住宿 OR 飯店 OR 旅展'},
                 {name:'士林圓山', q:'士林 OR 圓山 OR 劍潭 活動 OR 景點'} ] },
     // 行事曆活動自動抓取：臺北旅遊網 Open API（背景補充，抓不到不影響手填清單）
     // base 後會自動帶 ?begin=當年1/1&end=當年12/31&page=N，透過 allorigins 代理呼叫
-    eventsApi:{ base:'https://www.travel.taipei/open-api/zh-tw/Events/Calendar', pages:3, src:'臺北旅遊網' },
-    // 大巨蛋活動雷達：自動抓 Google 新聞中大巨蛋演唱會／售票相關新聞（含可點原文連結）
-    domeRadar:{ title:'🏟️ 大巨蛋活動雷達', desc:'自動抓取台北大巨蛋演唱會、售票、賽事新聞。看到新公告場次，可請管理者補進行事曆。',
-      query:'台北大巨蛋 演唱會 OR 售票 OR 賽事 OR 場次' }
+    eventsApi:{ base:'https://www.travel.taipei/open-api/zh-tw/Events/Calendar', pages:12, src:'臺北旅遊網' }
   }
 };
 // 目前單位（依封面選擇 / 裝置記憶；預設金門）
@@ -3678,7 +3658,7 @@ function occView(mode, btn){
   document.getElementById('occ-sub-cal').style.display=(mode==='cal')?'block':'none';
   const ordSub=document.getElementById('occ-sub-ord');
   if(ordSub) ordSub.style.display=(mode==='ord')?'block':'none';
-  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); try{ fetchUnitEvents(); }catch(e){} try{ applyDomeRadar(); }catch(e){} }
+  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); try{ fetchUnitEvents(); }catch(e){} try{ applyCalSrcBtns(); }catch(e){} }
   if(mode==='ord'){ loadOrders(false); }
 }
 
@@ -3934,18 +3914,9 @@ const CAL_DATA = {
   jiantan: {events:CAL_EVENTS_JT, sports:SPORTS_EVENTS_JT, festivals:FESTIVALS_JT, holidays:HOLIDAYS_2026_JT, monthLevel:MONTH_LEVEL_JT},
 };
 function calData(){ return CAL_DATA[getUnit()]||CAL_DATA.kinmen; }
-// 自動抓取的活動（依單位暫存於記憶體；抓到才有，抓不到為空陣列）
-const LIVE_EVENTS={};
-function calEvents(){
-  const manual=calData().events||[];
-  const live=LIVE_EVENTS[getUnit()]||[];
-  if(!live.length) return manual;
-  // 合併手填＋自動抓取，並依「名稱＋月」去重（手填優先保留）
-  const seen=new Set(manual.map(e=>(e.name||'')+'_'+e.m));
-  const merged=manual.slice();
-  live.forEach(e=>{ const k=(e.name||'')+'_'+e.m; if(!seen.has(k)){ seen.add(k); merged.push(e); } });
-  return merged;
-}
+// 自動抓取的「年度大型活動」（依單位暫存於記憶體；抓到才有，放進年度活動列表，不混入日曆格）
+const LIVE_ANNUAL={};
+function calEvents(){ return calData().events||[]; }
 function calSports(){ return calData().sports||[]; }
 function festivalsOf(mi){ return (calData().festivals||{})[mi]||[]; }
 function holidaysOf(mi){ return (calData().holidays||{})[mi]||[]; }
@@ -4261,7 +4232,15 @@ const ANNUAL_EVENTS_JT=[
   {month:'12/31',name:'臺北最High新年城＋101煙火',type:'major',note:'年度最大跨年活動，市區住宿全面爆滿'},
 ];
 const ANNUAL_EVENTS_DATA={ kinmen:ANNUAL_EVENTS_KM, jiantan:ANNUAL_EVENTS_JT };
-function annualEvents(){ return ANNUAL_EVENTS_DATA[getUnit()]||ANNUAL_EVENTS_KM; }
+function annualEvents(){
+  const manual=ANNUAL_EVENTS_DATA[getUnit()]||ANNUAL_EVENTS_KM;
+  const live=LIVE_ANNUAL[getUnit()]||[];
+  if(!live.length) return manual;
+  // 手填在前、API 自動帶入在後，依名稱去重（手填優先）
+  const seen=new Set(manual.map(e=>e.name));
+  const extra=live.filter(e=>!seen.has(e.name));
+  return manual.concat(extra);
+}
 // ── 行事曆活動自動抓取（背景補充；目前供劍潭接臺北旅遊網 Open API）──────
 // 設計原則：手填清單為主，這裡抓到才併入；抓不到完全不影響畫面。
 // 容錯：欄位名稱可能因 API 而異，故同時嘗試多種常見命名與日期格式。
@@ -4279,19 +4258,20 @@ async function fetchUnitEvents(){
   if(!api||!api.base) return;            // 此單位沒設定自動抓取就直接結束
   const unit=getUnit();
   const yr=new Date().getFullYear();
-  // 一天快取一次
+  // 一天快取一次（存成年度活動格式）
   try{
-    const cached=uGet('liveEvents');
-    const cachedAt=parseInt(uGet('liveEventsAt')||'0');
+    const cached=uGet('liveAnnual');
+    const cachedAt=parseInt(uGet('liveAnnualAt')||'0');
     if(cached && Date.now()-cachedAt<86400000){
-      LIVE_EVENTS[unit]=JSON.parse(cached);
-      return; // 已有當日快取，沿用即可（buildCalendar 會自動帶入）
+      LIVE_ANNUAL[unit]=JSON.parse(cached);
+      try{ renderAnnualEvents(); }catch(e){}
+      return;
     }
   }catch(e){}
 
   const collected=[];
-  const pages=api.pages||2;
-  for(let p=1;p<=pages;p++){
+  const maxPages=api.pages||12;          // 全年活動需要多頁，抓到空頁就停
+  for(let p=1;p<=maxPages;p++){
     const apiUrl=`${api.base}?begin=${yr}-01-01&end=${yr}-12-31&page=${p}`;
     try{
       const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
@@ -4300,35 +4280,44 @@ async function fetchUnitEvents(){
       const wrap=await resp.json();
       let body=wrap.contents;
       if(typeof body==='string'){ try{ body=JSON.parse(body); }catch(e){ break; } }
-      // 活動陣列可能在 data / Data / events
       const arr=body.data||body.Data||body.events||body.result||[];
-      if(!Array.isArray(arr)||!arr.length) break;
+      if(!Array.isArray(arr)||!arr.length) break;   // 沒資料＝抓完了
       arr.forEach(it=>{
         const name=pickField(it,['name','title','Name','Title','subject']);
         const begin=pickField(it,['begin','startTime','start','beginTime','Begin','date','startDate']);
         const end=pickField(it,['end','endTime','finish','End','endDate']);
         const id=pickField(it,['id','Id','ID']);
+        const loc=pickField(it,['location','address','Location','place','area']);
         const bd=parseApiDate(begin), ed=parseApiDate(end);
         if(!name||!bd) return;
-        const ev={ y:bd.y, m:bd.mo, d:bd.d, name:String(name).trim(), type:'cultural', icon:'📍', src:api.src||'API' };
-        if(ed && ed.mo===bd.mo && ed.d>bd.d) ev.end=ed.d;   // 同月跨日
-        // 顯示用備註：起訖日期（跨月時也標出）
+        // 組「月份」標籤字串（年度列表左欄用）
+        let monthLabel;
         if(ed && (ed.mo!==bd.mo || ed.d!==bd.d)){
-          ev.note=`${bd.mo}/${bd.d}–${ed.mo}/${ed.d}（自動帶入）`;
+          monthLabel = (ed.mo!==bd.mo) ? `${bd.mo}/${bd.d}–${ed.mo}/${ed.d}` : `${bd.mo}/${bd.d}–${ed.d}`;
         } else {
-          ev.note='自動帶入';
+          monthLabel = `${bd.mo}/${bd.d}`;
         }
-        if(id) ev.link=`https://www.travel.taipei/zh-tw/event-calendar/details/${id}`;
-        collected.push(ev);
+        const item={
+          _ts:new Date(bd.y,bd.mo-1,bd.d).getTime(),
+          month:monthLabel,
+          name:String(name).trim(),
+          type:'cultural',
+          note:(loc?String(loc).trim()+'｜':'')+'臺北旅遊網自動帶入',
+        };
+        if(id) item.link=`https://www.travel.taipei/zh-tw/event-calendar/details/${id}`;
+        collected.push(item);
       });
-    }catch(e){ break; } // 逾時或失敗：停止抓取，保留已抓到的（可能為空）
+    }catch(e){ break; } // 逾時或失敗：停止抓取，保留已抓到的
   }
 
   if(collected.length){
-    LIVE_EVENTS[unit]=collected;
-    try{ uSet('liveEvents',JSON.stringify(collected)); uSet('liveEventsAt',String(Date.now())); }catch(e){}
-    // 抓到了，重畫行事曆把新活動帶進去
-    try{ if(typeof buildCalendar==='function') buildCalendar(); }catch(e){}
+    // 依日期排序、同名去重
+    collected.sort((a,b)=>a._ts-b._ts);
+    const seen=new Set(), uniq=[];
+    collected.forEach(a=>{ if(!seen.has(a.name)){ seen.add(a.name); uniq.push(a); } });
+    LIVE_ANNUAL[unit]=uniq;
+    try{ uSet('liveAnnual',JSON.stringify(uniq)); uSet('liveAnnualAt',String(Date.now())); }catch(e){}
+    try{ renderAnnualEvents(); }catch(e){}   // 重畫年度活動列表
   }
 }
 
@@ -4340,19 +4329,21 @@ function renderAnnualEvents(){
   if(descEl){
     descEl.textContent=(getUnit()==='kinmen')
       ? '金門每年固定登場的重點活動，新進同仁可快速掌握。實際日期每年微調，以官方公告為準。'
-      : '本單位每年固定登場的重點活動，新進同仁可快速掌握。實際日期每年微調，以官方公告為準。';
+      : '本單位固定重點活動＋臺北旅遊網自動帶入之年度活動（標 ↗ 者可點開原文）。日期以官方公告為準。';
   }
   box.innerHTML=annualEvents().map(e=>{
     const t=CAL_TYPE[e.type]||CAL_TYPE.cultural;
-    return `<div style="display:flex;gap:9px;align-items:flex-start;background:var(--sf);
-      border:1px solid var(--bd);border-left:3px solid ${t.dot};border-radius:var(--rs);padding:9px 11px;">
-      <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--ac2);
-        flex-shrink:0;width:48px;text-align:center;padding-top:1px;">${e.month}</span>
+    const inner=`<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--ac2);
+        flex-shrink:0;width:56px;text-align:center;padding-top:1px;">${e.month}</span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:600;color:var(--tx);">${e.name}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx);">${e.name}${e.link?' <span style=\"font-size:10px;color:var(--ac);\">↗</span>':''}</div>
         <div style="font-size:10px;color:var(--tx3);margin-top:2px;line-height:1.5;">${e.note}</div>
-      </div>
-    </div>`;
+      </div>`;
+    const style=`display:flex;gap:9px;align-items:flex-start;background:var(--sf);
+      border:1px solid var(--bd);border-left:3px solid ${t.dot};border-radius:var(--rs);padding:9px 11px;`;
+    return e.link
+      ? `<a href="${e.link}" target="_blank" style="text-decoration:none;${style}">${inner}</a>`
+      : `<div style="${style}">${inner}</div>`;
   }).join('');
 }
 // 收合／展開「在地年度大型活動」
@@ -4388,20 +4379,38 @@ async function fetchKmdnNews(){
 }
 
 // 渲染新聞卡片（金門日報與 Google 新聞共用樣式）
+function newsCardHtml(a){
+  const act=isLikelyActivity(a.title);
+  return `<a href="${a.link}" target="_blank" style="text-decoration:none;display:block;
+    background:${act?'rgba(224,92,92,.08)':'var(--sf)'};border:1px solid ${act?'rgba(224,92,92,.3)':'var(--bd)'};
+    border-radius:var(--rs);padding:8px 10px;">
+    <div style="display:flex;align-items:flex-start;gap:6px;">
+      ${act?'<span style="font-size:8px;color:var(--red);flex-shrink:0;margin-top:2px;">🔴</span>':'<span style="width:8px;flex-shrink:0;"></span>'}
+      <span style="font-size:11px;color:var(--tx);line-height:1.5;flex:1;">${a.title}</span>
+    </div>
+    <div style="font-size:9px;color:var(--tx3);margin-top:3px;padding-left:14px;">${a.cat}${a.dateStr?' · '+a.dateStr:''}${act?' · 疑似活動':''}</div>
+  </a>`;
+}
 function renderCalNews(box,uniq){
+  // 疑似活動排前面
   uniq.sort((a,b)=>(isLikelyActivity(b.title)?1:0)-(isLikelyActivity(a.title)?1:0));
-  box.innerHTML=uniq.slice(0,16).map(a=>{
-    const act=isLikelyActivity(a.title);
-    return `<a href="${a.link}" target="_blank" style="text-decoration:none;display:block;
-      background:${act?'rgba(224,92,92,.08)':'var(--sf)'};border:1px solid ${act?'rgba(224,92,92,.3)':'var(--bd)'};
-      border-radius:var(--rs);padding:8px 10px;">
-      <div style="display:flex;align-items:flex-start;gap:6px;">
-        ${act?'<span style="font-size:8px;color:var(--red);flex-shrink:0;margin-top:2px;">🔴</span>':'<span style="width:8px;flex-shrink:0;"></span>'}
-        <span style="font-size:11px;color:var(--tx);line-height:1.5;flex:1;">${a.title}</span>
-      </div>
-      <div style="font-size:9px;color:var(--tx3);margin-top:3px;padding-left:14px;">${a.cat}${a.dateStr?' · '+a.dateStr:''}${act?' · 疑似活動':''}</div>
-    </a>`;
-  }).join('');
+  // 依時間分流：近三天顯示，其餘收合
+  const now=Date.now(), THREE_DAYS=3*86400000;
+  const recent=uniq.filter(a=>a.ts && (now-a.ts)<=THREE_DAYS);
+  const older=uniq.filter(a=>!(a.ts && (now-a.ts)<=THREE_DAYS));
+  // 若近三天完全沒有（可能來源沒給日期），退而顯示前5則，其餘收合
+  let shown=recent, hidden=older;
+  if(!recent.length){ shown=uniq.slice(0,5); hidden=uniq.slice(5); }
+  const shownHtml=shown.length
+    ? shown.map(newsCardHtml).join('')
+    : '<div style="font-size:10px;color:var(--tx3);padding:8px;text-align:center;">近三天暫無新聞</div>';
+  const hiddenHtml=hidden.length
+    ? `<div id="calNewsMore" style="display:none;flex-direction:column;gap:6px;margin-top:6px;">${hidden.map(newsCardHtml).join('')}</div>
+       <button onclick="(function(){var m=document.getElementById('calNewsMore');var b=document.getElementById('calNewsMoreBtn');var o=m.style.display==='none';m.style.display=o?'flex':'none';b.textContent=o?'▲ 收合較早新聞':'▼ 顯示較早新聞（${hidden.length}）';})()"
+         id="calNewsMoreBtn" style="margin-top:6px;width:100%;padding:6px;background:var(--sf2);
+         border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);font-size:10px;cursor:pointer;">▼ 顯示較早新聞（${hidden.length}）</button>`
+    : '';
+  box.innerHTML=shownHtml+hiddenHtml;
 }
 
 // 金門：金門日報 RSS
@@ -4422,9 +4431,9 @@ async function fetchRssCalNews(nc){
         const title=(item.querySelector('title')?.textContent||'').trim();
         const link=item.querySelector('link')?.textContent||'#';
         const pub=item.querySelector('pubDate')?.textContent||'';
-        let dateStr='';
-        if(pub){ const d=new Date(pub); if(!isNaN(d)) dateStr=`${d.getMonth()+1}/${d.getDate()}`; }
-        if(title) all.push({title,link,dateStr,cat:feed.name});
+        let dateStr='', ts=0;
+        if(pub){ const d=new Date(pub); if(!isNaN(d)){ dateStr=`${d.getMonth()+1}/${d.getDate()}`; ts=d.getTime(); } }
+        if(title) all.push({title,link,dateStr,ts,cat:feed.name});
       });
     }catch(e){ /* 略過失敗的 feed */ }
   }
@@ -4446,21 +4455,21 @@ async function fetchGoogleCalNews(nc){
   const all=[];
   for(const cat of queries){
     try{
-      const q=encodeURIComponent(cat.q+' when:14d');
+      const q=encodeURIComponent(cat.q+' when:7d');
       const rssUrl=`https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
       const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
       const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
       if(!resp.ok) continue;
       const data=await resp.json();
       const xml=new DOMParser().parseFromString(data.contents,'text/xml');
-      [...xml.querySelectorAll('item')].slice(0,6).forEach(item=>{
+      [...xml.querySelectorAll('item')].slice(0,10).forEach(item=>{
         const title=(item.querySelector('title')?.textContent||'').replace(/\s*-\s*[^-]+$/,'').trim();
         const link=item.querySelector('link')?.textContent||'#';
         const pub=item.querySelector('pubDate')?.textContent||'';
-        let dateStr='';
-        if(pub){ const d=new Date(pub); if(!isNaN(d)) dateStr=`${d.getMonth()+1}/${d.getDate()}`; }
+        let dateStr='', ts=0;
+        if(pub){ const d=new Date(pub); if(!isNaN(d)){ dateStr=`${d.getMonth()+1}/${d.getDate()}`; ts=d.getTime(); } }
         const src=item.querySelector('source')?.textContent||'';
-        if(title) all.push({title,link,dateStr,cat:cat.name+(src?'・'+src:'')});
+        if(title) all.push({title,link,dateStr,ts,cat:cat.name+(src?'・'+src:'')});
       });
     }catch(e){ /* 略過失敗的查詢 */ }
   }
@@ -4475,91 +4484,15 @@ async function fetchGoogleCalNews(nc){
   renderCalNews(box,uniq);
 }
 
-// ── 大巨蛋活動雷達（依單位 domeRadar 設定；自動抓 Google 新聞，含可點原文連結）──
-// 顯示/隱藏整個雷達區塊：只有設定 domeRadar 的單位（如劍潭）才出現
-let _domeRadarLoaded=false;
-function applyDomeRadar(){
-  const dr=(typeof unitCfg==='function')?unitCfg().domeRadar:null;
-  const wrap=document.getElementById('domeRadarWrap');
-  if(!wrap) return;
-  wrap.style.display=dr?'block':'none';
+// ── 行事曆頁尾：來源按鈕與更新提醒（有設定 eventsApi 的台北類單位顯示，例：劍潭）──
+function applyCalSrcBtns(){
+  const show=!!(typeof unitCfg==='function' && unitCfg().eventsApi);
   const foot=document.getElementById('calFootNote');
-  if(foot) foot.style.display=dr?'block':'none';
+  if(foot) foot.style.display=show?'block':'none';
   const srcb=document.getElementById('calSrcBtns');
-  if(srcb) srcb.style.display=dr?'flex':'none';
-  // 切換單位時重設雷達為收合、未載入狀態
-  _domeRadarLoaded=false;
-  const body=document.getElementById('domeRadarBody'); if(body) body.style.display='none';
-  const arrow=document.getElementById('domeRadarArrow'); if(arrow) arrow.textContent='▼';
-  if(dr){
-    const t=document.getElementById('domeRadarTitle'); if(t&&dr.title) t.textContent=dr.title;
-    const d=document.getElementById('domeRadarDesc'); if(d&&dr.desc) d.textContent=dr.desc;
-  }
+  if(srcb) srcb.style.display=show?'flex':'none';
 }
-// 可能是場次新聞的關鍵字（標題含這些 → 標紅，提示可能要補進行事曆）
-const DOME_ACT_KW=['演唱會','售票','開賣','加場','賽事','場次','開唱','巡迴','完售','搶票','演出','售罄','預售'];
-// 收合／展開大巨蛋雷達；首次展開才抓新聞（避免無謂請求）
-function toggleDomeRadar(){
-  const body=document.getElementById('domeRadarBody');
-  const arrow=document.getElementById('domeRadarArrow');
-  if(!body) return;
-  const open=body.style.display==='none';
-  body.style.display=open?'block':'none';
-  if(arrow) arrow.textContent=open?'▲':'▼';
-  if(open && !_domeRadarLoaded){ _domeRadarLoaded=true; try{ fetchDomeRadar(); }catch(e){} }
-}
-async function fetchDomeRadar(){
-  const dr=(typeof unitCfg==='function')?unitCfg().domeRadar:null;
-  const box=document.getElementById('domeRadar');
-  if(!box) return;
-  if(!dr){ return; } // 此單位未設定雷達
-  box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入大巨蛋新聞中...</div>';
-  const all=[];
-  try{
-    const q=encodeURIComponent((dr.query||'台北大巨蛋')+' when:30d');
-    const rssUrl=`https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
-    const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-    const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
-    if(resp.ok){
-      const data=await resp.json();
-      const xml=new DOMParser().parseFromString(data.contents,'text/xml');
-      [...xml.querySelectorAll('item')].slice(0,16).forEach(item=>{
-        const title=(item.querySelector('title')?.textContent||'').replace(/\s*-\s*[^-]+$/,'').trim();
-        const link=item.querySelector('link')?.textContent||'#';
-        const pub=item.querySelector('pubDate')?.textContent||'';
-        let dateStr='';
-        if(pub){ const d=new Date(pub); if(!isNaN(d)) dateStr=`${d.getMonth()+1}/${d.getDate()}`; }
-        const src=item.querySelector('source')?.textContent||'';
-        if(title && title.includes('大巨蛋')) all.push({title,link,dateStr,src});
-      });
-    }
-  }catch(e){ /* 逾時或失敗，下方走備援 */ }
 
-  if(!all.length){
-    box.innerHTML=`<a href="https://news.google.com/search?q=${encodeURIComponent('台北大巨蛋 演唱會')}&hl=zh-TW" target="_blank"
-      style="text-decoration:none;display:block;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:10px;text-align:center;">
-      <span style="font-size:10px;color:var(--tx2);">暫時無法載入，點此查看大巨蛋最新新聞 →</span></a>`;
-    return;
-  }
-  // 去重
-  const seen=new Set(), uniq=[];
-  all.forEach(a=>{ if(!seen.has(a.title)){ seen.add(a.title); uniq.push(a);} });
-  // 含場次關鍵字者排前面、標紅
-  uniq.sort((a,b)=>(DOME_ACT_KW.some(k=>b.title.includes(k))?1:0)-(DOME_ACT_KW.some(k=>a.title.includes(k))?1:0));
-  box.innerHTML=uniq.slice(0,14).map(a=>{
-    const hot=DOME_ACT_KW.some(k=>a.title.includes(k));
-    return `<a href="${a.link}" target="_blank" style="text-decoration:none;display:block;
-      background:${hot?'rgba(232,180,40,.10)':'var(--sf)'};border:1px solid ${hot?'rgba(232,180,40,.35)':'var(--bd)'};
-      border-radius:var(--rs);padding:8px 10px;">
-      <div style="display:flex;align-items:flex-start;gap:6px;">
-        <span style="flex-shrink:0;font-size:11px;margin-top:1px;">${hot?'🏟️':'·'}</span>
-        <span style="font-size:11px;color:var(--tx);line-height:1.5;flex:1;">${a.title}</span>
-        <span style="font-size:11px;color:var(--ac);flex-shrink:0;margin-top:1px;">→</span>
-      </div>
-      <div style="font-size:9px;color:var(--tx3);margin-top:3px;padding-left:18px;">${a.src||'Google新聞'}${a.dateStr?' · '+a.dateStr:''}${hot?' · 可能含場次':''}</div>
-    </a>`;
-  }).join('');
-}
 // ── 14家競爭對手（對應 Thunderbit 抓取欄位）────────────────
 const COMPETITORS = [
   { name:'金門青年活動中心（無電梯）', shortLabel:'金門青年活動中心', sheetName:'金門青年活動中心',
@@ -5919,7 +5852,7 @@ function refreshActivePage(){
       if(ordSub && ordSub.style.display!=='none'){ ordScrolled=false; loadOrders(true); }
       // 觀光行事曆新聞
       const calSub=document.getElementById('occ-sub-cal');
-      if(calSub && calSub.style.display!=='none'){ try{ fetchKmdnNews(); }catch(e){} try{ const b=document.getElementById('domeRadarBody'); if(b&&b.style.display!=='none') fetchDomeRadar(); }catch(e){} }
+      if(calSub && calSub.style.display!=='none'){ try{ fetchKmdnNews(); }catch(e){} }
     }
     else if(id==='comp'){ try{ if(getCloudUrl()){ pullFromCloud().then(s=>{ if(s){ loadCompData(); buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); } }); } }catch(e){} }
     else if(id==='tri'){ try{ loadTriData(); fetchTriNews(); }catch(e){} }
