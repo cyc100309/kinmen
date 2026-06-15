@@ -3063,7 +3063,7 @@ const UNITS={
 - （以下為待補充的單位細節，可由劍潭單位補上：客房結構、通路結構、異業合作、團隊規模、經營者方針）`,
     aiMarket:'【市場背景】\n台北都會旅宿市場競爭激烈，研習與會議檔期、士林夜市與圓山周邊觀光、學校與企業團體為主要需求來源。',
     useKinmenData:false, // 劍潭不帶金門限定的小三通/競品/新聞
-    preferBuiltin:true,  // 測試階段：永遠用內建 JT 資料集，忽略殘留舊存檔（接真實資料後改 false）
+    preferBuiltin:false, // 已接雲端同步：讀真實上傳資料（未上傳前 fallback 用內建 JT 資料集）
     // 交通概況分頁：劍潭非金門，預設關閉。未來要做台北交通／捷運／會展檔期等主題時，
     // 把 enabled 改 true、navLabel 改成想要的分頁名稱，再於 page-tri 換上自訂內容。
     transport:{ enabled:false, navLabel:'交通概況', kinmenBuiltin:false },
@@ -6067,8 +6067,8 @@ function saveOccData(){
     uSet('occ_savedAt', ts);
     showDataDate(ts);
   }catch(e){}
-  // 僅金門推雲端（劍潭等其他單位純本機儲存，未設定各自雲端前不推送）
-  if(getUnit()==='kinmen' && getCloudUrl()) pushToCloud();
+  // 凡是已設定雲端網址的單位（金門／劍潭…）都推雲端；未設定者純本機儲存
+  if(getCloudUrl()) pushToCloud();
 }
 
 function showDataDate(ts){
@@ -6150,15 +6150,17 @@ function loadSavedOccData(){
 
 // ── 雲端同步（Google Apps Script）──────────────────────────
 function getCloudUrl(){
-  // 金門：沿用既有預設雲端網址（或曾自訂的前綴值）；其他單位：用各自前綴的自訂網址
+  // 各單位內建預設雲端網址（獨立後端、依 unit 分流）；亦可被各自前綴的自訂網址覆蓋
   const KINMEN_DEFAULT='https://script.google.com/macros/s/AKfycbwinsU-QJg_9zWlQp0ByTINq-bEBXH-mFI6Rswh0xa-owagFAa5iY5Cc_qiYjrq3D4o/exec';
+  const JIANTAN_DEFAULT='https://script.google.com/macros/s/AKfycbw0fpyGev8s5Z6m6rJ_5aufKYfm-kUUoqTcPf2h7mJUCdnYUVZaVHy51nQO6l1Oq95M/exec';
+  const DEFAULTS={kinmen:KINMEN_DEFAULT, jiantan:JIANTAN_DEFAULT};
   try{
-    const custom=uGet('cloudUrl');           // 單位前綴的自訂網址
+    const custom=uGet('cloudUrl');           // 單位前綴的自訂網址（優先）
     if(custom) return custom;
     // 相容舊版：金門曾存過無前綴的 cloudUrl
     if(getUnit()==='kinmen'){ return localStorage.getItem('cloudUrl')||KINMEN_DEFAULT; }
-    return '';                                 // 其他單位未設定 → 不同步
-  }catch(e){ return getUnit()==='kinmen'?KINMEN_DEFAULT:''; }
+    return DEFAULTS[getUnit()]||'';            // 有內建預設的單位用預設，其餘不同步
+  }catch(e){ return DEFAULTS[getUnit()]||''; }
 }
 
 function showSyncStatus(msg,ok){
@@ -6280,6 +6282,16 @@ function migrateLegacyKeys(){
     ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt','occ_pushedAt']
       .forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
     localStorage.setItem('_migratedV9','1');
+  }catch(e){}
+  // 劍潭接雲端同步：清掉測試階段(preferBuiltin)留下的本機營運殘留與時間戳，
+  // 強制所有裝置切換後第一次從劍潭雲端重新拉正確資料（獨立旗標，只跑一次）
+  try{
+    if(!localStorage.getItem('_jiantanCloudV1')){
+      ['jiantan_occ_cur','jiantan_occ_prev','jiantan_occ_curY','jiantan_occ_prevY',
+       'jiantan_occ_idx','jiantan_occ_daily','jiantan_occ_savedAt','jiantan_occ_pushedAt']
+        .forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+      localStorage.setItem('_jiantanCloudV1','1');
+    }
   }catch(e){}
 }
 
