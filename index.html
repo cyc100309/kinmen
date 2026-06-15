@@ -1532,9 +1532,9 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 <!-- Category tabs -->
 <div class="cat-tabs" id="catTabs">
   <button class="cat-tab on" onclick="filterCat('all',this)">全部（14）</button>
-  <button class="cat-tab" onclick="filterCat('luxury',this)">精品旅館（3）</button>
-  <button class="cat-tab" onclick="filterCat('suite',this)">套房類（6）</button>
-  <button class="cat-tab" onclick="filterCat('hostel',this)">背包客棧（3）</button>
+  <button class="cat-tab" onclick="filterCat('high',this)">高價位（4）</button>
+  <button class="cat-tab" onclick="filterCat('mid',this)">中價位（5）</button>
+  <button class="cat-tab" onclick="filterCat('hostel',this)">背包客棧（4）</button>
 </div>
 
 <!-- Bar chart -->
@@ -1546,7 +1546,35 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   <div id="barChart"></div>
 </div>
 
-<!-- Lists -->
+<!-- 歷史價格走勢（本中心獨立 + 三價位分類 + 14家總圖） -->
+<div class="lbl" style="margin-top:18px;"><span>價格走勢追蹤</span><span id="histSubInfo" style="font-size:9px;color:var(--tx3);text-transform:none;letter-spacing:0;">累積每日上傳紀錄</span></div>
+
+<div class="chart-card" id="histCardSelf">
+  <div class="chart-title"><span>🎖️ 本中心定價走勢</span></div>
+  <div id="histChartSelf"></div>
+</div>
+
+<div class="chart-card" id="histCardHigh">
+  <div class="chart-title"><span>高價位（精品/商務/星級）</span></div>
+  <div id="histChartHigh"></div>
+</div>
+
+<div class="chart-card" id="histCardMid">
+  <div class="chart-title"><span>中價位（一般/套房/民宿）</span></div>
+  <div id="histChartMid"></div>
+</div>
+
+<div class="chart-card" id="histCardHostel">
+  <div class="chart-title"><span>背包客棧</span></div>
+  <div id="histChartHostel"></div>
+</div>
+
+<div class="chart-card" id="histCardAll">
+  <div class="chart-title"><span>全部 14 家總覽</span><span style="font-size:10px;color:var(--tx3);">含本中心</span></div>
+  <div id="histChartAll"></div>
+</div>
+
+<!-- 即時各家清單（保留，供查 Agoda 與當日明細） -->
 <div id="compLists"></div>
 </div><!-- /page-comp -->
 
@@ -4027,13 +4055,13 @@ const COMPETITORS = [
     cat:'hostel', hostel:true, self:false, price:0, avail:true, rating:8.3,
     note:'背包客棧・近機場', agoda:'https://www.agoda.com/zh-tw/tumbler-travel/hotel/all/kinmen-islands-tw.html' },
   { name:'八二三行館飯店', sheetName:'八二三行館飯店',
-    cat:'general', hostel:false, self:false, price:0, avail:true, rating:8.3,
+    cat:'mid', hostel:false, self:false, price:0, avail:true, rating:8.3,
     note:'一般旅館・金湖鎮', agoda:'https://www.agoda.com/zh-tw/823-tourist-hotel/hotel/kinmen-tw.html' },
   { name:'金華民宿', sheetName:'金華民宿',
-    cat:'suite',  hostel:false, self:false, price:0, avail:true, rating:7.5,
+    cat:'mid',  hostel:false, self:false, price:0, avail:true, rating:7.5,
     note:'民宿・金城鎮', agoda:'https://www.agoda.com/zh-tw/h63113258/hotel/kinmen-islands-tw.html' },
   { name:'總兵招待所', sheetName:'總兵招待所',
-    cat:'suite',  hostel:false, self:false, price:0, avail:true, rating:7.4,
+    cat:'mid',  hostel:false, self:false, price:0, avail:true, rating:7.4,
     note:'套房・金城鎮', agoda:'https://www.agoda.com/zh-tw/h76106414/hotel/kinmen-islands-tw.html' },
   { name:'金門市區背包客棧民宿', shortLabel:'金門市區背包客棧', sheetName:'金門市區背包客棧',
     cat:'hostel', hostel:true, self:false, price:0, avail:true, rating:9.0,
@@ -4045,22 +4073,22 @@ const COMPETITORS = [
     cat:'hostel', hostel:true, self:false, price:0, avail:true, rating:8.9,
     note:'背包客棧・金城鎮', agoda:'https://www.agoda.com/zh-tw/backpack-home-497-no-2/hotel/kinmen-tw.html' },
   { name:'金瑞旅店', sheetName:'金瑞旅店',
-    cat:'suite',  hostel:false, self:false, price:0, avail:true, rating:7.8,
+    cat:'mid',  hostel:false, self:false, price:0, avail:true, rating:7.8,
     note:'旅店・金城鎮', agoda:'https://www.agoda.com/zh-tw/quemoy-hotel/hotel/kinmen-tw.html' },
   { name:'浯江大飯店', sheetName:'浯江大飯店',
-    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:7.7,
+    cat:'high', hostel:false, self:false, price:0, avail:true, rating:7.7,
     note:'星級飯店・金城鎮', agoda:'https://www.agoda.com/zh-tw/hotel-river-kinmen/hotel/kinmen-tw.html' },
   { name:'浯島文旅', sheetName:'浯島文旅',
-    cat:'general', hostel:false, self:false, price:0, avail:true, rating:8.9,
+    cat:'mid', hostel:false, self:false, price:0, avail:true, rating:8.9,
     note:'旅館・金湖鎮', agoda:'https://www.agoda.com/zh-tw/h34126829/hotel/kinmen-tw.html' },
   { name:'海福商務飯店', sheetName:'海福商務飯店',
-    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:8.6,
+    cat:'high', hostel:false, self:false, price:0, avail:true, rating:8.6,
     note:'商務旅館・金城鎮', agoda:'https://www.agoda.com/zh-tw/haifu-hotel-suites/hotel/kinmen-tw.html' },
   { name:'IN99精品旅館', sheetName:'IN99精品旅館',
-    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:7.7,
+    cat:'high', hostel:false, self:false, price:0, avail:true, rating:7.7,
     note:'精品旅館・金城鎮', agoda:'https://www.agoda.com/zh-tw/in99-hotel/hotel/kinmen-tw.html' },
   { name:'金湖飯店', sheetName:'金湖飯店',
-    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:9.1,
+    cat:'high', hostel:false, self:false, price:0, avail:true, rating:9.1,
     note:'星級飯店・金湖鎮', agoda:'https://www.agoda.com/zh-tw/golden-lake-hotel/hotel/kinmen-tw.html' },
 ];
 
@@ -4203,77 +4231,53 @@ function buildCompetitors(){
   });
 }
 
-// ── Competitor page full list ─────────────────────────────────
+// ── Competitor page full list（三欄精簡：名稱／星等／Agoda）──────
 function buildLists(){
   const container=document.getElementById('compLists');
   if(!container) return;
   container.innerHTML='';
   const sections=[
-    {cat:'self',   label:'本中心',    dot:'var(--ac)'},
-    {cat:'luxury', label:'精品/商務/星級旅館', dot:'#5B9BD5'},
-    {cat:'general',label:'一般旅館',   dot:'#A78BFA'},
-    {cat:'suite',  label:'套房・民宿', dot:'#E8B86D'},
-    {cat:'hostel', label:'背包客棧 🎒（均價較低）', dot:'#4CAF82'},
+    {cat:'self',  label:'本中心',    dot:'var(--ac)'},
+    {cat:'high',  label:'高價位（精品/商務/星級）', dot:'#5B9BD5'},
+    {cat:'mid',   label:'中價位（一般/套房/民宿）', dot:'#E8B86D'},
+    {cat:'hostel',label:'背包客棧 🎒', dot:'#4CAF82'},
   ];
+  const today=new Date();
+  const fmt=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+
   sections.forEach(sec=>{
     const hotels=COMPETITORS.filter(h=>h.cat===sec.cat);
     if(curCat!=='all'&&curCat!==sec.cat) return;
     if(!hotels.length) return;
 
-    // 有空房依價格低→高，售完移到最下面
     const available = hotels.filter(h=>h.avail&&h.price>0).sort((a,b)=>a.price-b.price);
     const noPrice   = hotels.filter(h=>h.avail&&h.price===0);
     const soldOut   = hotels.filter(h=>!h.avail);
     const sorted    = [...available, ...noPrice, ...soldOut];
-    let html=`<div class="comp-section">
-      <div class="section-hdr">
-        <div class="section-dot" style="background:${sec.dot};"></div>
+
+    let cells='';
+    sorted.forEach(h=>{
+      const idx=COMPETITORS.indexOf(h);
+      const agodaUrl=h.agoda+'?checkIn='+fmt(today)+'&los=1&adults=1&rooms=1&currencyCode=TWD';
+      const nameCol=h.self?'#FFE234':'var(--tx)';
+      const sold=h.avail?'':'<span style="color:var(--red);font-size:9px;margin-left:4px;">售完</span>';
+      cells+=`<div id="item-${idx}" style="background:var(--sf2);border:1px solid ${h.self?'rgba(255,226,52,.35)':'var(--bd)'};border-radius:var(--rs);padding:8px 8px 9px;display:flex;flex-direction:column;gap:5px;min-width:0;">
+        <div style="font-size:11px;font-weight:500;color:${nameCol};line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${h.self?'🎖️ ':''}${h.shortLabel||h.name}${sold}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
+          <span style="font-size:10px;color:var(--tx3);white-space:nowrap;">★ ${h.rating||'—'}</span>
+          <a href="${agodaUrl}" target="_blank" style="font-size:9px;color:var(--ac2,#5BE3B3);text-decoration:none;white-space:nowrap;">🔗 Agoda</a>
+        </div>
+      </div>`;
+    });
+
+    container.innerHTML+=`<div class="comp-section" style="margin-top:12px;">
+      <div class="section-hdr" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx);margin-bottom:8px;">
+        <div class="section-dot" style="width:8px;height:8px;border-radius:50%;background:${sec.dot};"></div>
         ${sec.label}
         <span style="font-size:10px;color:var(--tx3);margin-left:auto;">${hotels.length} 家</span>
-      </div>`;
-    sorted.forEach((h,localIdx)=>{
-      const idx=COMPETITORS.indexOf(h);
-      const soldCls=h.avail?'':'sold';
-      const soldBadge=h.avail?'':'<div class="sold-badge">已售完</div>';
-      const today=new Date();
-      const fmt=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-      const agodaUrl=h.agoda+'?checkIn='+fmt(today)+'&los=1&adults=1&rooms=1&currencyCode=TWD';
-      if(h.self){
-        html+=`<div class="comp-item self" id="item-${idx}" style="position:relative;">${soldBadge}
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-            <div class="comp-rank" id="rank-${idx}" style="flex-shrink:0;">★</div>
-            <div style="flex:1;font-size:12px;font-weight:500;color:#FFE234;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🎖️ ${h.name}</div>
-            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#FFE234;white-space:nowrap;text-align:right;">
-              ${h.price>0?h.price.toLocaleString()+'元':'—'}
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding-left:28px;">
-            <span style="font-size:11px;color:var(--tx3);">★ ${h.rating}</span>
-            <a class="agoda-btn" href="${agodaUrl}" target="_blank" style="font-size:10px;">🔗 Agoda</a>
-            <div class="self-badge" style="flex-shrink:0;">本中心</div>
-          </div>
-        </div>`;
-      } else {
-        html+=`<div class="comp-item ${soldCls}" id="item-${idx}" style="position:relative;">
-          ${soldBadge}
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-            <div class="comp-rank" id="rank-${idx}" style="flex-shrink:0;">—</div>
-            <div style="flex:1;font-size:12px;font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.name}</div>
-            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;
-              color:${h.avail?'var(--tx)':'var(--red)'};white-space:nowrap;text-align:right;">
-              ${h.price>0?h.price.toLocaleString()+'元':'—'}
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding-left:28px;">
-            <span style="font-size:11px;color:var(--tx3);">★ ${h.rating}</span>
-            <a class="agoda-btn" href="${agodaUrl}" target="_blank" style="font-size:10px;">🔗 Agoda</a>
-            <div class="comp-type" style="flex-shrink:0;">${h.cat==='hostel'?'🎒背包':h.note.split('・')[0]}</div>
-          </div>
-        </div>`;
-      }
-    });
-    html+='</div>';
-    container.innerHTML+=html;
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">${cells}</div>
+    </div>`;
   });
 }
 
@@ -4391,7 +4395,11 @@ function parseAndApplyCSV(text){
         ? `✅ 成功更新 ${matched} 家房價${skipMsg}（已同步雲端 ☁️）`
         : `⚠️ 已更新 ${matched} 家房價，但雲端同步失敗，手機可能讀不到`,
         ok?'var(--green)':'var(--red)');
-      if(ok) setTimeout(()=>{ const m=document.getElementById('csvModal'); if(m)m.style.display='none'; }, 2000);
+      if(ok){
+        setTimeout(()=>{ const m=document.getElementById('csvModal'); if(m)m.style.display='none'; }, 2000);
+        // 後端已寫入今日歷史，稍候重抓刷新走勢圖
+        setTimeout(()=>{ try{ loadHistData(); }catch(e){} }, 1200);
+      }
     });
   }else{
     showCSVStatus(`✅ 成功更新 ${matched} 家房價！${skipMsg}`, 'var(--green)');
@@ -4481,6 +4489,227 @@ function saveCompData(){
   }catch(e){}
 }
 
+// ── 競爭房價歷史走勢（本中心獨立 + 三價位分類 + 14家總圖）──────
+let HIST_DATA=null;           // 後端回來的歷史 {unit,dates,hotels}
+const SELF_HIST_NAME='金門青年活動中心'; // 本中心在歷史表中的名字
+
+// 多線配色盤（分類圖內各家用不同色，易區分）
+const HIST_PALETTE=['#5BE3B3','#5B9BD5','#E8B86D','#C792EA','#FF8A65','#4DD0E1'];
+const SELF_COLOR='#FFE234';
+// 14家總覽圖圖例專用縮寫（key=shortLabel||name，只用於總覽圖，不影響長條圖/清單）
+const HIST_ABBR={
+  '金門青年活動中心':'金門中心','不倒翁輕旅':'不倒翁輕旅','八二三行館飯店':'823行館',
+  '金華民宿':'金華民宿','總兵招待所':'總兵招待所','金門市區背包客棧':'市區背包',
+  '浯島魁星背包棧':'浯島魁星','背包客棧497-2館':'背包497-2','金瑞旅店':'金瑞旅店',
+  '浯江大飯店':'浯江大飯店','浯島文旅':'浯島文旅','海福商務飯店':'海福商務',
+  'IN99精品旅館':'IN99旅館','金湖飯店':'金湖飯店'
+};
+
+async function loadHistData(){
+  const url=getCloudUrl();
+  if(!url) return;
+  try{
+    const r=await fetch(url+'?mode=history&unit='+encodeURIComponent(getUnit())+'&t='+Date.now());
+    if(!r.ok) return;
+    const d=await r.json();
+    if(!d || !d.hotels) return;
+    HIST_DATA=d;
+    renderAllHistCharts();
+  }catch(e){}
+}
+
+// 依 cat 取該類飯店在歷史表中的顯示名（用 shortLabel||name，與 comp_names 一致）
+function histNamesByCat(cat){
+  return COMPETITORS.filter(c=>c.cat===cat && !c.self).map(c=>c.shortLabel||c.name);
+}
+
+function renderAllHistCharts(){
+  const sub=document.getElementById('histSubInfo');
+  if(!HIST_DATA || !Object.keys(HIST_DATA.hotels).length){
+    ['Self','High','Mid','Hostel','All'].forEach(s=>{
+      const box=document.getElementById('histChart'+s);
+      if(box) box.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px 8px;line-height:1.8;">尚無歷史資料<br>每日上傳 CSV 後自動累積</div>';
+    });
+    if(sub) sub.textContent='累積每日上傳紀錄';
+    return;
+  }
+  const days=(HIST_DATA.dates||[]).length;
+  if(sub) sub.textContent='共 '+days+' 天紀錄';
+
+  // 本中心：單線，固定 1000–1500，每 100
+  drawInto('histChartSelf', [SELF_HIST_NAME], {showSelf:false, lo:1000, hi:1500, tick:100});
+  // 高價位：範圍自動，刻度間隔 500，不疊本中心
+  drawInto('histChartHigh',   histNamesByCat('high'),   {showSelf:false, tick:500});
+  // 中價位：固定 1000–2000，每 200，疊本中心對比
+  drawInto('histChartMid',    histNamesByCat('mid'),    {showSelf:true, lo:1000, hi:2000, tick:200});
+  // 背包客棧：固定 400–1000，每 200，不疊本中心
+  drawInto('histChartHostel', histNamesByCat('hostel'), {showSelf:false, lo:400, hi:1000, tick:200});
+  // 全部 14 家（含本中心）：互動式，點圖例凸顯
+  const allNames=COMPETITORS.map(c=>c.shortLabel||c.name);
+  drawInto('histChartAll', allNames, {showSelf:false, dense:true, interactive:true});
+}
+
+// 把指定的一組飯店畫進某個容器
+function drawInto(boxId, names, opt){
+  const box=document.getElementById(boxId);
+  if(!box) return;
+  opt=opt||{};
+  const dates=HIST_DATA.dates||[];
+
+  // 組出每條線的資料；過濾掉「完全沒有任何有效價格」的飯店
+  let series=[];
+  names.forEach(nm=>{
+    const h=HIST_DATA.hotels[nm];
+    if(!h) return;
+    const vals=dates.map(d=>{const v=h[d]; return (v===undefined)?null:v;});
+    if(vals.some(v=>v!==null && v>0)) series.push({name:nm,vals:vals});
+  });
+
+  // 需要本中心對比線時，補上（虛線、固定黃色）
+  let selfVals=null;
+  if(opt.showSelf){
+    const sh=HIST_DATA.hotels[SELF_HIST_NAME];
+    if(sh){
+      const sv=dates.map(d=>{const v=sh[d]; return (v===undefined)?null:v;});
+      if(sv.some(v=>v!==null && v>0)) selfVals=sv;
+    }
+  }
+
+  if(!series.length && !selfVals){
+    box.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px 8px;">此分類尚無資料</div>';
+    return;
+  }
+  // 判斷可成線天數（任一條線有 ≥2 個有效點才畫得出走勢）
+  const maxValid=Math.max(0,...series.map(s=>s.vals.filter(v=>v!==null&&v>0).length),
+                            selfVals?selfVals.filter(v=>v!==null&&v>0).length:0);
+  if(maxValid<2){
+    box.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px 8px;line-height:1.8;">目前僅 '+maxValid+' 天資料<br>再累積幾天就會出現走勢線</div>';
+    return;
+  }
+  box.innerHTML=drawMultiLineSVG(dates, series, selfVals, opt);
+}
+
+// 多線折線 SVG。opt:{dense, lo, hi, tick, showSelf, interactive}
+function drawMultiLineSVG(dates, series, selfVals, opt){
+  opt=opt||{};
+  const dense=opt.dense, interactive=opt.interactive;
+  const W=320, H=dense?153:120, padL=42, padR=12, padT=12, padB=dense?38:26;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+
+  const pool=[];
+  series.forEach(s=>s.vals.forEach(v=>{if(v!==null&&v>0)pool.push(v);}));
+  if(selfVals) selfVals.forEach(v=>{if(v!==null&&v>0)pool.push(v);});
+  if(!pool.length) return '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px;">無有效價格</div>';
+
+  const dataLo=Math.min(...pool), dataHi=Math.max(...pool);
+  let lo,hi;
+  if(typeof opt.lo==='number' && typeof opt.hi==='number'){
+    // 指定範圍；但偵測到資料超出就自動放寬到涵蓋（B：自動放寬）
+    const tk=opt.tick||((opt.hi-opt.lo)/3);
+    lo=Math.min(opt.lo, Math.floor(dataLo/tk)*tk);
+    hi=Math.max(opt.hi, Math.ceil(dataHi/tk)*tk);
+  }else{
+    // 全自動範圍，對齊刻度間隔（A：高價位自動範圍、刻度 500）
+    lo=dataLo; hi=dataHi;
+    if(lo===hi){ lo=lo*0.9; hi=hi*1.1; }
+    else { const pad=(hi-lo)*0.15; lo=lo-pad; hi=hi+pad; }
+    const tk=opt.tick;
+    if(tk){ lo=Math.floor(lo/tk)*tk; hi=Math.ceil(hi/tk)*tk; }
+    lo=Math.max(0,lo);
+  }
+
+  const n=dates.length;
+  const xAt=i=> n===1?padL+innerW/2 : padL+(innerW*i/(n-1));
+  const yAt=v=> padT+innerH*(1-(v-lo)/(hi-lo));
+
+  function pathOf(vals){
+    let segs=[],cur=[];
+    vals.forEach((v,i)=>{ if(v===null||v<=0){if(cur.length){segs.push(cur);cur=[];}} else cur.push([xAt(i),yAt(v)]); });
+    if(cur.length) segs.push(cur);
+    return segs.map(seg=>'M'+seg.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L')).join(' ');
+  }
+  function dotsOf(vals,color){
+    return vals.map((v,i)=>(v===null||v<=0)?'':`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="2.3" fill="${color}"/>`).join('');
+  }
+
+  // y 軸刻度：有 tick 用固定間隔，否則 3 等分
+  let yTicks='';
+  if(opt.tick){
+    for(let val=lo; val<=hi+0.5; val+=opt.tick){
+      const y=yAt(val);
+      yTicks+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="0.5" opacity="0.5"/><text x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--tx3)" font-family="DM Mono,monospace">${Math.round(val).toLocaleString()}</text>`;
+    }
+  }else{
+    for(let k=0;k<=2;k++){
+      const val=lo+(hi-lo)*k/2, y=yAt(val);
+      yTicks+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="0.5" opacity="0.5"/><text x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--tx3)" font-family="DM Mono,monospace">${Math.round(val).toLocaleString()}</text>`;
+    }
+  }
+  // x 軸標籤
+  let xLabels='';
+  const step=Math.max(1,Math.ceil(n/5));
+  for(let i=0;i<n;i+=step){
+    xLabels+=`<text x="${xAt(i).toFixed(1)}" y="${H-(dense?20:8)}" text-anchor="middle" font-size="9" fill="var(--tx3)" font-family="DM Mono,monospace">${dates[i].slice(5)}</text>`;
+  }
+
+  // 互動模式：每條線加 class + data-key，圖例可點擊凸顯
+  const uid='hc'+Math.random().toString(36).slice(2,8);
+  let lines='', dots='', legend='';
+  series.forEach((s,idx)=>{
+    const col=HIST_PALETTE[idx%HIST_PALETTE.length];
+    const key=idx;
+    const cls=interactive?`class="${uid}-ln" data-k="${key}"`:'';
+    lines+=`<path d="${pathOf(s.vals)}" ${cls} fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+    dots+=`<g ${interactive?`class="${uid}-dt" data-k="${key}"`:''}>`+dotsOf(s.vals,col)+`</g>`;
+    if(interactive){
+      const lbl=HIST_ABBR[s.name]||s.name;
+      legend+=`<span onclick="histHi('${uid}',${key},this)" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:3px 4px;border-radius:4px;white-space:nowrap;" data-k="${key}"><span style="width:12px;height:2px;background:${col};display:inline-block;flex-shrink:0;"></span>${lbl}</span>`;
+    }else{
+      legend+=`<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:2px;background:${col};display:inline-block;"></span>${s.name}</span>`;
+    }
+  });
+  // 本中心對比（虛線）
+  let selfLine='';
+  if(selfVals){
+    selfLine=`<path d="${pathOf(selfVals)}" fill="none" stroke="${SELF_COLOR}" stroke-width="1.6" stroke-dasharray="4,3" opacity="0.95"/>`+dotsOf(selfVals,SELF_COLOR);
+    legend+=`<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:0;border-top:2px dashed ${SELF_COLOR};display:inline-block;"></span>本中心</span>`;
+  }
+
+  const tapHint=interactive?`<div style="font-size:9px;color:var(--tx3);text-align:center;margin-top:6px;">點下方飯店名可凸顯該條線・再點一次取消</div>`:'';
+  const legendStyle=interactive
+    ? 'display:grid;grid-template-columns:repeat(4,1fr);gap:4px 6px;margin-top:8px;font-size:9px;color:var(--tx3);'
+    : 'display:flex;flex-wrap:wrap;gap:8px 12px;justify-content:center;margin-top:8px;font-size:10px;color:var(--tx3);';
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">
+    ${yTicks}${lines}${selfLine}${dots}${xLabels}
+  </svg>
+  <div style="${legendStyle}">${legend}</div>${tapHint}`;
+}
+
+// 互動凸顯：點圖例 → 該線變粗、其餘淡化；再點同一個或點別的切換
+function histHi(uid, key, el){
+  const lns=document.querySelectorAll('.'+uid+'-ln');
+  const dts=document.querySelectorAll('.'+uid+'-dt');
+  const legendBox=el.parentElement;
+  const cur=legendBox.getAttribute('data-hi');
+  const turnOff=(String(cur)===String(key)); // 點同一個→取消凸顯
+  legendBox.setAttribute('data-hi', turnOff?'':key);
+  lns.forEach(p=>{
+    const k=p.getAttribute('data-k');
+    if(turnOff){ p.style.opacity='1'; p.setAttribute('stroke-width','2'); }
+    else if(String(k)===String(key)){ p.style.opacity='1'; p.setAttribute('stroke-width','3.4'); }
+    else { p.style.opacity='0.15'; p.setAttribute('stroke-width','2'); }
+  });
+  dts.forEach(g=>{
+    const k=g.getAttribute('data-k');
+    g.style.opacity=(turnOff||String(k)===String(key))?'1':'0.15';
+  });
+  // 圖例文字同步反白
+  legendBox.querySelectorAll('span[data-k]').forEach(s=>{
+    const k=s.getAttribute('data-k');
+    s.style.background=(!turnOff && String(k)===String(key))?'var(--sf3)':'transparent';
+    s.style.color=(!turnOff && String(k)===String(key))?'var(--tx)':'';
+  });
+}
 function clearCompData(){
   if(!confirm('確定清除目前所有競品房價資料嗎？\n（清除後可重新上傳 CSV）')) return;
   // 全部歸零
@@ -4566,7 +4795,7 @@ function buildBarChart(){
     return;
   }
   const max=priced.length?Math.max(...priced.map(h=>h.price)):1;
-  const colors={self:'#FFE234',luxury:'var(--blue)',general:'#A78BFA',suite:'var(--pur)',hostel:'var(--green)'};
+  const colors={self:'#FFE234',high:'#5B9BD5',mid:'#E8B86D',hostel:'#4CAF82'};
   let html='';
   list.forEach(h=>{
     const label=h.shortLabel||h.name;
@@ -5121,6 +5350,7 @@ function switchPage(id){
   if(id==='comp'){ 
     loadCompData();
     try{ buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); }catch(e){}
+    try{ loadHistData(); }catch(e){}
     // 從雲端拉最新房價（取代舊的 prices.json 爬蟲路徑），拉到後重新套用重畫
     if(getCloudUrl()){
       pullFromCloud().then(synced=>{
@@ -5365,6 +5595,7 @@ function buildSyncPayload(){
     occ_daily:uGet('occ_daily')||'',
     occ_savedAt:uGet('occ_savedAt')||'',
     comp_prices:uGet('comp_prices')||'',
+    comp_names:JSON.stringify(COMPETITORS.map(c=>c.shortLabel||c.name)),
     comp_savedAt:uGet('comp_savedAt')||'',
     pushedAt:Date.now()
   });
