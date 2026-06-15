@@ -1245,17 +1245,17 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <div id="annualEvents" style="display:flex;flex-direction:column;gap:7px;"></div>
   </div>
 
-  <!-- 金門日報在地新聞（自動抓取 + 疑似活動標記）— 置於最下方 -->
+  <!-- 行事曆下方在地新聞（依單位：金門日報 RSS／劍潭 Google 觀光新聞）— 置於最下方 -->
   <div style="margin-top:22px;">
     <div class="lbl" style="margin-bottom:8px;">
-      <span>📰 金門日報・在地新聞</span>
+      <span id="calNewsTitle">📰 金門日報・在地新聞</span>
       <span class="lbl-r" style="font-size:9px;color:var(--tx3);">🔴 標紅=疑似活動</span>
     </div>
-    <div style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5;">
+    <div id="calNewsDesc" style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5;">
       自動更新金門日報地方新聞與快訊。標「疑似活動」者，可手動填入行事曆 Excel。
     </div>
     <div id="kmdnNews" style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入金門日報新聞中...</div>
+      <div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入在地新聞中...</div>
     </div>
     <button id="kmdnRefresh" onclick="fetchKmdnNews()" style="margin-top:8px;width:100%;padding:7px;
       background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);
@@ -2813,6 +2813,23 @@ function applyUnitBranding(unit){
   cfg.name=u.name;
   if(u.city) cfg.city=u.city;
   try{ applyCfg(); }catch(e){}
+  try{ applyTransportNav(u); }catch(e){}
+  try{ applyCalNewsLabels(); }catch(e){}
+}
+// 交通概況分頁：依單位顯示/隱藏與改名（金門專屬；其他單位可自訂主題或關閉）
+function applyTransportNav(u){
+  const t=(u&&u.transport)||{enabled:false,navLabel:'交通概況'};
+  const nav=document.getElementById('nav-tri');
+  if(nav){
+    nav.style.display=t.enabled?'':'none';
+    const lab=nav.querySelector('.ni-l');
+    if(lab&&t.navLabel) lab.textContent=t.navLabel;
+  }
+  // 若目前正停在被隱藏的交通分頁，自動切回營運分析
+  if(!t.enabled){
+    const triPage=document.getElementById('page-tri');
+    if(triPage && triPage.classList.contains('on')){ try{ switchPage('occ'); }catch(e){} }
+  }
 }
 // 返回封面換單位（清除記憶）
 function backToCover(){
@@ -2998,7 +3015,13 @@ const UNITS={
 - 季節機會：暑假有許多球賽（棒球、籃球等）帶來團體住宿需求。
 - 核心使命：兼顧旅宿營收與救國團公益服務雙重身分。`,
     aiMarket:'【小三通旅客動態】\n${triCtx}\n陸客自由行比例高，為金門重要客源',
-    useKinmenData:true   // 是否帶入小三通/金門競品/金門新聞
+    useKinmenData:true,   // 是否帶入小三通/金門競品/金門新聞
+    // 交通概況分頁：金門專屬（小三通水運＋航班空運），由 useKinmenData 帶出內建內容
+    transport:{ enabled:true, navLabel:'交通概況', kinmenBuiltin:true },
+    // 行事曆下方在地新聞來源：金門用金門日報 RSS
+    calNews:{ type:'rss', title:'金門日報・在地新聞', desc:'自動更新金門日報地方新聞與快訊。標「疑似活動」者，可手動填入行事曆 Excel。',
+      feeds:[ {name:'地方新聞', url:'https://www.kmdn.gov.tw/1117/1271/1272/RSSList'},
+              {name:'快訊',     url:'https://www.kmdn.gov.tw/1117/1271/287081/RSSList'} ] }
   },
   jiantan:{
     logo:'劍潭花園會館', name:'救國團劍潭青年活動中心', city:'臺北市',
@@ -3012,7 +3035,19 @@ const UNITS={
 - （以下為待補充的單位細節，可由劍潭單位補上：客房結構、通路結構、異業合作、團隊規模、經營者方針）`,
     aiMarket:'【市場背景】\n台北都會旅宿市場競爭激烈，研習與會議檔期、士林夜市與圓山周邊觀光、學校與企業團體為主要需求來源。',
     useKinmenData:false, // 劍潭不帶金門限定的小三通/競品/新聞
-    preferBuiltin:true   // 測試階段：永遠用內建 JT 資料集，忽略殘留舊存檔（接真實資料後改 false）
+    preferBuiltin:true,  // 測試階段：永遠用內建 JT 資料集，忽略殘留舊存檔（接真實資料後改 false）
+    // 交通概況分頁：劍潭非金門，預設關閉。未來要做台北交通／捷運／會展檔期等主題時，
+    // 把 enabled 改 true、navLabel 改成想要的分頁名稱，再於 page-tri 換上自訂內容。
+    transport:{ enabled:false, navLabel:'交通概況', kinmenBuiltin:false },
+    // 行事曆下方在地新聞來源：劍潭用 Google 新聞，抓台北旅遊／活動／住宿等觀光分類
+    calNews:{ type:'google', title:'台北觀光・即時新聞', desc:'自動抓取 Google 新聞中台北旅遊、活動、住宿等觀光類消息。標「疑似活動」者，可手動填入行事曆。',
+      queries:[ {name:'旅遊', q:'台北 旅遊 觀光'},
+                {name:'活動', q:'台北 活動 展覽 OR 市集 OR 演唱會'},
+                {name:'住宿', q:'台北 住宿 OR 飯店 OR 旅展'},
+                {name:'士林圓山', q:'士林 OR 圓山 OR 劍潭 活動 OR 景點'} ] },
+    // 行事曆活動自動抓取：臺北旅遊網 Open API（背景補充，抓不到不影響手填清單）
+    // base 後會自動帶 ?begin=當年1/1&end=當年12/31&page=N，透過 allorigins 代理呼叫
+    eventsApi:{ base:'https://www.travel.taipei/open-api/zh-tw/Events/Calendar', pages:3, src:'臺北旅遊網' }
   }
 };
 // 目前單位（依封面選擇 / 裝置記憶；預設金門）
@@ -3592,7 +3627,7 @@ function occView(mode, btn){
   document.getElementById('occ-sub-cal').style.display=(mode==='cal')?'block':'none';
   const ordSub=document.getElementById('occ-sub-ord');
   if(ordSub) ordSub.style.display=(mode==='ord')?'block':'none';
-  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); }
+  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); try{ fetchUnitEvents(); }catch(e){} }
   if(mode==='ord'){ loadOrders(false); }
 }
 
@@ -3670,7 +3705,31 @@ const SPORTS_EVENTS = [
 // 填寫格式同金門 CAL_EVENTS：{y:2026,m:6,d:5,name:'活動名稱',type:'major',end:7,note:'說明',icon:'🎪',src:'來源'}
 // type 可用：major(大型活動) / cultural(節慶文化) / holiday(國定假日) / season(旅遊旺季) / sport(體育活動) / exhibit(展覽)
 const CAL_EVENTS_JT = [
-  // ── 劍潭活動請填在這裡 ──
+  // ── 資料來源：臺北旅遊網 2026 活動年曆 https://www.travel.taipei/zh-tw/event-calendar/2026
+  //    以下為已確認日期的台北年度大型活動，可自行增修；日期每年微調，以官方公告為準。
+  // ── 2月 ──
+  {y:2026,m:2,d:14,name:'西洋情人節',type:'season',note:'餐飲與住宿需求高峰',icon:'💕'},
+  {y:2026,m:2,d:25,name:'台北燈節',type:'major',end:28,note:'2/25–3/15 西門展區＋花博展區（圓山周邊），元宵賞燈大型活動',icon:'🏮',src:'臺北旅遊網'},
+  // ── 3月 ──
+  {y:2026,m:3,d:1,name:'台北燈節（延續）',type:'major',end:15,note:'2/25–3/15，花博展區鄰近劍潭，住宿需求增',icon:'🏮',src:'臺北旅遊網'},
+  {y:2026,m:3,d:null,name:'陽明山花季',type:'cultural',note:'3月櫻花、杜鵑陸續綻放，賞花旺季（日期以官方公告為準）',icon:'🌸',src:'臺北旅遊網'},
+  // ── 4月 ──
+  {y:2026,m:4,d:null,name:'士林官邸鬱金香展',type:'cultural',note:'春季賞花（日期以官方公告為準）',icon:'🌷',src:'臺北旅遊網'},
+  // ── 5月 ──
+  {y:2026,m:5,d:null,name:'台北杜鵑花季',type:'cultural',note:'春末賞花活動（日期以官方公告為準）',icon:'🌺',src:'臺北旅遊網'},
+  // ── 7月 ──
+  {y:2026,m:7,d:null,name:'大稻埕夏日節（開跑）',type:'major',note:'7月下旬起一系列水岸活動與煙火（日期以官方公告為準）',icon:'🎆',src:'臺北旅遊網'},
+  // ── 8月 ──
+  {y:2026,m:8,d:6,name:'大稻埕夏日節',type:'major',end:30,note:'8/6–8/30 水岸光廊、貨櫃市集、Live 音樂會，七夕煙火為壓軸',icon:'🎆',src:'臺北旅遊網'},
+  {y:2026,m:8,d:29,name:'七夕情人節',type:'season',note:'餐飲住宿需求高峰',icon:'💕'},
+  {y:2026,m:8,d:30,name:'大稻埕情人節煙火（壓軸）',type:'major',note:'年度大型煙火秀，吸引大量觀光人潮',icon:'🎇',src:'臺北旅遊網'},
+  // ── 10月 ──
+  {y:2026,m:10,d:null,name:'白晝之夜 Nuit Blanche',type:'major',note:'台北年度大型夜間藝術活動（日期以官方公告為準）',icon:'🌃',src:'臺北旅遊網'},
+  {y:2026,m:10,d:null,name:'台北溫泉季（北投）',type:'cultural',note:'秋冬泡湯旺季，北投溫泉季系列活動（日期以官方公告為準）',icon:'♨️',src:'臺北旅遊網'},
+  // ── 12月 ──
+  {y:2026,m:12,d:27,name:'台北101跨年光雕秀（開始）',type:'cultural',end:31,note:'12/27起每晚不同主題光雕秀',icon:'🎬',src:'臺北旅遊網'},
+  {y:2026,m:12,d:31,name:'臺北最High新年城跨年晚會＋101煙火',type:'major',note:'年度最大跨年活動，市區住宿全面爆滿',icon:'🎆',src:'臺北旅遊網'},
+  // ── 在此貼上更多台北活動（格式同上）──
 ];
 const SPORTS_EVENTS_JT = [
   // ── 劍潭體育／研習競賽請填在這裡 ──
@@ -3690,16 +3749,50 @@ const FESTIVALS_JT = {
   11:['企業年度會議旺季','研習營隊'],
   12:['聖誕節','跨年','年終尾牙與企業聚餐旺季'],
 };
+// 劍潭國定假日／連假（2026・全台通用；無金門在地活動。劍潭可自行增修台北檔期）
+const HOLIDAYS_2026_JT = {
+  1: [{d:'1/1',n:'元旦'}],
+  2: [{d:'2/14-2/22',n:'農曆春節',days:9},{d:'2/27-3/1',n:'228和平紀念日連假',days:3}],
+  3: [{d:'2/27-3/1',n:'228連假',days:3}],
+  4: [{d:'4/3-4/6',n:'兒童節暨清明連假',days:4}],
+  5: [{d:'5/1-5/3',n:'勞動節連假',days:3},{d:'5/10',n:'母親節'}],
+  6: [{d:'6/19-6/21',n:'端午節連假',days:3}],
+  7: [{d:'7/1–8/31',n:'暑假旺季',peak:true}],
+  8: [{d:'8/7',n:'父親節'}],
+  9: [{d:'9/25-9/28',n:'中秋暨教師節連假',days:4}],
+  10: [{d:'10/9-10/11',n:'國慶連假',days:3},{d:'10/24-10/26',n:'光復節連假',days:3},{d:'10/29',n:'重陽節'}],
+  11: [],
+  12: [{d:'12/25-12/27',n:'行憲紀念日連假',days:3},{d:'12/31',n:'跨年',peak:true}],
+};
+// 劍潭各月住宿／場地高峰等級（暫用通用值，劍潭可依實際檔期調整）
+const MONTH_LEVEL_JT = {
+  1:'mid', 2:'mid', 3:'mid', 4:'mid',
+  5:'high', 6:'high', 7:'peak', 8:'peak',
+  9:'high', 10:'high', 11:'mid', 12:'high'
+};
 
 // ── 依單位選用行事曆資料（新單位在此加一筆）─────────────────────
 const CAL_DATA = {
-  kinmen:  {events:CAL_EVENTS,    sports:SPORTS_EVENTS,    festivals:FESTIVALS},
-  jiantan: {events:CAL_EVENTS_JT, sports:SPORTS_EVENTS_JT, festivals:FESTIVALS_JT},
+  kinmen:  {events:CAL_EVENTS,    sports:SPORTS_EVENTS,    festivals:FESTIVALS,    holidays:HOLIDAYS_2026,    monthLevel:MONTH_LEVEL},
+  jiantan: {events:CAL_EVENTS_JT, sports:SPORTS_EVENTS_JT, festivals:FESTIVALS_JT, holidays:HOLIDAYS_2026_JT, monthLevel:MONTH_LEVEL_JT},
 };
 function calData(){ return CAL_DATA[getUnit()]||CAL_DATA.kinmen; }
-function calEvents(){ return calData().events||[]; }
+// 自動抓取的活動（依單位暫存於記憶體；抓到才有，抓不到為空陣列）
+const LIVE_EVENTS={};
+function calEvents(){
+  const manual=calData().events||[];
+  const live=LIVE_EVENTS[getUnit()]||[];
+  if(!live.length) return manual;
+  // 合併手填＋自動抓取，並依「名稱＋月」去重（手填優先保留）
+  const seen=new Set(manual.map(e=>(e.name||'')+'_'+e.m));
+  const merged=manual.slice();
+  live.forEach(e=>{ const k=(e.name||'')+'_'+e.m; if(!seen.has(k)){ seen.add(k); merged.push(e); } });
+  return merged;
+}
 function calSports(){ return calData().sports||[]; }
 function festivalsOf(mi){ return (calData().festivals||{})[mi]||[]; }
+function holidaysOf(mi){ return (calData().holidays||{})[mi]||[]; }
+function monthLevelOf(mi){ return (calData().monthLevel||{})[mi]||'mid'; }
 
 
 // 顏色與分類設定
@@ -3742,11 +3835,46 @@ function buildCalendar(){
     </div>`).join('');
   grid.appendChild(leg);
 
-  // 逐月：月曆 + 該月活動說明 交錯排列（12個月）
-  // 前3個月直接顯示，第4-12月收合進「顯示更多」
-  const laterWrap=document.createElement('div');
-  laterWrap.id='calLaterWrap';
-  laterWrap.style.cssText='display:none;flex-direction:column;gap:0;';
+  // 逐月：月曆 + 該月活動說明 交錯排列（12個月），依季別分組
+  // 季別：春(3-5)／夏(6-8)／秋(9-11)／冬(12,1,2)。當季預設展開，其他季別預設收合。
+  const SEASONS=[
+    {key:'spring', name:'🌸 春季',   months:[3,4,5],  color:'#5DD6A5'},
+    {key:'summer', name:'☀️ 夏季',   months:[6,7,8],  color:'#E8893E'},
+    {key:'autumn', name:'🍂 秋季',   months:[9,10,11],color:'#C8963E'},
+    {key:'winter', name:'❄️ 冬季',   months:[12,1,2], color:'#5B9BD5'},
+  ];
+  function seasonOfMonth(m){ return SEASONS.find(s=>s.months.includes(m)); }
+  const curSeasonKey=seasonOfMonth(CM)?.key;
+  // 各季容器
+  const seasonWrap={};   // key -> 內層卡片容器
+  const seasonSection={};// key -> 整個區塊（含標頭）
+  SEASONS.forEach(s=>{
+    const isCur=(s.key===curSeasonKey);
+    const section=document.createElement('div');
+    section.style.cssText='margin-bottom:12px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;'+
+      (isCur?'border-left:3px solid '+s.color+';':'');
+    // 季別標頭（可收合整季）
+    const sh=document.createElement('div');
+    sh.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;'+
+      'background:var(--sf2);';
+    sh.innerHTML=`<div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:14px;font-weight:700;color:${s.color};">${s.name}</span>
+        <span style="font-size:9px;color:var(--tx3);">${s.months.map(m=>m+'月').join('・')}</span>
+        ${isCur?'<span style="font-size:9px;padding:2px 7px;border-radius:10px;background:'+s.color+';color:#0F1923;font-weight:700;">當季</span>':''}
+      </div>
+      <span id="seasonArrow_${s.key}" style="font-size:12px;color:var(--tx3);">${isCur?'▲':'▼'}</span>`;
+    const inner=document.createElement('div');
+    inner.id='seasonInner_'+s.key;
+    inner.style.cssText='padding:8px 10px 4px;display:'+(isCur?'block':'none')+';';
+    sh.onclick=()=>{
+      const open=inner.style.display==='none';
+      inner.style.display=open?'block':'none';
+      const a=document.getElementById('seasonArrow_'+s.key);
+      if(a) a.textContent=open?'▲':'▼';
+    };
+    section.appendChild(sh); section.appendChild(inner);
+    seasonWrap[s.key]=inner; seasonSection[s.key]=section;
+  });
 
   for(let mi=0;mi<12;mi++){
     let cy=CY, cm=CM+mi;
@@ -3789,10 +3917,11 @@ function buildCalendar(){
     });
     const hasOcc=Object.keys(occByDay).length>0;
 
-    // ── 連假解析：展開 HOLIDAYS_2026 的日期範圍，標出連假日與最後一天 ──
+    // ── 連假解析：展開本單位 holidays 的日期範圍，標出連假日與最後一天 ──
     const longHolDays=new Set(), longHolLastDay=new Set();
-    if(cy===2026 && typeof HOLIDAYS_2026!=='undefined' && HOLIDAYS_2026[cm]){
-      HOLIDAYS_2026[cm].forEach(h=>{
+    const monthHolidays=(cy===2026)?holidaysOf(cm):[];
+    if(monthHolidays.length){
+      monthHolidays.forEach(h=>{
         if(!h.days || h.days<2) return; // 只處理連假(2天以上)
         // 解析日期字串，如 "1/28–2/2"、"3/28-29"、"6/28–7/1"
         const ds=String(h.d).replace(/[–—]/g,'-');
@@ -3936,25 +4065,14 @@ function buildCalendar(){
       a.textContent=open?'▲':'▼';
     };
     card.appendChild(hdr); card.appendChild(body);
-    if(mi<3) grid.appendChild(card);
-    else laterWrap.appendChild(card);
+    const sObj=seasonOfMonth(cm);
+    if(sObj && seasonWrap[sObj.key]) seasonWrap[sObj.key].appendChild(card);
+    else grid.appendChild(card);
   }
 
-  // 顯示更多按鈕（控制第4-12個月）
-  const moreBtn=document.createElement('button');
-  moreBtn.id='calMoreBtn';
-  moreBtn.style.cssText='width:100%;padding:10px;margin-top:2px;background:var(--sf2);'+
-    'border:1px solid var(--bd);border-radius:var(--rs);color:var(--ac);font-size:11px;'+
-    'cursor:pointer;font-weight:600;';
-  moreBtn.textContent='▼ 顯示更多月份（未來 4–12 個月）';
-  moreBtn.onclick=()=>{
-    const w=document.getElementById('calLaterWrap');
-    const open=w.style.display==='none';
-    w.style.display=open?'flex':'none';
-    moreBtn.textContent=open?'▲ 收合未來月份':'▼ 顯示更多月份（未來 4–12 個月）';
-  };
-  grid.appendChild(moreBtn);
-  grid.appendChild(laterWrap);
+  // 季別區塊排序：當季在最前，其餘照春夏秋冬
+  const ordered=[curSeasonKey, ...SEASONS.map(s=>s.key).filter(k=>k!==curSeasonKey)];
+  ordered.forEach(k=>{ if(seasonSection[k]) grid.appendChild(seasonSection[k]); });
 }
 
 // ── 在地年度大型活動（常態清單，每年固定登場）──────────────────
@@ -3972,6 +4090,76 @@ const ANNUAL_EVENTS=[
   {month:'12/31',name:'金門跨年晚會',type:'major',note:'莒光共融公園，音樂煙火，萬人出席'},
   {month:'約1月',name:'金門馬拉松',type:'major',note:'國際經典賽事，海內外跑者必搶'},
 ];
+// ── 行事曆活動自動抓取（背景補充；目前供劍潭接臺北旅遊網 Open API）──────
+// 設計原則：手填清單為主，這裡抓到才併入；抓不到完全不影響畫面。
+// 容錯：欄位名稱可能因 API 而異，故同時嘗試多種常見命名與日期格式。
+function pickField(o,keys){ for(const k of keys){ if(o[k]!=null && o[k]!=='') return o[k]; } return ''; }
+function parseApiDate(s){
+  // 接受 "2026-02-25"、"2026/02/25"、"2026-02-25T00:00:00" 等
+  if(!s) return null;
+  const m=String(s).match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if(!m) return null;
+  return { y:+m[1], mo:+m[2], d:+m[3] };
+}
+async function fetchUnitEvents(){
+  const u=(typeof unitCfg==='function')?unitCfg():null;
+  const api=u&&u.eventsApi;
+  if(!api||!api.base) return;            // 此單位沒設定自動抓取就直接結束
+  const unit=getUnit();
+  const yr=new Date().getFullYear();
+  // 一天快取一次
+  try{
+    const cached=uGet('liveEvents');
+    const cachedAt=parseInt(uGet('liveEventsAt')||'0');
+    if(cached && Date.now()-cachedAt<86400000){
+      LIVE_EVENTS[unit]=JSON.parse(cached);
+      return; // 已有當日快取，沿用即可（buildCalendar 會自動帶入）
+    }
+  }catch(e){}
+
+  const collected=[];
+  const pages=api.pages||2;
+  for(let p=1;p<=pages;p++){
+    const apiUrl=`${api.base}?begin=${yr}-01-01&end=${yr}-12-31&page=${p}`;
+    try{
+      const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+      const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
+      if(!resp.ok) break;
+      const wrap=await resp.json();
+      let body=wrap.contents;
+      if(typeof body==='string'){ try{ body=JSON.parse(body); }catch(e){ break; } }
+      // 活動陣列可能在 data / Data / events
+      const arr=body.data||body.Data||body.events||body.result||[];
+      if(!Array.isArray(arr)||!arr.length) break;
+      arr.forEach(it=>{
+        const name=pickField(it,['name','title','Name','Title','subject']);
+        const begin=pickField(it,['begin','startTime','start','beginTime','Begin','date','startDate']);
+        const end=pickField(it,['end','endTime','finish','End','endDate']);
+        const id=pickField(it,['id','Id','ID']);
+        const bd=parseApiDate(begin), ed=parseApiDate(end);
+        if(!name||!bd) return;
+        const ev={ y:bd.y, m:bd.mo, d:bd.d, name:String(name).trim(), type:'cultural', icon:'📍', src:api.src||'API' };
+        if(ed && ed.mo===bd.mo && ed.d>bd.d) ev.end=ed.d;   // 同月跨日
+        // 顯示用備註：起訖日期（跨月時也標出）
+        if(ed && (ed.mo!==bd.mo || ed.d!==bd.d)){
+          ev.note=`${bd.mo}/${bd.d}–${ed.mo}/${ed.d}（自動帶入）`;
+        } else {
+          ev.note='自動帶入';
+        }
+        if(id) ev.link=`https://www.travel.taipei/zh-tw/event-calendar/details/${id}`;
+        collected.push(ev);
+      });
+    }catch(e){ break; } // 逾時或失敗：停止抓取，保留已抓到的（可能為空）
+  }
+
+  if(collected.length){
+    LIVE_EVENTS[unit]=collected;
+    try{ uSet('liveEvents',JSON.stringify(collected)); uSet('liveEventsAt',String(Date.now())); }catch(e){}
+    // 抓到了，重畫行事曆把新活動帶進去
+    try{ if(typeof buildCalendar==='function') buildCalendar(); }catch(e){}
+  }
+}
+
 function renderAnnualEvents(){
   const box=document.getElementById('annualEvents');
   if(!box) return;
@@ -3989,21 +4177,53 @@ function renderAnnualEvents(){
   }).join('');
 }
 
-// ── 金門日報在地新聞（RSS 抓取 + 關鍵字標記疑似活動）──────────────
-const KMDN_FEEDS=[
-  {name:'地方新聞', url:'https://www.kmdn.gov.tw/1117/1271/1272/RSSList'},
-  {name:'快訊',     url:'https://www.kmdn.gov.tw/1117/1271/287081/RSSList'},
-];
+// ── 行事曆在地新聞（依單位：金門→金門日報 RSS／劍潭→Google 新聞觀光類）──
 // 疑似活動關鍵字（標題含這些字 → 標紅）
-const ACT_KEYWORDS=['季','賽','節','活動','嘉年華','研習','競賽','報名','登場','舉辦','開跑','開放','體驗','市集','音樂會','演出','展','營','賽事','盃','馬拉松','泳渡','路跑','慶典','文化季','親子'];
+const ACT_KEYWORDS=['季','賽','節','活動','嘉年華','研習','競賽','報名','登場','舉辦','開跑','開放','體驗','市集','音樂會','演出','展','營','賽事','盃','馬拉松','泳渡','路跑','慶典','文化季','親子','演唱會','燈會','花季'];
 function isLikelyActivity(title){ return ACT_KEYWORDS.some(k=>title.includes(k)); }
 
+// 依單位設定，更新行事曆新聞區塊的標題與說明文字
+function applyCalNewsLabels(){
+  const nc=(typeof unitCfg==='function'?unitCfg().calNews:null)||null;
+  const titleEl=document.getElementById('calNewsTitle');
+  const descEl=document.getElementById('calNewsDesc');
+  if(titleEl && nc?.title) titleEl.textContent='📰 '+nc.title;
+  if(descEl && nc?.desc) descEl.textContent=nc.desc;
+}
+
+// 統一入口（沿用舊名，各呼叫點不必改）：依單位選擇抓取方式
 async function fetchKmdnNews(){
+  applyCalNewsLabels();
+  const nc=(typeof unitCfg==='function'?unitCfg().calNews:null)||null;
+  if(nc && nc.type==='google') return fetchGoogleCalNews(nc);
+  return fetchRssCalNews(nc);
+}
+
+// 渲染新聞卡片（金門日報與 Google 新聞共用樣式）
+function renderCalNews(box,uniq){
+  uniq.sort((a,b)=>(isLikelyActivity(b.title)?1:0)-(isLikelyActivity(a.title)?1:0));
+  box.innerHTML=uniq.slice(0,16).map(a=>{
+    const act=isLikelyActivity(a.title);
+    return `<a href="${a.link}" target="_blank" style="text-decoration:none;display:block;
+      background:${act?'rgba(224,92,92,.08)':'var(--sf)'};border:1px solid ${act?'rgba(224,92,92,.3)':'var(--bd)'};
+      border-radius:var(--rs);padding:8px 10px;">
+      <div style="display:flex;align-items:flex-start;gap:6px;">
+        ${act?'<span style="font-size:8px;color:var(--red);flex-shrink:0;margin-top:2px;">🔴</span>':'<span style="width:8px;flex-shrink:0;"></span>'}
+        <span style="font-size:11px;color:var(--tx);line-height:1.5;flex:1;">${a.title}</span>
+      </div>
+      <div style="font-size:9px;color:var(--tx3);margin-top:3px;padding-left:14px;">${a.cat}${a.dateStr?' · '+a.dateStr:''}${act?' · 疑似活動':''}</div>
+    </a>`;
+  }).join('');
+}
+
+// 金門：金門日報 RSS
+async function fetchRssCalNews(nc){
   const box=document.getElementById('kmdnNews');
   if(!box) return;
-  box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入金門日報新聞中...</div>';
+  const feeds=(nc&&nc.feeds)||[];
+  box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入在地新聞中...</div>';
   const all=[];
-  for(const feed of KMDN_FEEDS){
+  for(const feed of feeds){
     try{
       const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(feed.url)}`;
       const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
@@ -4024,24 +4244,47 @@ async function fetchKmdnNews(){
     box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;line-height:1.6;">暫時無法載入新聞<br>（免費代理可能繁忙，請按重新整理）</div>';
     return;
   }
-  // 去重（同標題）
   const seen=new Set(), uniq=[];
   all.forEach(a=>{ if(!seen.has(a.title)){ seen.add(a.title); uniq.push(a);} });
-  // 疑似活動排前面
-  uniq.sort((a,b)=>(isLikelyActivity(b.title)?1:0)-(isLikelyActivity(a.title)?1:0));
+  renderCalNews(box,uniq);
+}
 
-  box.innerHTML=uniq.slice(0,16).map(a=>{
-    const act=isLikelyActivity(a.title);
-    return `<a href="${a.link}" target="_blank" style="text-decoration:none;display:block;
-      background:${act?'rgba(224,92,92,.08)':'var(--sf)'};border:1px solid ${act?'rgba(224,92,92,.3)':'var(--bd)'};
-      border-radius:var(--rs);padding:8px 10px;">
-      <div style="display:flex;align-items:flex-start;gap:6px;">
-        ${act?'<span style="font-size:8px;color:var(--red);flex-shrink:0;margin-top:2px;">🔴</span>':'<span style="width:8px;flex-shrink:0;"></span>'}
-        <span style="font-size:11px;color:var(--tx);line-height:1.5;flex:1;">${a.title}</span>
-      </div>
-      <div style="font-size:9px;color:var(--tx3);margin-top:3px;padding-left:14px;">${a.cat}${a.dateStr?' · '+a.dateStr:''}${act?' · 疑似活動':''}</div>
-    </a>`;
-  }).join('');
+// 劍潭等：Google 新聞（多個觀光類查詢合併）
+async function fetchGoogleCalNews(nc){
+  const box=document.getElementById('kmdnNews');
+  if(!box) return;
+  const queries=(nc&&nc.queries)||[];
+  box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入觀光新聞中...</div>';
+  const all=[];
+  for(const cat of queries){
+    try{
+      const q=encodeURIComponent(cat.q+' when:14d');
+      const rssUrl=`https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
+      const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+      const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
+      if(!resp.ok) continue;
+      const data=await resp.json();
+      const xml=new DOMParser().parseFromString(data.contents,'text/xml');
+      [...xml.querySelectorAll('item')].slice(0,6).forEach(item=>{
+        const title=(item.querySelector('title')?.textContent||'').replace(/\s*-\s*[^-]+$/,'').trim();
+        const link=item.querySelector('link')?.textContent||'#';
+        const pub=item.querySelector('pubDate')?.textContent||'';
+        let dateStr='';
+        if(pub){ const d=new Date(pub); if(!isNaN(d)) dateStr=`${d.getMonth()+1}/${d.getDate()}`; }
+        const src=item.querySelector('source')?.textContent||'';
+        if(title) all.push({title,link,dateStr,cat:cat.name+(src?'・'+src:'')});
+      });
+    }catch(e){ /* 略過失敗的查詢 */ }
+  }
+  if(!all.length){
+    box.innerHTML=`<a href="https://news.google.com/search?q=${encodeURIComponent('台北 旅遊 觀光')}&hl=zh-TW" target="_blank"
+      style="text-decoration:none;display:block;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:10px;text-align:center;">
+      <span style="font-size:10px;color:var(--tx2);">暫時無法載入，點此查看 Google 觀光新聞 →</span></a>`;
+    return;
+  }
+  const seen=new Set(), uniq=[];
+  all.forEach(a=>{ if(!seen.has(a.title)){ seen.add(a.title); uniq.push(a);} });
+  renderCalNews(box,uniq);
 }
 
 
