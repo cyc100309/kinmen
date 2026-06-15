@@ -547,9 +547,9 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <div style="font-size:30px;flex-shrink:0;">🌳</div>
       <div style="flex:1;">
         <div style="font-size:16px;font-weight:700;color:#F5F0E6;">劍潭花園會館</div>
-        <div style="font-size:11px;color:#A8B4C0;margin-top:3px;">救國團劍潭青年活動中心・測試儀表板</div>
+        <div style="font-size:11px;color:#A8B4C0;margin-top:3px;">救國團劍潭青年活動中心</div>
       </div>
-      <div style="font-size:10px;color:#5B9BD5;flex-shrink:0;background:rgba(91,155,213,.12);border:1px solid rgba(91,155,213,.4);border-radius:10px;padding:3px 8px;">🔒 測試</div>
+      <div style="font-size:10px;color:#5B9BD5;flex-shrink:0;background:rgba(91,155,213,.12);border:1px solid rgba(91,155,213,.4);border-radius:10px;padding:3px 8px;">臺北</div>
     </button>
     <button onclick="enterUnit('other')" style="display:flex;align-items:center;gap:14px;
       background:#13202E;border:1px dashed #3A4A5A;border-radius:16px;
@@ -817,6 +817,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
           ⬇️ 從雲端載入
         </button>
       </div>
+    </div>
     </div>
   </div>
 </div>
@@ -2808,10 +2809,6 @@ function enterUnit(unit){
     try{ localStorage.setItem('chosenUnit','kinmen'); }catch(e){}
     bootUnit();
   } else if(unit==='jiantan'){
-    // 測試階段：需輸入驗證碼
-    const code=prompt('劍潭花園會館為測試儀表板，請輸入驗證碼：');
-    if(code===null) return;              // 取消
-    if(code.trim()!=='0000'){ alert('驗證碼錯誤，無法進入。'); return; }
     const cover=document.getElementById('unitCover');
     if(cover) cover.style.display='none';
     try{ localStorage.setItem('chosenUnit','jiantan'); }catch(e){}
@@ -6090,10 +6087,14 @@ function showDataDate(ts){
 function refreshDisplay(){
   const btn=document.querySelector('#dataDateBar button');
   if(btn){ btn.textContent='🔄 更新中...'; btn.disabled=true; }
-  setTimeout(()=>{
-    init();
-    if(btn){ btn.textContent='🔄 重新整理'; btn.disabled=false; }
-  },100);
+  const done=()=>{ if(btn){ btn.textContent='🔄 重新整理'; btn.disabled=false; } };
+  // 有雲端網址的單位（金門／劍潭）：真的去雲端抓最新資料覆蓋本機再重繪；
+  // 無雲端的單位：退回原本的本機重繪
+  if(getCloudUrl() && typeof forceSyncFromCloud==='function'){
+    forceSyncFromCloud().then(()=>{ done(); }).catch(()=>{ try{ init(); }catch(e){} done(); });
+  }else{
+    setTimeout(()=>{ try{ init(); }catch(e){} done(); },100);
+  }
 }
 
 function loadSavedOccData(){
@@ -6253,6 +6254,47 @@ async function pullFromCloud(){
 
     return applied;
   }catch(e){ return false; }
+}
+
+// 強制同步：無視本機時間戳，直接以雲端為真相源覆蓋本機。
+// 用於「別台裝置顯示舊資料、普通載入被時間戳擋住」的情況。
+async function forceSyncFromCloud(){
+  const url=getCloudUrl();
+  if(!url){ showSyncStatus('未設定雲端網址',false); return false; }
+  showSyncStatus('更新中...',true);
+  try{
+    const r=await fetch(url+'?unit='+encodeURIComponent(getUnit())+'&t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(!d || (!d.occ_cur && !d.comp_prices)){
+      showSyncStatus('雲端尚無資料',false);
+      return false;
+    }
+    const builtin=unitCfg().preferBuiltin;
+
+    // 競品房價：直接覆蓋
+    if(d.comp_prices){
+      uSet('comp_prices', d.comp_prices);
+      if(d.comp_savedAt) uSet('comp_savedAt', d.comp_savedAt);
+    }
+    // 營運資料：無視時間戳，直接以雲端覆蓋本機
+    const occKeys=builtin
+      ? ['occ_daily']
+      : ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt'];
+    occKeys.forEach(k=>{ if(d[k]) uSet(k,d[k]); });
+    if(d.pushedAt) uSet('occ_pushedAt',String(d.pushedAt));
+
+    // 重新套用並重繪
+    loadCompData();
+    loadSavedOccData();
+    init();
+    try{ if(typeof loadCompData==='function'){ buildLists&&buildLists(); buildBarChart&&buildBarChart(); calcStats&&calcStats(); loadUpdateTime&&loadUpdateTime(); } }catch(e){}
+    showSyncStatus('✓ 已更新為雲端最新資料',true);
+    return true;
+  }catch(e){
+    showSyncStatus('更新失敗：'+e.message,false);
+    return false;
+  }
 }
 
 // 一次性遷移：把舊版「無前綴」的金門資料搬到 kinmen_ 前綴（只搬一次，不覆蓋既有）
