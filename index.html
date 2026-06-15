@@ -1560,12 +1560,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 </div>
 
 <!-- Category tabs -->
-<div class="cat-tabs" id="catTabs">
-  <button class="cat-tab on" onclick="filterCat('all',this)">全部（14）</button>
-  <button class="cat-tab" onclick="filterCat('high',this)">高價位（4）</button>
-  <button class="cat-tab" onclick="filterCat('mid',this)">中價位（5）</button>
-  <button class="cat-tab" onclick="filterCat('hostel',this)">背包客棧（4）</button>
-</div>
+<div class="cat-tabs" id="catTabs"></div>
 
 <!-- Bar chart -->
 <div class="chart-card">
@@ -1585,22 +1580,22 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 </div>
 
 <div class="chart-card" id="histCardHigh">
-  <div class="chart-title"><span>高價位（精品/商務/星級）</span></div>
+  <div class="chart-title"><span id="histTitleHigh">高價位（精品/商務/星級）</span></div>
   <div id="histChartHigh"></div>
 </div>
 
 <div class="chart-card" id="histCardMid">
-  <div class="chart-title"><span>中價位（一般/套房/民宿）</span></div>
+  <div class="chart-title"><span id="histTitleMid">中價位（一般/套房/民宿）</span></div>
   <div id="histChartMid"></div>
 </div>
 
 <div class="chart-card" id="histCardHostel">
-  <div class="chart-title"><span>背包客棧</span></div>
+  <div class="chart-title"><span id="histTitleHostel">背包客棧</span></div>
   <div id="histChartHostel"></div>
 </div>
 
 <div class="chart-card" id="histCardAll">
-  <div class="chart-title"><span>全部 14 家總覽</span><span style="font-size:10px;color:var(--tx3);">含本中心</span></div>
+  <div class="chart-title"><span id="histAllTitle">全部總覽</span><span style="font-size:10px;color:var(--tx3);">含本中心</span></div>
   <div id="histChartAll"></div>
 </div>
 
@@ -2846,6 +2841,8 @@ function applyUnitBranding(unit){
   try{ applyTransportNav(u); }catch(e){}
   try{ applyCalNewsLabels(); }catch(e){}
   try{ applyCalSrcBtns(); }catch(e){}
+  // 競爭房價：依單位切換對手清單與分類頁籤（金門 14 家／劍潭 11 家兩群組）
+  try{ applyUnitCompetitors(); buildCatTabs(); }catch(e){}
 }
 // 交通概況分頁：依單位顯示/隱藏與改名（金門專屬；其他單位可自訂主題或關閉）
 function applyTransportNav(u){
@@ -4493,8 +4490,9 @@ function applyCalSrcBtns(){
   if(srcb) srcb.style.display=show?'flex':'none';
 }
 
-// ── 14家競爭對手（對應 Thunderbit 抓取欄位）────────────────
-const COMPETITORS = [
+// ── 競爭對手（對應 Thunderbit 抓取欄位）依單位切換 ────────────────
+// 金門：本中心 + 13 家在地對手（共 14 家）
+const COMP_KINMEN = [
   { name:'金門青年活動中心（無電梯）', shortLabel:'金門青年活動中心', sheetName:'金門青年活動中心',
     cat:'self',  hostel:false, self:true,  price:0, avail:true, rating:8.5,
     note:'本中心・金城鎮', agoda:'https://www.agoda.com/zh-tw/kinmen-youth-activity-center/hotel/kinmen-tw.html' },
@@ -4538,6 +4536,85 @@ const COMPETITORS = [
     cat:'high', hostel:false, self:false, price:0, avail:true, rating:9.1,
     note:'星級飯店・金湖鎮', agoda:'https://www.agoda.com/zh-tw/golden-lake-hotel/hotel/kinmen-tw.html' },
 ];
+
+// 劍潭花園會館：本中心 + 10 家台北對手（共 11 家）
+// 來源：Thunderbit 抓取（士林／圓山／台北車站／西門周邊）
+// 分兩群：rival=主要對手（同級競價）、ref=參考房價（高階指標，僅供參考）
+// 註：本中心在 Agoda 的列名為「劍潭青年飯店」，故以 sheetName 別稱匹配 CSV
+const COMP_JIANTAN = [
+  { name:'劍潭花園會館', shortLabel:'劍潭花園會館', sheetName:'劍潭青年飯店',
+    cat:'self',  hostel:false, self:true,  price:0, avail:true, rating:8.3,
+    note:'本中心・士林劍潭', agoda:'https://www.agoda.com/zh-tw/chientan-youth-hotel/hotel/taipei-tw.html' },
+  // ── 主要對手（rival）──
+  { name:'三德大飯店', sheetName:'三德大飯店',
+    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.1,
+    note:'主要對手・大同區', agoda:'https://www.agoda.com/zh-tw/santos-hotel_4/hotel/taipei-tw.html' },
+  { name:'德立莊酒店', sheetName:'德立莊酒店',
+    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.1,
+    note:'主要對手・西門町', agoda:'https://www.agoda.com/zh-tw/hotel-midtown-richardson/hotel/taipei-tw.html' },
+  { name:'沃田旅店', sheetName:'沃田旅店',
+    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.7,
+    note:'主要對手・士林區', agoda:'https://www.agoda.com/zh-tw/mellow-fields-hotel/hotel/taipei-tw.html' },
+  { name:'見潭璞旅', sheetName:'見潭璞旅',
+    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.8,
+    note:'主要對手・士林區', agoda:'https://www.agoda.com/zh-tw/boutech-meet-jiantan-hotel/hotel/taipei-tw.html' },
+  // ── 參考房價（ref）──
+  { name:'天閣酒店台北劍潭', sheetName:'天閣酒店台北劍潭',
+    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:9.0,
+    note:'參考房價・士林區', agoda:'https://www.agoda.com/zh-tw/the-tango-taipei-jiantan/hotel/taipei-tw.html' },
+  { name:'天閣酒店台北士林', sheetName:'天閣酒店台北士林',
+    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:9.0,
+    note:'參考房價・士林區', agoda:'https://www.agoda.com/zh-tw/the-tango-hotel-taipei-shilin/hotel/taipei-tw.html' },
+  { name:'圓山大飯店', sheetName:'圓山大飯店',
+    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:8.8,
+    note:'參考房價・中山區', agoda:'https://www.agoda.com/zh-tw/grand-hotel/hotel/taipei-tw.html' },
+  { name:'台北天成大飯店-台北車站', shortLabel:'天成大飯店', sheetName:'台北天成大飯店',
+    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:8.6,
+    note:'參考房價・台北車站', agoda:'https://www.agoda.com/zh-tw/cosmos-hotel-taipei/hotel/taipei-tw.html' },
+  { name:'台北凱撒大飯店', shortLabel:'台北凱撒', sheetName:'台北凱撒大飯店',
+    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:8.3,
+    note:'參考房價・台北車站', agoda:'https://www.agoda.com/zh-tw/caesar-park-hotel-taipei_6/hotel/taipei-tw.html' },
+];
+
+// 各單位競爭對手資料集
+const COMP_DATASETS = { kinmen: COMP_KINMEN, jiantan: COMP_JIANTAN };
+
+// 現用清單（會依單位切換）。預設金門，applyUnitCompetitors() 會在進入單位時重設。
+let COMPETITORS = COMP_KINMEN;
+
+// 依目前單位選用對應競爭對手清單；切換時把價格全部歸零（避免沿用別單位的價格）
+function applyUnitCompetitors(){
+  const u = (typeof getUnit==='function') ? getUnit() : 'kinmen';
+  COMPETITORS = COMP_DATASETS[u] || COMP_KINMEN;
+  // 切到新單位先歸零，等 loadCompData()／雲端拉回再填入
+  COMPETITORS.forEach(c=>{ c.price=0; c.avail=true; });
+}
+
+// 各單位的分類區塊（清單分組、歷史圖分類、長條圖配色都用這個）
+const COMP_SECTIONS_KINMEN=[
+  {cat:'self',  label:'本中心',    dot:'var(--ac)', color:'#FFE234'},
+  {cat:'high',  label:'高價位（精品/商務/星級）', dot:'#5B9BD5', color:'#5B9BD5'},
+  {cat:'mid',   label:'中價位（一般/套房/民宿）', dot:'#E8B86D', color:'#E8B86D'},
+  {cat:'hostel',label:'背包客棧 🎒', dot:'#4CAF82', color:'#4CAF82'},
+];
+const COMP_SECTIONS_JIANTAN=[
+  {cat:'self',  label:'本中心',    dot:'var(--ac)', color:'#FFE234'},
+  {cat:'rival', label:'主要對手（同級競價）', dot:'#5BE3B3', color:'#5BE3B3'},
+  {cat:'ref',   label:'參考房價（高階指標）', dot:'#5B9BD5', color:'#5B9BD5'},
+];
+function compSections(){
+  return (typeof getUnit==='function' && getUnit()==='jiantan')
+    ? COMP_SECTIONS_JIANTAN : COMP_SECTIONS_KINMEN;
+}
+// 分類篩選頁籤（all + 各區塊）依單位
+function compCatTabs(){
+  const base=[{cat:'all',label:'全部'}];
+  return base.concat(compSections().map(s=>({cat:s.cat,label:s.label.replace(/（.*?）/,'').replace(' 🎒','')})));
+}
+// 長條圖配色（cat→色）依單位
+function compColorMap(){
+  const m={}; compSections().forEach(s=>m[s.cat]=s.color); return m;
+}
 
 // ── Daily chart with month selector ──────────────────────────
 let dailyMonths=[{year:2026,month:'五月',rows:DEMO_DAILY},null,null];
@@ -4683,12 +4760,7 @@ function buildLists(){
   const container=document.getElementById('compLists');
   if(!container) return;
   container.innerHTML='';
-  const sections=[
-    {cat:'self',  label:'本中心',    dot:'var(--ac)'},
-    {cat:'high',  label:'高價位（精品/商務/星級）', dot:'#5B9BD5'},
-    {cat:'mid',   label:'中價位（一般/套房/民宿）', dot:'#E8B86D'},
-    {cat:'hostel',label:'背包客棧 🎒', dot:'#4CAF82'},
-  ];
+  const sections=compSections();
   const today=new Date();
   const fmt=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
 
@@ -4801,14 +4873,24 @@ function parseAndApplyCSV(text){
       !availTxt.includes('售完') &&
       !availTxt.toLowerCase().includes('sold');
 
-    // Match hotel by name (flexible)
+    // Match hotel by name：先精確比對，避免「天閣酒店台北劍潭／士林」這類同前綴互撞
     const na = shName.replace(/[\s（）()・,，\-]/g,'');
-    const found = COMPETITORS.find(c=>{
-      const nb = (c.sheetName||c.name).replace(/[\s（）()・,，\-]/g,'');
-      const nc = c.name.replace(/[\s（）()・,，\-]/g,'');
-      return na===nb || na===nc ||
-        (na.length>=3 && nb.length>=3 && (nb.startsWith(na.slice(0,3)) || na.startsWith(nb.slice(0,3))));
+    const norm = c => ({
+      nb:(c.sheetName||c.name).replace(/[\s（）()・,，\-]/g,''),
+      nc:c.name.replace(/[\s（）()・,，\-]/g,'')
     });
+    // 第一階段：完全相等（sheetName 別稱或正式名）
+    let found = COMPETITORS.find(c=>{ const{nb,nc}=norm(c); return na===nb||na===nc; });
+    // 第二階段：互為前綴（較長者，至少 4 字），仍找不到才放寬
+    if(!found){
+      found = COMPETITORS.find(c=>{ const{nb,nc}=norm(c);
+        return (na.length>=4 && (nb.startsWith(na)||na.startsWith(nb)||nc.startsWith(na)||na.startsWith(nc))); });
+    }
+    // 第三階段：3 字前綴寬鬆比對（最後手段，原邏輯）
+    if(!found){
+      found = COMPETITORS.find(c=>{ const{nb}=norm(c);
+        return (na.length>=3 && nb.length>=3 && (nb.startsWith(na.slice(0,3))||na.startsWith(nb.slice(0,3)))); });
+    }
 
     if(found){
       if(price>0){
@@ -4936,21 +5018,33 @@ function saveCompData(){
   }catch(e){}
 }
 
-// ── 競爭房價歷史走勢（本中心獨立 + 三價位分類 + 14家總圖）──────
+// ── 競爭房價歷史走勢（本中心獨立 + 三價位分類 + 全部家數總圖）──────
 let HIST_DATA=null;           // 後端回來的歷史 {unit,dates,hotels}
-const SELF_HIST_NAME='金門青年活動中心'; // 本中心在歷史表中的名字
+// 本中心在歷史表中的名字（依單位）
+function selfHistName(){
+  return (typeof getUnit==='function' && getUnit()==='jiantan') ? '劍潭花園會館' : '金門青年活動中心';
+}
 
 // 多線配色盤（分類圖內各家用不同色，易區分）
 const HIST_PALETTE=['#5BE3B3','#5B9BD5','#E8B86D','#C792EA','#FF8A65','#4DD0E1'];
 const SELF_COLOR='#FFE234';
-// 14家總覽圖圖例專用縮寫（key=shortLabel||name，只用於總覽圖，不影響長條圖/清單）
-const HIST_ABBR={
+// 各家圖例縮寫（key=shortLabel||name，只用於總覽圖，不影響長條圖/清單）
+const HIST_ABBR_KINMEN={
   '金門青年活動中心':'金門中心','不倒翁輕旅':'不倒翁輕旅','八二三行館飯店':'823行館',
   '金華民宿':'金華民宿','總兵招待所':'總兵招待所','金門市區背包客棧':'市區背包',
   '浯島魁星背包棧':'浯島魁星','背包客棧497-2館':'背包497-2','金瑞旅店':'金瑞旅店',
   '浯江大飯店':'浯江大飯店','浯島文旅':'浯島文旅','海福商務飯店':'海福商務',
   'IN99精品旅館':'IN99旅館','金湖飯店':'金湖飯店'
 };
+const HIST_ABBR_JIANTAN={
+  '劍潭花園會館':'劍潭會館','三德大飯店':'三德','德立莊酒店':'德立莊',
+  '沃田旅店':'沃田','見潭璞旅':'見潭璞旅','天閣酒店台北劍潭':'天閣劍潭',
+  '天閣酒店台北士林':'天閣士林','圓山大飯店':'圓山','天成大飯店':'天成',
+  '台北凱撒':'凱撒'
+};
+function histAbbrMap(){
+  return (typeof getUnit==='function' && getUnit()==='jiantan') ? HIST_ABBR_JIANTAN : HIST_ABBR_KINMEN;
+}
 
 async function loadHistData(){
   const url=getCloudUrl();
@@ -4983,16 +5077,40 @@ function renderAllHistCharts(){
   const days=(HIST_DATA.dates||[]).length;
   if(sub) sub.textContent='共 '+days+' 天紀錄';
 
-  // 本中心：單線，固定 1000–1500，每 100
-  drawInto('histChartSelf', [SELF_HIST_NAME], {showSelf:false, lo:1000, hi:1500, tick:100});
-  // 高價位：範圍自動，刻度間隔 500，不疊本中心
-  drawInto('histChartHigh',   histNamesByCat('high'),   {showSelf:false, tick:500});
-  // 中價位：固定 1000–2000，每 200，疊本中心對比
-  drawInto('histChartMid',    histNamesByCat('mid'),    {showSelf:true, lo:1000, hi:2000, tick:200});
-  // 背包客棧：固定 400–1000，每 200，不疊本中心
-  drawInto('histChartHostel', histNamesByCat('hostel'), {showSelf:false, lo:400, hi:1000, tick:200});
-  // 全部 14 家（含本中心）：互動式，點圖例凸顯
+  const isJT=(typeof getUnit==='function' && getUnit()==='jiantan');
+  const tHigh=document.getElementById('histTitleHigh');
+  const tMid=document.getElementById('histTitleMid');
+  const hostelCard=document.getElementById('histCardHostel');
+
+  if(isJT){
+    // 劍潭：兩群組 → 借用 High 槽放「主要對手」、Mid 槽放「參考房價」，隱藏 Hostel 槽
+    if(tHigh) tHigh.textContent='主要對手（同級競價）';
+    if(tMid)  tMid.textContent='參考房價（高階指標）';
+    if(hostelCard) hostelCard.style.display='none';
+    // 本中心：劍潭約 1500–2500
+    drawInto('histChartSelf', [selfHistName()], {showSelf:false, lo:1500, hi:2500, tick:200});
+    // 主要對手：固定 1200–2800，每 400，疊本中心對比
+    drawInto('histChartHigh', histNamesByCat('rival'), {showSelf:true, lo:1200, hi:2800, tick:400});
+    // 參考房價：範圍自動，刻度 500，不疊本中心
+    drawInto('histChartMid',  histNamesByCat('ref'),   {showSelf:false, tick:500});
+  } else {
+    // 金門：回復原本三價位標題與背包客棧卡片
+    if(tHigh) tHigh.textContent='高價位（精品/商務/星級）';
+    if(tMid)  tMid.textContent='中價位（一般/套房/民宿）';
+    if(hostelCard) hostelCard.style.display='';
+    // 本中心：單線，固定 1000–1500，每 100
+    drawInto('histChartSelf', [selfHistName()], {showSelf:false, lo:1000, hi:1500, tick:100});
+    // 高價位：範圍自動，刻度間隔 500，不疊本中心
+    drawInto('histChartHigh',   histNamesByCat('high'),   {showSelf:false, tick:500});
+    // 中價位：固定 1000–2000，每 200，疊本中心對比
+    drawInto('histChartMid',    histNamesByCat('mid'),    {showSelf:true, lo:1000, hi:2000, tick:200});
+    // 背包客棧：固定 400–1000，每 200，不疊本中心
+    drawInto('histChartHostel', histNamesByCat('hostel'), {showSelf:false, lo:400, hi:1000, tick:200});
+  }
+  // 全部家數（含本中心）：互動式，點圖例凸顯
   const allNames=COMPETITORS.map(c=>c.shortLabel||c.name);
+  const allTitle=document.getElementById('histAllTitle');
+  if(allTitle) allTitle.textContent=`全部 ${COMPETITORS.length} 家總覽`;
   drawInto('histChartAll', allNames, {showSelf:false, dense:true, interactive:true});
 }
 
@@ -5015,7 +5133,7 @@ function drawInto(boxId, names, opt){
   // 需要本中心對比線時，補上（虛線、固定黃色）
   let selfVals=null;
   if(opt.showSelf){
-    const sh=HIST_DATA.hotels[SELF_HIST_NAME];
+    const sh=HIST_DATA.hotels[selfHistName()];
     if(sh){
       const sv=dates.map(d=>{const v=sh[d]; return (v===undefined)?null:v;});
       if(sv.some(v=>v!==null && v>0)) selfVals=sv;
@@ -5109,7 +5227,7 @@ function drawMultiLineSVG(dates, series, selfVals, opt){
     lines+=`<path d="${pathOf(s.vals)}" ${cls} fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
     dots+=`<g ${interactive?`class="${uid}-dt" data-k="${key}"`:''}>`+dotsOf(s.vals,col)+`</g>`;
     if(interactive){
-      const lbl=HIST_ABBR[s.name]||s.name;
+      const lbl=histAbbrMap()[s.name]||s.name;
       legend+=`<span onclick="histHi('${uid}',${key},this)" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:3px 4px;border-radius:4px;white-space:nowrap;" data-k="${key}"><span style="width:12px;height:2px;background:${col};display:inline-block;flex-shrink:0;"></span>${lbl}</span>`;
     }else{
       legend+=`<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:2px;background:${col};display:inline-block;"></span>${s.name}</span>`;
@@ -5242,7 +5360,7 @@ function buildBarChart(){
     return;
   }
   const max=priced.length?Math.max(...priced.map(h=>h.price)):1;
-  const colors={self:'#FFE234',high:'#5B9BD5',mid:'#E8B86D',hostel:'#4CAF82'};
+  const colors=compColorMap();
   let html='';
   list.forEach(h=>{
     const label=h.shortLabel||h.name;
@@ -5350,10 +5468,25 @@ function calcStats(){
 
 // ── 類別篩選 ──────────────────────────────────────────────────
 let curCat='all';
+// 依單位重建分類頁籤（含各類即時家數）
+function buildCatTabs(){
+  const box=document.getElementById('catTabs');
+  if(!box) return;
+  const tabs=compCatTabs();
+  // 若目前選的分類在新單位不存在，回到 all
+  if(!tabs.some(t=>t.cat===curCat)) curCat='all';
+  box.innerHTML=tabs.map(t=>{
+    const n = t.cat==='all'
+      ? COMPETITORS.length
+      : COMPETITORS.filter(c=>c.cat===t.cat).length;
+    const on = (t.cat===curCat) ? ' on' : '';
+    return `<button class="cat-tab${on}" onclick="filterCat('${t.cat}',this)">${t.label}（${n}）</button>`;
+  }).join('');
+}
 function filterCat(cat,btn){
   curCat=cat;
   document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+  if(btn) btn.classList.add('on');
   buildLists();
   buildBarChart();
 }
@@ -5639,6 +5772,9 @@ ${triCtx}
 ${newsCtx}
 `:`
 ${u.aiMarket}
+
+【競爭對手最低房價】（${compDate||'近期'}）
+${compInfo}
 `}
 請針對以上資訊，提供4點具體建議：
 ①針對本月客群結構（團體／散客比重、每房均人數與人次同比變化）的客群經營策略
@@ -5795,6 +5931,7 @@ function switchPage(id){
   if(pg) pg.classList.add('active');
   if(nav) nav.classList.add('on');
   if(id==='comp'){ 
+    buildCatTabs();
     loadCompData();
     try{ buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); }catch(e){}
     try{ loadHistData(); }catch(e){}
