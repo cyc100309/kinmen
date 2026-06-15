@@ -1250,19 +1250,21 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 
   <!-- 大巨蛋活動雷達（僅有設定 domeRadar 的單位顯示，例：劍潭）— 自動抓 Google 新聞 -->
   <div id="domeRadarWrap" style="margin-top:22px;display:none;">
-    <div class="lbl" style="margin-bottom:8px;">
+    <div class="lbl" style="margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleDomeRadar()">
       <span id="domeRadarTitle">🏟️ 大巨蛋活動雷達</span>
-      <span class="lbl-r" style="font-size:9px;color:var(--tx3);">點標題開原文</span>
+      <span id="domeRadarArrow" style="font-size:12px;color:var(--tx3);">▼</span>
     </div>
-    <div id="domeRadarDesc" style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5;">
-      自動抓取台北大巨蛋演唱會、售票、賽事新聞。看到新公告場次，可請管理者補進行事曆。
+    <div id="domeRadarBody" style="display:none;">
+      <div id="domeRadarDesc" style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5;">
+        自動抓取台北大巨蛋演唱會、售票、賽事新聞。看到新公告場次，可請管理者補進行事曆。
+      </div>
+      <div id="domeRadar" style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入大巨蛋新聞中...</div>
+      </div>
+      <button id="domeRadarRefresh" onclick="fetchDomeRadar()" style="margin-top:8px;width:100%;padding:7px;
+        background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);
+        font-size:10px;cursor:pointer;">🔄 重新整理大巨蛋新聞</button>
     </div>
-    <div id="domeRadar" style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入大巨蛋新聞中...</div>
-    </div>
-    <button id="domeRadarRefresh" onclick="fetchDomeRadar()" style="margin-top:8px;width:100%;padding:7px;
-      background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);
-      font-size:10px;cursor:pointer;">🔄 重新整理大巨蛋新聞</button>
   </div>
 
   <!-- 行事曆下方在地新聞（依單位：金門日報 RSS／劍潭 Google 觀光新聞）— 置於最下方 -->
@@ -1280,6 +1282,31 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <button id="kmdnRefresh" onclick="fetchKmdnNews()" style="margin-top:8px;width:100%;padding:7px;
       background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);
       font-size:10px;cursor:pointer;">🔄 重新整理新聞</button>
+  </div>
+
+  <!-- 資料來源快速連結（含大巨蛋賽程的單位顯示，例：劍潭）-->
+  <div id="calSrcBtns" style="margin-top:18px;display:none;flex-direction:column;gap:7px;">
+    <div class="lbl" style="margin-bottom:2px;"><span>🔗 賽事／活動官方來源</span></div>
+    <a href="https://www.sportsnet.org.tw/schedule.php" target="_blank" style="text-decoration:none;display:flex;
+      align-items:center;justify-content:space-between;background:var(--sf2);border:1px solid var(--bd);
+      border-radius:var(--rs);padding:10px 12px;">
+      <span style="font-size:11px;color:var(--tx);">🏃 中華民國路跑協會・賽事行事曆</span>
+      <span style="font-size:11px;color:var(--ac);">前往 →</span></a>
+    <a href="https://www.farglorydome.com.tw/news/" target="_blank" style="text-decoration:none;display:flex;
+      align-items:center;justify-content:space-between;background:var(--sf2);border:1px solid var(--bd);
+      border-radius:var(--rs);padding:10px 12px;">
+      <span style="font-size:11px;color:var(--tx);">🏟️ 臺北大巨蛋・最新消息（賽程／活動）</span>
+      <span style="font-size:11px;color:var(--ac);">前往 →</span></a>
+  </div>
+
+  <!-- 頁尾：手動更新提醒（含大巨蛋賽程的單位顯示，例：劍潭）-->
+  <div id="calFootNote" style="margin-top:18px;padding:10px 12px;display:none;
+    background:var(--sf);border:1px dashed var(--bd2);border-radius:var(--rs);">
+    <div style="font-size:9px;color:var(--tx3);line-height:1.7;">
+      ⚠️ <b>資料更新提醒</b><br>
+      大巨蛋中職賽程、演唱會場次、路跑賽事與國定假日均為手動建檔，部分活動日期每年由主辦單位重新公告。<br>
+      請於<b>每年球季開打前及年初</b>，透過下方來源連結至臺北大巨蛋、中華民國路跑協會與台北演唱會彙整更新清單，確保資訊正確。
+    </div>
   </div>
 </div>
 
@@ -3651,7 +3678,7 @@ function occView(mode, btn){
   document.getElementById('occ-sub-cal').style.display=(mode==='cal')?'block':'none';
   const ordSub=document.getElementById('occ-sub-ord');
   if(ordSub) ordSub.style.display=(mode==='ord')?'block':'none';
-  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); try{ fetchUnitEvents(); }catch(e){} try{ applyDomeRadar(); fetchDomeRadar(); }catch(e){} }
+  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); try{ fetchUnitEvents(); }catch(e){} try{ applyDomeRadar(); }catch(e){} }
   if(mode==='ord'){ loadOrders(false); }
 }
 
@@ -3722,6 +3749,8 @@ const CAL_EVENTS = [
 const SPORTS_EVENTS = [
   // 範例（取自金湖鎮公所公告，可保留或刪除）：
   {y:2026,m:6,d:5,name:'金湖盃桌球賽',type:'sport',end:7,note:'6/5-6/7（五六日）金湖綜合體育館，報名至5/1',icon:'🏓',src:'金湖鎮公所'},
+  // ── 路協賽事（中華民國路跑協會官方賽程，每年更新）──
+  {y:2026,m:1,d:24,name:'2026金門馬拉松 KINMEN MARATHON',type:'major',end:25,note:'1/24-25 金城田徑場，42K/21K/10K/4K，國際經典賽事、海內外跑者必搶，賽前住宿爆滿',icon:'🏃',src:'路跑協會'},
   // ── 在此貼上更多體育研習／競賽 ──
 ];
 
@@ -3753,17 +3782,114 @@ const CAL_EVENTS_JT = [
   // ── 12月 ──
   {y:2026,m:12,d:27,name:'台北101跨年光雕秀（開始）',type:'cultural',end:31,note:'12/27起每晚不同主題光雕秀',icon:'🎬',src:'臺北旅遊網'},
   {y:2026,m:12,d:31,name:'臺北最High新年城跨年晚會＋101煙火',type:'major',note:'年度最大跨年活動，市區住宿全面爆滿',icon:'🎆',src:'臺北旅遊網'},
-  // ── 大巨蛋演唱會（已確認場次，每場數萬人，周邊住宿商機）資料來源：2026演唱會彙整 ──
+  // ── 台北大型演唱會＆賽事（資料來源：蒲園飯店2026上半年彙整 garden-hotel.com.tw）──
+  //    以大巨蛋為主、並含小巨蛋/北流/TICC等大型場館，皆為周邊住宿商機。日期以主辦最終公告為準。
+  // 1月
+  {y:2026,m:1,d:2,name:'BABYMONSTER 小巨蛋演唱會',type:'major',end:3,note:'1/2–1/3 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
+  {y:2026,m:1,d:10,name:'Energy 小巨蛋演唱會',type:'major',end:11,note:'1/10–1/11 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
+  {y:2026,m:1,d:23,name:'王心凌 小巨蛋演唱會',type:'major',end:24,note:'1/23–1/24 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
+  // 2月
+  {y:2026,m:2,d:6,name:'台北超級馬拉松',type:'sport',end:8,note:'2/6–2/8 新生公園',icon:'🏃',src:'演唱會彙整'},
+  {y:2026,m:2,d:20,name:'江蕙 小巨蛋演唱會',type:'major',end:25,note:'2/20–22、2/24–25 台北小巨蛋，天后級多場',icon:'🎤',src:'演唱會彙整'},
+  {y:2026,m:2,d:25,name:'台日棒球國際交流賽',type:'major',end:28,note:'2/25–2/28 台北大巨蛋，國際賽事住房商機',icon:'🏟️',src:'大巨蛋'},
+  // 3月
+  {y:2026,m:3,d:4,name:'OneRepublic 小巨蛋演唱會',type:'major',note:'3/4 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
+  {y:2026,m:3,d:7,name:'(G)I-DLE 大巨蛋演唱會',type:'major',note:'3/7 台北大巨蛋，K-pop頂級女團，住房商機',icon:'🏟️',src:'大巨蛋'},
   {y:2026,m:3,d:20,name:'TWICE 大巨蛋演唱會',type:'major',end:22,note:'3/20–3/22 首攻大巨蛋，韓團頂級規模，住房商機',icon:'🏟️',src:'大巨蛋'},
-  {y:2026,m:4,d:null,name:'鄧紫棋 大巨蛋演唱會',type:'major',note:'4月連續多場，華語天后級，住房商機（確切日期以官方公告為準）',icon:'🏟️',src:'大巨蛋'},
-  {y:2026,m:4,d:25,name:'ONE OK ROCK 大巨蛋演唱會',type:'major',end:26,note:'4/25–4/26 首組攻蛋日本團，兩場完售，住房商機',icon:'🏟️',src:'大巨蛋'},
-  {y:2026,m:5,d:17,name:'aespa 大巨蛋演唱會',type:'major',note:'5/17 海外唯一大巨蛋場，K-pop頂級女團，住房商機',icon:'🏟️',src:'大巨蛋'},
+  // 4月
+  {y:2026,m:4,d:9,name:'鄧紫棋 大巨蛋演唱會',type:'major',end:12,note:'4/9–4/12 連4場，華語天后級，住房商機',icon:'🏟️',src:'大巨蛋'},
+  {y:2026,m:4,d:25,name:'ONE OK ROCK 大巨蛋演唱會',type:'major',note:'4/25 首組攻蛋日本團，完售，住房商機',icon:'🏟️',src:'大巨蛋'},
+  // 5月
+  {y:2026,m:5,d:15,name:'孫燕姿 大巨蛋演唱會',type:'major',end:17,note:'5/15、5/17 台北大巨蛋，華語天后，住房商機',icon:'🏟️',src:'大巨蛋'},
+  {y:2026,m:5,d:15,name:'動力火車 小巨蛋演唱會',type:'major',end:17,note:'5/15–5/17 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
+  // 7月
   {y:2026,m:7,d:3,name:'五月天 25週年大巨蛋演唱會',type:'major',end:12,note:'7/3、4、5、8、10、11、12 共7場，暑假最大住房商機',icon:'🏟️',src:'大巨蛋'},
+  // 12月
   {y:2026,m:12,d:30,name:'蔡依林 大巨蛋跨年演唱會',type:'major',note:'12/30 跨年檔期，與101煙火連動，住房全面爆滿',icon:'🏟️',src:'大巨蛋'},
   // ── 在此貼上更多台北活動（格式同上）──
 ];
 const SPORTS_EVENTS_JT = [
-  // ── 劍潭體育／研習競賽請填在這裡 ──
+  // ── 路協賽事（中華民國路跑協會官方賽程 sportsnet.org.tw；台北場次，賽前住宿商機）──
+  // ⚠️ 每年由路協重新公告，請於年初手動更新本清單。
+  {y:2026,m:1,d:11,name:'渣打臺北公益馬拉松',type:'major',note:'總統府/大佳河濱，42K/21K/11K/3K，萬人賽事、賽前住宿商機',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:3,d:8,name:'南山人壽臺北國道馬拉松',type:'major',note:'中山高五股-汐止高架段，42K/21K/接力',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:4,d:12,name:'TS WOMEN RUN 女子路跑',type:'major',note:'台北市府前廣場，21K/10K/3K',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:5,d:9,name:'中信台北101公益垂直馬拉松',type:'major',note:'台北101辦公大樓，登高賽',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:5,d:10,name:'臺北市第23屆舒跑杯路跑賽',type:'major',note:'台北市府前廣場，9K/3K',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:9,d:6,name:'Panasonic 台北城市路跑賽',type:'major',note:'凱達格蘭大道，約12.5K/3K',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:9,d:20,name:'長庚永慶盃路跑',type:'major',note:'凱達格蘭大道，10.5K/3K',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:10,d:25,name:'長榮航空馬拉松',type:'major',note:'總統府前，42K/21K/10K/3K，賽前住宿商機',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:11,d:1,name:'臺灣國家公園馬拉松-陽明山',type:'major',note:'陽明山中山樓，全馬/半馬/5K',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:11,d:22,name:'NS RUN 南山人壽半程馬拉松',type:'major',note:'總統府前，21K/10K/3K',icon:'🏃',src:'路跑協會'},
+  {y:2026,m:12,d:20,name:'臺北馬拉松 TAIPEI MARATHON',type:'major',note:'台北市府-體育園區，42K/21K，年度最大路跑、住宿全面爆滿',icon:'🏃',src:'路跑協會'},
+  // ── 2026 中職 in 臺北大巨蛋 賽程（共58場）──────────────────────────
+  // 資料來源：臺北大巨蛋官網 farglorydome.com.tw（賽程更新日 2026/3/20）
+  // ⚠️ 賽程每年由中職重新公告，請於每年球季開打前手動更新本清單。
+  // 3月
+  {y:2026,m:3,d:28,name:'中職 中信兄弟 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:3,d:29,name:'中職 味全龍 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  // 5月
+  {y:2026,m:5,d:1,name:'中職 中信兄弟 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:2,name:'中職 中信兄弟 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:3,name:'中職 中信兄弟 VS 台鋼雄鷹',type:'sport',note:'15:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:5,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:6,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:22,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:23,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:24,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'15:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:26,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:27,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:29,name:'中職 中信兄弟 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:30,name:'中職 中信兄弟 VS 富邦悍將',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:5,d:31,name:'中職 中信兄弟 VS 富邦悍將',type:'sport',note:'16:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  // 6月
+  {y:2026,m:6,d:2,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:6,d:3,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:6,d:5,name:'中職 富邦悍將 VS 統一7-ELEVEn獅',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:6,d:6,name:'中職 富邦悍將 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:6,d:7,name:'中職 富邦悍將 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  // 7月
+  {y:2026,m:7,d:21,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:7,d:22,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:7,d:24,name:'中職 富邦悍將 VS 樂天桃猿',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:7,d:25,name:'中職 富邦悍將 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:7,d:26,name:'中職 富邦悍將 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:7,d:28,name:'中職 味全龍 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:7,d:29,name:'中職 味全龍 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:7,d:31,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  // 8月
+  {y:2026,m:8,d:1,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:2,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'15:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:14,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:15,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:16,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'15:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:19,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:20,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:21,name:'中職 中信兄弟 VS 統一7-ELEVEn獅',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:22,name:'中職 中信兄弟 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:23,name:'中職 中信兄弟 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:25,name:'中職 樂天桃猿 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:26,name:'中職 樂天桃猿 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:28,name:'中職 統一7-ELEVEn獅 VS 樂天桃猿',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:29,name:'中職 統一7-ELEVEn獅 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:8,d:30,name:'中職 統一7-ELEVEn獅 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  // 9月
+  {y:2026,m:9,d:1,name:'中職 統一7-ELEVEn獅 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:2,name:'中職 統一7-ELEVEn獅 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:4,name:'中職 樂天桃猿 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:5,name:'中職 樂天桃猿 VS 富邦悍將',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:6,name:'中職 樂天桃猿 VS 富邦悍將',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:8,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:9,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:17,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:18,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:19,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:20,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'15:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:24,name:'中職 富邦悍將 VS 台鋼雄鷹',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:25,name:'中職 富邦悍將 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:26,name:'中職 統一7-ELEVEn獅 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  {y:2026,m:9,d:27,name:'中職 統一7-ELEVEn獅 VS 台鋼雄鷹',type:'sport',note:'15:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
+  // ── 每年球季前請手動至 farglorydome.com.tw 更新賽程 ──
 ];
 // 劍潭 AI 月份節慶（每月關鍵檔期；先放台北通用節慶，劍潭可自行增修）
 const FESTIVALS_JT = {
@@ -4351,11 +4477,20 @@ async function fetchGoogleCalNews(nc){
 
 // ── 大巨蛋活動雷達（依單位 domeRadar 設定；自動抓 Google 新聞，含可點原文連結）──
 // 顯示/隱藏整個雷達區塊：只有設定 domeRadar 的單位（如劍潭）才出現
+let _domeRadarLoaded=false;
 function applyDomeRadar(){
   const dr=(typeof unitCfg==='function')?unitCfg().domeRadar:null;
   const wrap=document.getElementById('domeRadarWrap');
   if(!wrap) return;
   wrap.style.display=dr?'block':'none';
+  const foot=document.getElementById('calFootNote');
+  if(foot) foot.style.display=dr?'block':'none';
+  const srcb=document.getElementById('calSrcBtns');
+  if(srcb) srcb.style.display=dr?'flex':'none';
+  // 切換單位時重設雷達為收合、未載入狀態
+  _domeRadarLoaded=false;
+  const body=document.getElementById('domeRadarBody'); if(body) body.style.display='none';
+  const arrow=document.getElementById('domeRadarArrow'); if(arrow) arrow.textContent='▼';
   if(dr){
     const t=document.getElementById('domeRadarTitle'); if(t&&dr.title) t.textContent=dr.title;
     const d=document.getElementById('domeRadarDesc'); if(d&&dr.desc) d.textContent=dr.desc;
@@ -4363,6 +4498,16 @@ function applyDomeRadar(){
 }
 // 可能是場次新聞的關鍵字（標題含這些 → 標紅，提示可能要補進行事曆）
 const DOME_ACT_KW=['演唱會','售票','開賣','加場','賽事','場次','開唱','巡迴','完售','搶票','演出','售罄','預售'];
+// 收合／展開大巨蛋雷達；首次展開才抓新聞（避免無謂請求）
+function toggleDomeRadar(){
+  const body=document.getElementById('domeRadarBody');
+  const arrow=document.getElementById('domeRadarArrow');
+  if(!body) return;
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(arrow) arrow.textContent=open?'▲':'▼';
+  if(open && !_domeRadarLoaded){ _domeRadarLoaded=true; try{ fetchDomeRadar(); }catch(e){} }
+}
 async function fetchDomeRadar(){
   const dr=(typeof unitCfg==='function')?unitCfg().domeRadar:null;
   const box=document.getElementById('domeRadar');
@@ -5774,7 +5919,7 @@ function refreshActivePage(){
       if(ordSub && ordSub.style.display!=='none'){ ordScrolled=false; loadOrders(true); }
       // 觀光行事曆新聞
       const calSub=document.getElementById('occ-sub-cal');
-      if(calSub && calSub.style.display!=='none'){ try{ fetchKmdnNews(); }catch(e){} try{ fetchDomeRadar(); }catch(e){} }
+      if(calSub && calSub.style.display!=='none'){ try{ fetchKmdnNews(); }catch(e){} try{ const b=document.getElementById('domeRadarBody'); if(b&&b.style.display!=='none') fetchDomeRadar(); }catch(e){} }
     }
     else if(id==='comp'){ try{ if(getCloudUrl()){ pullFromCloud().then(s=>{ if(s){ loadCompData(); buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); } }); } }catch(e){} }
     else if(id==='tri'){ try{ loadTriData(); fetchTriNews(); }catch(e){} }
