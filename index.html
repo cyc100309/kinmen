@@ -1233,12 +1233,12 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     金門全年觀光節慶與假期行事曆，每月日曆下方附當月活動說明，有確定日期者已於日曆上標記。
   </div>
 
-  <div class="lbl" style="margin-bottom:8px;"><span>📅 年度行事曆</span></div>
+  <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;"><span>📅 年度行事曆</span></div>
   <div id="calGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
 
   <!-- 在地年度大型活動（依單位；常態清單，提醒每年必注意；預設收合） -->
   <div style="margin-top:22px;">
-    <div class="lbl" style="margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleAnnual()">
+    <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleAnnual()">
       <span>🎯 在地年度大型活動（必注意）</span>
       <span id="annualArrow" style="font-size:12px;color:var(--tx3);">▼</span>
     </div>
@@ -1252,7 +1252,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 
   <!-- 行事曆下方在地新聞（依單位：金門日報 RSS／劍潭 Google 觀光新聞）— 置於最下方 -->
   <div style="margin-top:22px;">
-    <div class="lbl" style="margin-bottom:8px;">
+    <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;">
       <span id="calNewsTitle">📰 金門日報・在地新聞</span>
       <span class="lbl-r" style="font-size:9px;color:var(--tx3);">🔴 標紅=疑似活動</span>
     </div>
@@ -1269,7 +1269,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 
   <!-- 資料來源快速連結（含大巨蛋賽程的單位顯示，例：劍潭）-->
   <div id="calSrcBtns" style="margin-top:18px;display:none;flex-direction:column;gap:7px;">
-    <div class="lbl" style="margin-bottom:2px;"><span>🔗 賽事／活動官方來源</span></div>
+    <div class="lbl" style="margin-bottom:2px;padding-left:0;padding-right:0;"><span>🔗 賽事／活動官方來源</span></div>
     <a href="https://www.sportsnet.org.tw/schedule.php" target="_blank" style="text-decoration:none;display:flex;
       align-items:center;justify-content:space-between;background:var(--sf2);border:1px solid var(--bd);
       border-radius:var(--rs);padding:10px 12px;">
