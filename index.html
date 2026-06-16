@@ -6029,13 +6029,17 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 // ── 從後台回到前台時自動重新整理資料（PWA 常駐後重開不會停在舊資料）──
 let _bgHiddenAt=0;
+// PWA／瀏覽器從 bfcache 恢復（從桌面 icon 重開常走此路徑，不觸發 DOMContentLoaded）
+window.addEventListener('pageshow',(e)=>{
+  if(e.persisted){ try{ refreshActivePage(); }catch(_){} }
+});
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
     _bgHiddenAt=Date.now();
   } else if(document.visibilityState==='visible'){
-    // 離開超過 30 秒才重抓，避免短暫切換就刷新
+    // 離開超過 5 秒才重抓，避免短暫切換就刷新
     const away=Date.now()-_bgHiddenAt;
-    if(_bgHiddenAt && away>30000){
+    if(_bgHiddenAt && away>5000){
       refreshActivePage();
     }
   }
@@ -6046,7 +6050,9 @@ function refreshActivePage(){
     const active=document.querySelector('.page.active');
     const id=active?active.id.replace('page-',''):'';
     if(id==='occ'){
-      // 營運分析：若正在看「網路訂單」子頁，強制重抓即時訂單
+      // 營運分析：以雲端為準刷新主數據（住宿/餐飲/場地），不需手動拉掉重開
+      try{ if(getCloudUrl() && typeof forceSyncFromCloud==='function'){ forceSyncFromCloud(true); } }catch(e){}
+      // 若正在看「網路訂單」子頁，強制重抓即時訂單
       const ordSub=document.getElementById('occ-sub-ord');
       if(ordSub && ordSub.style.display!=='none'){ ordScrolled=false; loadOrders(true); }
       // 觀光行事曆新聞
@@ -6323,16 +6329,17 @@ async function pullFromCloud(){
 
 // 強制同步：無視本機時間戳，直接以雲端為真相源覆蓋本機。
 // 用於「別台裝置顯示舊資料、普通載入被時間戳擋住」的情況。
-async function forceSyncFromCloud(){
+async function forceSyncFromCloud(silent){
+  const say=(msg,ok)=>{ if(!silent){ try{ showSyncStatus(msg,ok); }catch(e){} } };
   const url=getCloudUrl();
-  if(!url){ showSyncStatus('未設定雲端網址',false); return false; }
-  showSyncStatus('更新中...',true);
+  if(!url){ say('未設定雲端網址',false); return false; }
+  say('更新中...',true);
   try{
     const r=await fetch(url+'?unit='+encodeURIComponent(getUnit())+'&t='+Date.now());
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
     if(!d || (!d.occ_cur && !d.comp_prices)){
-      showSyncStatus('雲端尚無資料',false);
+      say('雲端尚無資料',false);
       return false;
     }
     const builtin=unitCfg().preferBuiltin;
@@ -6354,10 +6361,10 @@ async function forceSyncFromCloud(){
     loadSavedOccData();
     init();
     try{ if(typeof loadCompData==='function'){ buildLists&&buildLists(); buildBarChart&&buildBarChart(); calcStats&&calcStats(); loadUpdateTime&&loadUpdateTime(); } }catch(e){}
-    showSyncStatus('✓ 已更新為雲端最新資料',true);
+    say('✓ 已更新為雲端最新資料',true);
     return true;
   }catch(e){
-    showSyncStatus('更新失敗：'+e.message,false);
+    say('更新失敗：'+e.message,false);
     return false;
   }
 }
@@ -6406,12 +6413,20 @@ async function initWithCloudSync(){
   migrateLegacyKeys();
   loadCfg();
   loadCompData();
-  const synced=await pullFromCloud();
-  if(synced){
-    // 雲端可能帶回更新的競品房價，重新套用到 COMPETITORS 後再由 init 重畫
-    loadCompData();
+  // 每次打開都以雲端為準（無視本機時間戳），確保營運數據是最新，
+  // 不需要再手動把整頁拉掉重開
+  let synced=false;
+  try{
+    if(getCloudUrl() && typeof forceSyncFromCloud==='function'){
+      synced=await forceSyncFromCloud(true);
+    }else{
+      synced=await pullFromCloud();
+      if(synced) loadCompData();
+    }
+  }catch(e){
+    try{ synced=await pullFromCloud(); if(synced) loadCompData(); }catch(_){}
   }
-  setTimeout(()=>{ init(); if(synced) showSyncStatus('✓ 已同步最新資料',true); },50);
+  setTimeout(()=>{ init(); },50);
 }
 
 function saveCloudSettings(){
