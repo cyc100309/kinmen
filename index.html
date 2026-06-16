@@ -5901,12 +5901,16 @@ function parseTwoYear(buf){
 
   const MN=['一月','二月','三月','四月','五月','六月',
             '七月','八月','九月','十月','十一月','十二月'];
-  const empty=()=>MN.map(m=>({m,stays:0,guests:0,room:0,rev:0,adr:0,adr_p:0,rest_am:0,rest_noon:0,rest_pm:0,rest_total:0}));
+  const empty=()=>MN.map(m=>({m,stays:0,guests:0,room:0,rev:0,adr:0,adr_p:0,
+    rest_am:0,rest_noon:0,rest_pm:0,rest_night:0,rest_total:0,
+    venue:{am:0,noon:0,pm:0,am_u:0,noon_u:0,pm_u:0,total:0,total_u:0,total_r:0}}));
   const cur=empty(), prev=empty();
 
   const toN=v=>{const n=parseFloat(String(v===undefined||v===null?'':v).replace(/,/g,''));return isNaN(n)?0:n;};
   const toI=v=>{const n=parseInt(String(v===undefined||v===null?'':v).replace(/,/g,''));return isNaN(n)?0:n;};
   const toP=v=>{const n=toN(v);return Math.abs(n)>1?n:n*100;};
+  // 場地使用率報表本為小數（0.252），渲染端會自行 ×100，故此處保留小數
+  const toRate=v=>{const n=toN(v);return Math.abs(n)>1.5?n/100:n;};
 
   let mi=-1;
   for(let i=0;i<raw.length;i++){
@@ -5919,11 +5923,19 @@ function parseTwoYear(buf){
     if(c1.includes('本年')){
       cur[mi]={m:MN[mi],stays:toI(r[2]),guests:toI(r[3]),room:toP(r[4]),
         rev:toI(r[5]),adr:toI(r[6]),adr_p:toI(r[7]),
-        rest_am:toI(r[10]),rest_noon:toI(r[14]),rest_pm:toI(r[18]),rest_total:toI(r[23])};
+        rest_am:toI(r[10]),rest_noon:toI(r[14]),rest_pm:toI(r[18]),
+        rest_night:toI(r[21]),rest_total:toI(r[23]),
+        venue:{am:toI(r[24]),am_u:toRate(r[25]),noon:toI(r[26]),noon_u:toRate(r[27]),
+               pm:toI(r[28]),pm_u:toRate(r[29]),
+               total:toI(r[30]),total_u:toRate(r[31]),total_r:toI(r[32])}};
     } else if(c1.includes('去年')||c1.includes('上年')){
       prev[mi]={m:MN[mi],stays:toI(r[2]),guests:toI(r[3]),room:toP(r[4]),
         rev:toI(r[5]),adr:toI(r[6]),adr_p:toI(r[7]),
-        rest_am:toI(r[10]),rest_noon:toI(r[14]),rest_pm:toI(r[18]),rest_total:toI(r[23])};
+        rest_am:toI(r[10]),rest_noon:toI(r[14]),rest_pm:toI(r[18]),
+        rest_night:toI(r[21]),rest_total:toI(r[23]),
+        venue:{am:toI(r[24]),am_u:toRate(r[25]),noon:toI(r[26]),noon_u:toRate(r[27]),
+               pm:toI(r[28]),pm_u:toRate(r[29]),
+               total:toI(r[30]),total_u:toRate(r[31]),total_r:toI(r[32])}};
     }
   }
   return{year,cur,prev};
