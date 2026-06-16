@@ -82,8 +82,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 
 .lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);
   padding:14px 18px 8px;font-family:'DM Mono',monospace;
-  display:flex;align-items:center;justify-content:flex-start;}
-.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;margin-left:auto;
+  display:flex;align-items:center;justify-content:space-between;}
+.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;
   font-family:'Noto Sans TC',sans-serif;color:var(--tx3);}
 
 /* KPI */
@@ -324,8 +324,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 /* Section label */
 .lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);
   padding:14px 18px 8px;font-family:'DM Mono',monospace;
-  display:flex;align-items:center;justify-content:flex-start;}
-.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;margin-left:auto;
+  display:flex;align-items:center;justify-content:space-between;}
+.lbl-r{font-size:10px;text-transform:none;letter-spacing:0;
   font-family:'Noto Sans TC',sans-serif;color:var(--tx3);}
 
 /* Summary cards */
@@ -348,7 +348,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 .chart-card{margin:10px 18px 0;background:var(--sf);border-radius:var(--r);
   padding:14px;border:1px solid var(--bd);}
 .chart-title{font-size:12px;font-weight:500;color:var(--tx);margin-bottom:12px;
-  display:flex;align-items:center;justify-content:flex-start;}
+  display:flex;align-items:center;justify-content:space-between;}
 .env-tab{flex:1;padding:8px 4px;background:transparent;border:none;border-bottom:2px solid transparent;
   color:var(--tx3);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:400;}
 .env-tab.on{color:var(--ac);border-bottom-color:var(--ac);font-weight:600;}
@@ -547,9 +547,9 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
       <div style="font-size:30px;flex-shrink:0;">🌳</div>
       <div style="flex:1;">
         <div style="font-size:16px;font-weight:700;color:#F5F0E6;">劍潭花園會館</div>
-        <div style="font-size:11px;color:#A8B4C0;margin-top:3px;">救國團劍潭青年活動中心</div>
+        <div style="font-size:11px;color:#A8B4C0;margin-top:3px;">救國團劍潭青年活動中心・測試儀表板</div>
       </div>
-      <div style="font-size:10px;color:#5B9BD5;flex-shrink:0;background:rgba(91,155,213,.12);border:1px solid rgba(91,155,213,.4);border-radius:10px;padding:3px 8px;">臺北</div>
+      <div style="font-size:10px;color:#5B9BD5;flex-shrink:0;background:rgba(91,155,213,.12);border:1px solid rgba(91,155,213,.4);border-radius:10px;padding:3px 8px;">🔒 測試</div>
     </button>
     <button onclick="enterUnit('other')" style="display:flex;align-items:center;gap:14px;
       background:#13202E;border:1px dashed #3A4A5A;border-radius:16px;
@@ -1233,63 +1233,33 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     金門全年觀光節慶與假期行事曆，每月日曆下方附當月活動說明，有確定日期者已於日曆上標記。
   </div>
 
-  <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;"><span>📅 年度行事曆</span></div>
+  <div class="lbl" style="margin-bottom:8px;"><span>📅 年度行事曆</span></div>
   <div id="calGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
 
-  <!-- 在地年度大型活動（依單位；常態清單，提醒每年必注意；預設收合） -->
+  <!-- 在地年度大型活動（常態清單，提醒每年必注意） -->
   <div style="margin-top:22px;">
-    <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleAnnual()">
-      <span>🎯 在地年度大型活動（必注意）</span>
-      <span id="annualArrow" style="font-size:12px;color:var(--tx3);">▼</span>
-    </div>
-    <div id="annualDesc" style="font-size:9px;color:var(--tx3);margin-bottom:10px;line-height:1.5;">
+    <div class="lbl" style="margin-bottom:8px;"><span>🎯 在地年度大型活動（必注意）</span></div>
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:10px;line-height:1.5;">
       金門每年固定登場的重點活動，新進同仁可快速掌握。實際日期每年微調，以官方公告為準。
     </div>
-    <div id="annualEvents" style="display:none;flex-direction:column;gap:7px;"></div>
+    <div id="annualEvents" style="display:flex;flex-direction:column;gap:7px;"></div>
   </div>
 
-
-
-  <!-- 行事曆下方在地新聞（依單位：金門日報 RSS／劍潭 Google 觀光新聞）— 置於最下方 -->
+  <!-- 金門日報在地新聞（自動抓取 + 疑似活動標記）— 置於最下方 -->
   <div style="margin-top:22px;">
-    <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;">
-      <span id="calNewsTitle">📰 金門日報・在地新聞</span>
+    <div class="lbl" style="margin-bottom:8px;">
+      <span>📰 金門日報・在地新聞</span>
       <span class="lbl-r" style="font-size:9px;color:var(--tx3);">🔴 標紅=疑似活動</span>
     </div>
-    <div id="calNewsDesc" style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5;">
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5;">
       自動更新金門日報地方新聞與快訊。標「疑似活動」者，可手動填入行事曆 Excel。
     </div>
     <div id="kmdnNews" style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入在地新聞中...</div>
+      <div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入金門日報新聞中...</div>
     </div>
     <button id="kmdnRefresh" onclick="fetchKmdnNews()" style="margin-top:8px;width:100%;padding:7px;
       background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);
       font-size:10px;cursor:pointer;">🔄 重新整理新聞</button>
-  </div>
-
-  <!-- 資料來源快速連結（含大巨蛋賽程的單位顯示，例：劍潭）-->
-  <div id="calSrcBtns" style="margin-top:18px;display:none;flex-direction:column;gap:7px;">
-    <div class="lbl" style="margin-bottom:2px;padding-left:0;padding-right:0;"><span>🔗 賽事／活動官方來源</span></div>
-    <a href="https://www.sportsnet.org.tw/schedule.php" target="_blank" style="text-decoration:none;display:flex;
-      align-items:center;justify-content:space-between;background:var(--sf2);border:1px solid var(--bd);
-      border-radius:var(--rs);padding:10px 12px;">
-      <span style="font-size:11px;color:var(--tx);">🏃 中華民國路跑協會・賽事行事曆</span>
-      <span style="font-size:11px;color:var(--ac);">前往 →</span></a>
-    <a href="https://www.taipeidome.com.tw/Web/Dome/Calendar/" target="_blank" style="text-decoration:none;display:flex;
-      align-items:center;justify-content:space-between;background:var(--sf2);border:1px solid var(--bd);
-      border-radius:var(--rs);padding:10px 12px;">
-      <span style="font-size:11px;color:var(--tx);">🏟️ 臺北大巨蛋・最新消息（賽程／活動）</span>
-      <span style="font-size:11px;color:var(--ac);">前往 →</span></a>
-  </div>
-
-  <!-- 頁尾：手動更新提醒（含大巨蛋賽程的單位顯示，例：劍潭）-->
-  <div id="calFootNote" style="margin-top:18px;padding:10px 12px;display:none;
-    background:var(--sf);border:1px dashed var(--bd2);border-radius:var(--rs);">
-    <div style="font-size:9px;color:var(--tx3);line-height:1.7;">
-      ⚠️ <b>資料更新提醒</b><br>
-      大巨蛋中職賽程、演唱會場次、路跑賽事與國定假日均為手動建檔，部分活動日期每年由主辦單位重新公告。<br>
-      請於<b>每年球季開打前及年初</b>，透過下方來源連結至臺北大巨蛋、中華民國路跑協會與台北演唱會彙整更新清單，確保資訊正確。
-    </div>
   </div>
 </div>
 
@@ -1344,20 +1314,20 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   </div>
 
   <div id="ordBody" style="display:none;">
-    <!-- KPI 摘要 -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-      <div class="ord-kpi"><div class="ord-kpi-l">有效訂單</div><div class="ord-kpi-v" id="ordKpiCount">—</div><div class="ord-kpi-s" id="ordKpiSub1">—</div></div>
-      <div class="ord-kpi"><div class="ord-kpi-l">訂房總額</div><div class="ord-kpi-v" id="ordKpiRev">—</div><div class="ord-kpi-s" id="ordKpiAdr">—</div></div>
-      <div class="ord-kpi"><div class="ord-kpi-l">平均訂單金額</div><div class="ord-kpi-v" id="ordKpiAvg">—</div><div class="ord-kpi-s">每筆有效訂單</div></div>
-      <div class="ord-kpi"><div class="ord-kpi-l">取消率</div><div class="ord-kpi-v" id="ordKpiCancel">—</div><div class="ord-kpi-s" id="ordKpiCancelSub">—</div></div>
-    </div>
-
     <!-- 今日動態（基準：訂房日/收信日 = 今天） -->
     <div class="lbl" style="margin-bottom:8px;padding-left:0;padding-right:0;"><span>📨 今日動態</span><span class="lbl-r" id="ordTodayDate" style="font-size:9px;color:var(--tx3);">—</span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
       <div class="ord-kpi"><div class="ord-kpi-l">今日新增</div><div class="ord-kpi-v" id="ordTodayNew" style="color:var(--green);">—</div><div class="ord-kpi-s">筆</div></div>
       <div class="ord-kpi"><div class="ord-kpi-l">今日取消</div><div class="ord-kpi-v" id="ordTodayCancel" style="color:var(--red);">—</div><div class="ord-kpi-s">筆</div></div>
       <div class="ord-kpi"><div class="ord-kpi-l">今日訂單總額</div><div class="ord-kpi-v" id="ordTodayRev">—</div><div class="ord-kpi-s">新增訂房</div></div>
+    </div>
+
+    <!-- KPI 摘要 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div class="ord-kpi"><div class="ord-kpi-l">有效訂單</div><div class="ord-kpi-v" id="ordKpiCount">—</div><div class="ord-kpi-s" id="ordKpiSub1">—</div></div>
+      <div class="ord-kpi"><div class="ord-kpi-l">訂房總額</div><div class="ord-kpi-v" id="ordKpiRev">—</div><div class="ord-kpi-s" id="ordKpiAdr">—</div></div>
+      <div class="ord-kpi"><div class="ord-kpi-l">平均訂單金額</div><div class="ord-kpi-v" id="ordKpiAvg">—</div><div class="ord-kpi-s">每筆有效訂單</div></div>
+      <div class="ord-kpi"><div class="ord-kpi-l">取消率</div><div class="ord-kpi-v" id="ordKpiCancel">—</div><div class="ord-kpi-s" id="ordKpiCancelSub">—</div></div>
     </div>
 
     <!-- 各通路訂單數 / 營收占比 -->
@@ -1457,7 +1427,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 <div class="hdr">
   <div>
     <div class="logo">競爭房價監控</div>
-    <div class="sub" id="compMarketSub">金門旅宿市場・今日定價分析</div>
+    <div class="sub">金門旅宿市場・今日定價分析</div>
   </div>
   <div style="text-align:right;">
     <div class="date-badge" id="todayDate"></div>
@@ -1560,7 +1530,12 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 </div>
 
 <!-- Category tabs -->
-<div class="cat-tabs" id="catTabs"></div>
+<div class="cat-tabs" id="catTabs">
+  <button class="cat-tab on" onclick="filterCat('all',this)">全部（14）</button>
+  <button class="cat-tab" onclick="filterCat('luxury',this)">精品旅館（3）</button>
+  <button class="cat-tab" onclick="filterCat('suite',this)">套房類（6）</button>
+  <button class="cat-tab" onclick="filterCat('hostel',this)">背包客棧（3）</button>
+</div>
 
 <!-- Bar chart -->
 <div class="chart-card">
@@ -1571,35 +1546,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   <div id="barChart"></div>
 </div>
 
-<!-- 歷史價格走勢（本中心獨立 + 三價位分類 + 14家總圖） -->
-<div class="lbl" style="margin-top:18px;"><span>價格走勢追蹤</span><span id="histSubInfo" style="font-size:9px;color:var(--tx3);text-transform:none;letter-spacing:0;">累積每日上傳紀錄</span></div>
-
-<div class="chart-card" id="histCardSelf">
-  <div class="chart-title"><span>🎖️ 本中心定價走勢</span></div>
-  <div id="histChartSelf"></div>
-</div>
-
-<div class="chart-card" id="histCardHigh">
-  <div class="chart-title"><span id="histTitleHigh">高價位（精品/商務/星級）</span></div>
-  <div id="histChartHigh"></div>
-</div>
-
-<div class="chart-card" id="histCardMid">
-  <div class="chart-title"><span id="histTitleMid">中價位（一般/套房/民宿）</span></div>
-  <div id="histChartMid"></div>
-</div>
-
-<div class="chart-card" id="histCardHostel">
-  <div class="chart-title"><span id="histTitleHostel">背包客棧</span></div>
-  <div id="histChartHostel"></div>
-</div>
-
-<div class="chart-card" id="histCardAll">
-  <div class="chart-title"><span id="histAllTitle">全部總覽</span><span style="font-size:10px;color:var(--tx3);">含本中心</span></div>
-  <div id="histChartAll"></div>
-</div>
-
-<!-- 即時各家清單（保留，供查 Agoda 與當日明細） -->
+<!-- Lists -->
 <div id="compLists"></div>
 </div><!-- /page-comp -->
 
@@ -2808,6 +2755,10 @@ function enterUnit(unit){
     try{ localStorage.setItem('chosenUnit','kinmen'); }catch(e){}
     bootUnit();
   } else if(unit==='jiantan'){
+    // 測試階段：需輸入驗證碼
+    const code=prompt('劍潭花園會館為測試儀表板，請輸入驗證碼：');
+    if(code===null) return;              // 取消
+    if(code.trim()!=='0000'){ alert('驗證碼錯誤，無法進入。'); return; }
     const cover=document.getElementById('unitCover');
     if(cover) cover.style.display='none';
     try{ localStorage.setItem('chosenUnit','jiantan'); }catch(e){}
@@ -2834,31 +2785,6 @@ function applyUnitBranding(unit){
   cfg.name=u.name;
   if(u.city) cfg.city=u.city;
   try{ applyCfg(); }catch(e){}
-  try{ applyTransportNav(u); }catch(e){}
-  try{ applyCalNewsLabels(); }catch(e){}
-  try{ applyCalSrcBtns(); }catch(e){}
-  // 競爭房價：依單位切換對手清單與分類頁籤（金門 14 家／劍潭 11 家兩群組）
-  try{ applyUnitCompetitors(); buildCatTabs(); }catch(e){}
-  // 競爭房價頁副標：依單位市場名稱（無 compMarket 則用 city 備援）
-  try{
-    const sub=document.getElementById('compMarketSub');
-    if(sub){ const mk=u.compMarket||((u.city||'')+'旅宿市場'); sub.textContent=mk+'・今日定價分析'; }
-  }catch(e){}
-}
-// 交通概況分頁：依單位顯示/隱藏與改名（金門專屬；其他單位可自訂主題或關閉）
-function applyTransportNav(u){
-  const t=(u&&u.transport)||{enabled:false,navLabel:'交通概況'};
-  const nav=document.getElementById('nav-tri');
-  if(nav){
-    nav.style.display=t.enabled?'':'none';
-    const lab=nav.querySelector('.ni-l');
-    if(lab&&t.navLabel) lab.textContent=t.navLabel;
-  }
-  // 若目前正停在被隱藏的交通分頁，自動切回營運分析
-  if(!t.enabled){
-    const triPage=document.getElementById('page-tri');
-    if(triPage && triPage.classList.contains('on')){ try{ switchPage('occ'); }catch(e){} }
-  }
 }
 // 返回封面換單位（清除記憶）
 function backToCover(){
@@ -3020,7 +2946,6 @@ function applyUnitMemory(){
 const UNITS={
   kinmen:{
     logo:'金門戰地文旅', name:'救國團金門青年活動中心', city:'金門縣',
-    compMarket:'金門旅宿市場',  // 競爭房價頁副標：市場名稱（新單位照填）
     ordersCsv:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSyKGXsmNov21aAHKlykG38Pq5UmtkzMIgzFDzgTi3k0GiZhgF8ZBioSiIzx_X9AlVhXsezQL4nm1F6/pub?gid=1880038165&single=true&output=csv',
     ordersApi:'https://script.google.com/macros/s/AKfycbxjff5GwoPAGbQjn9U05KLPSowKP1lePEj3Yq1_431KE0-4RScexlL8nwhuRMB_Nm26nA/exec',
     sheetsUrl:'https://docs.google.com/spreadsheets/d/e/2PACX-1vTaluvqiqTvp4VWqYqVDBbCt4n_T7cNGHSjFXqvblt9YiK0Xn7o7LHYgGbyuFlW8xs2SRlSjlHGl8Em/pub?output=csv',
@@ -3045,18 +2970,11 @@ const UNITS={
 - 季節機會：暑假有許多球賽（棒球、籃球等）帶來團體住宿需求。
 - 核心使命：兼顧旅宿營收與救國團公益服務雙重身分。`,
     aiMarket:'【小三通旅客動態】\n${triCtx}\n陸客自由行比例高，為金門重要客源',
-    useKinmenData:true,   // 是否帶入小三通/金門競品/金門新聞
-    // 交通概況分頁：金門專屬（小三通水運＋航班空運），由 useKinmenData 帶出內建內容
-    transport:{ enabled:true, navLabel:'交通概況', kinmenBuiltin:true },
-    // 行事曆下方在地新聞來源：金門用金門日報 RSS
-    calNews:{ type:'rss', title:'金門日報・在地新聞', desc:'自動更新金門日報地方新聞與快訊。標「疑似活動」者，可手動填入行事曆 Excel。',
-      feeds:[ {name:'地方新聞', url:'https://www.kmdn.gov.tw/1117/1271/1272/RSSList'},
-              {name:'快訊',     url:'https://www.kmdn.gov.tw/1117/1271/287081/RSSList'} ] }
+    useKinmenData:true   // 是否帶入小三通/金門競品/金門新聞
   },
   jiantan:{
     logo:'劍潭花園會館', name:'救國團劍潭青年活動中心', city:'臺北市',
-    compMarket:'台北旅宿市場',  // 競爭房價頁副標：市場名稱（新單位照填）
-    ordersApi:'https://script.google.com/macros/s/AKfycbxUG9QWp61apLgKLb1muFJkfu4_B7r0actEkRYASntTWFZobGlOMGHUhPaQLkYDcBVV0g/exec',  // 劍潭 NABE 訂單 API（doGet）
+    ordersApi:'',      // 測試階段：尚未建立劍潭自己的訂單 API（拿到 /exec 再填）
     sheetsUrl:'',      // 測試階段：尚未建立劍潭自己的營運試算表
     seedKey:null,      // 劍潭暫無種子資料
     aiIntro:'你現在服務的客戶是「救國團劍潭青年活動中心（劍潭花園會館）」，提供住宿、中式餐廳、研習／會議場地三項服務，位於臺北市劍潭、緊鄰捷運與圓山花博、士林夜市商圈。主要客源含研習團體、學校與社團、企業會議、國旅散客與背包旅客。\n\n你深知劍潭的特殊性：位處台北市區、交通便利（捷運劍潭站）、鄰近士林夜市與圓山花博為觀光賣點、研習與會議場地需求穩定、住宿與餐飲受台北都會與會展檔期影響大。',
@@ -3066,19 +2984,7 @@ const UNITS={
 - （以下為待補充的單位細節，可由劍潭單位補上：客房結構、通路結構、異業合作、團隊規模、經營者方針）`,
     aiMarket:'【市場背景】\n台北都會旅宿市場競爭激烈，研習與會議檔期、士林夜市與圓山周邊觀光、學校與企業團體為主要需求來源。',
     useKinmenData:false, // 劍潭不帶金門限定的小三通/競品/新聞
-    preferBuiltin:false, // 已接雲端同步：讀真實上傳資料（未上傳前 fallback 用內建 JT 資料集）
-    // 交通概況分頁：劍潭非金門，預設關閉。未來要做台北交通／捷運／會展檔期等主題時，
-    // 把 enabled 改 true、navLabel 改成想要的分頁名稱，再於 page-tri 換上自訂內容。
-    transport:{ enabled:false, navLabel:'交通概況', kinmenBuiltin:false },
-    // 行事曆下方在地新聞來源：劍潭用 Google 新聞，抓台北旅遊／活動／住宿等觀光分類
-    calNews:{ type:'google', title:'台北觀光・即時新聞', desc:'自動抓取 Google 新聞中台北旅遊、活動、住宿等觀光類消息，預設顯示近三天，較早新聞可點下方展開。標「疑似活動」者可手動填入行事曆。',
-      queries:[ {name:'旅遊', q:'台北 旅遊 觀光'},
-                {name:'活動', q:'台北 活動 展覽 OR 市集 OR 演唱會'},
-                {name:'住宿', q:'台北 住宿 OR 飯店 OR 旅展'},
-                {name:'士林圓山', q:'士林 OR 圓山 OR 劍潭 活動 OR 景點'} ] },
-    // 行事曆活動自動抓取：臺北旅遊網 Open API（背景補充，抓不到不影響手填清單）
-    // base 後會自動帶 ?begin=當年1/1&end=當年12/31&page=N，透過 allorigins 代理呼叫
-    eventsApi:{ base:'https://www.travel.taipei/open-api/zh-tw/Events/Calendar', pages:12, src:'臺北旅遊網' }
+    preferBuiltin:true   // 測試階段：永遠用內建 JT 資料集，忽略殘留舊存檔（接真實資料後改 false）
   }
 };
 // 目前單位（依封面選擇 / 裝置記憶；預設金門）
@@ -3658,7 +3564,7 @@ function occView(mode, btn){
   document.getElementById('occ-sub-cal').style.display=(mode==='cal')?'block':'none';
   const ordSub=document.getElementById('occ-sub-ord');
   if(ordSub) ordSub.style.display=(mode==='ord')?'block':'none';
-  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); try{ fetchUnitEvents(); }catch(e){} try{ applyCalSrcBtns(); }catch(e){} }
+  if(mode==='cal'){ buildCalendar(); renderAnnualEvents(); fetchKmdnNews(); }
   if(mode==='ord'){ loadOrders(false); }
 }
 
@@ -3729,8 +3635,6 @@ const CAL_EVENTS = [
 const SPORTS_EVENTS = [
   // 範例（取自金湖鎮公所公告，可保留或刪除）：
   {y:2026,m:6,d:5,name:'金湖盃桌球賽',type:'sport',end:7,note:'6/5-6/7（五六日）金湖綜合體育館，報名至5/1',icon:'🏓',src:'金湖鎮公所'},
-  // ── 路協賽事（中華民國路跑協會官方賽程，每年更新）──
-  {y:2026,m:1,d:24,name:'2026金門馬拉松 KINMEN MARATHON',type:'major',end:25,note:'1/24-25 金城田徑場，42K/21K/10K/4K，國際經典賽事、海內外跑者必搶，賽前住宿爆滿',icon:'🏃',src:'路跑協會'},
   // ── 在此貼上更多體育研習／競賽 ──
 ];
 
@@ -3738,138 +3642,10 @@ const SPORTS_EVENTS = [
 // 填寫格式同金門 CAL_EVENTS：{y:2026,m:6,d:5,name:'活動名稱',type:'major',end:7,note:'說明',icon:'🎪',src:'來源'}
 // type 可用：major(大型活動) / cultural(節慶文化) / holiday(國定假日) / season(旅遊旺季) / sport(體育活動) / exhibit(展覽)
 const CAL_EVENTS_JT = [
-  // ── 資料來源：臺北旅遊網 2026 活動年曆 https://www.travel.taipei/zh-tw/event-calendar/2026
-  //    以下為已確認日期的台北年度大型活動，可自行增修；日期每年微調，以官方公告為準。
-  // ── 2月 ──
-  {y:2026,m:2,d:14,name:'西洋情人節',type:'season',note:'餐飲與住宿需求高峰',icon:'💕'},
-  {y:2026,m:2,d:25,name:'台北燈節',type:'major',end:28,note:'2/25–3/15 西門展區＋花博展區（圓山周邊），元宵賞燈大型活動',icon:'🏮',src:'臺北旅遊網'},
-  // ── 3月 ──
-  {y:2026,m:3,d:1,name:'台北燈節（延續）',type:'major',end:15,note:'2/25–3/15，花博展區鄰近劍潭，住宿需求增',icon:'🏮',src:'臺北旅遊網'},
-  {y:2026,m:3,d:null,name:'陽明山花季',type:'cultural',note:'3月櫻花、杜鵑陸續綻放，賞花旺季（日期以官方公告為準）',icon:'🌸',src:'臺北旅遊網'},
-  // ── 4月 ──
-  {y:2026,m:4,d:null,name:'士林官邸鬱金香展',type:'cultural',note:'春季賞花（日期以官方公告為準）',icon:'🌷',src:'臺北旅遊網'},
-  // ── 5月 ──
-  {y:2026,m:5,d:null,name:'台北杜鵑花季',type:'cultural',note:'春末賞花活動（日期以官方公告為準）',icon:'🌺',src:'臺北旅遊網'},
-  // ── 7月 ──
-  {y:2026,m:7,d:null,name:'大稻埕夏日節（開跑）',type:'major',note:'7月下旬起一系列水岸活動與煙火（日期以官方公告為準）',icon:'🎆',src:'臺北旅遊網'},
-  // ── 8月 ──
-  {y:2026,m:8,d:6,name:'大稻埕夏日節',type:'major',end:30,note:'8/6–8/30 水岸光廊、貨櫃市集、Live 音樂會，七夕煙火為壓軸',icon:'🎆',src:'臺北旅遊網'},
-  {y:2026,m:8,d:29,name:'七夕情人節',type:'season',note:'餐飲住宿需求高峰',icon:'💕'},
-  {y:2026,m:8,d:30,name:'大稻埕情人節煙火（壓軸）',type:'major',note:'年度大型煙火秀，吸引大量觀光人潮',icon:'🎇',src:'臺北旅遊網'},
-  // ── 10月 ──
-  {y:2026,m:10,d:null,name:'白晝之夜 Nuit Blanche',type:'major',note:'台北年度大型夜間藝術活動（日期以官方公告為準）',icon:'🌃',src:'臺北旅遊網'},
-  {y:2026,m:10,d:null,name:'台北溫泉季（北投）',type:'cultural',note:'秋冬泡湯旺季，北投溫泉季系列活動（日期以官方公告為準）',icon:'♨️',src:'臺北旅遊網'},
-  // ── 12月 ──
-  {y:2026,m:12,d:27,name:'台北101跨年光雕秀（開始）',type:'cultural',end:31,note:'12/27起每晚不同主題光雕秀',icon:'🎬',src:'臺北旅遊網'},
-  {y:2026,m:12,d:31,name:'臺北最High新年城跨年晚會＋101煙火',type:'major',note:'年度最大跨年活動，市區住宿全面爆滿',icon:'🎆',src:'臺北旅遊網'},
-  // ── 台北大型演唱會＆賽事（資料來源：蒲園飯店2026上半年彙整 garden-hotel.com.tw）──
-  //    以大巨蛋為主、並含小巨蛋/北流/TICC等大型場館，皆為周邊住宿商機。日期以主辦最終公告為準。
-  // 1月
-  {y:2026,m:1,d:2,name:'BABYMONSTER 小巨蛋演唱會',type:'major',end:3,note:'1/2–1/3 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
-  {y:2026,m:1,d:10,name:'Energy 小巨蛋演唱會',type:'major',end:11,note:'1/10–1/11 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
-  {y:2026,m:1,d:23,name:'王心凌 小巨蛋演唱會',type:'major',end:24,note:'1/23–1/24 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
-  // 2月
-  {y:2026,m:2,d:6,name:'台北超級馬拉松',type:'sport',end:8,note:'2/6–2/8 新生公園',icon:'🏃',src:'演唱會彙整'},
-  {y:2026,m:2,d:20,name:'江蕙 小巨蛋演唱會',type:'major',end:25,note:'2/20–22、2/24–25 台北小巨蛋，天后級多場',icon:'🎤',src:'演唱會彙整'},
-  {y:2026,m:2,d:25,name:'台日棒球國際交流賽',type:'major',end:28,note:'2/25–2/28 台北大巨蛋，國際賽事住房商機',icon:'🏟️',src:'大巨蛋'},
-  // 3月
-  {y:2026,m:3,d:4,name:'OneRepublic 小巨蛋演唱會',type:'major',note:'3/4 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
-  {y:2026,m:3,d:7,name:'(G)I-DLE 大巨蛋演唱會',type:'major',note:'3/7 台北大巨蛋，K-pop頂級女團，住房商機',icon:'🏟️',src:'大巨蛋'},
-  {y:2026,m:3,d:20,name:'TWICE 大巨蛋演唱會',type:'major',end:22,note:'3/20–3/22 首攻大巨蛋，韓團頂級規模，住房商機',icon:'🏟️',src:'大巨蛋'},
-  // 4月
-  {y:2026,m:4,d:9,name:'鄧紫棋 大巨蛋演唱會',type:'major',end:12,note:'4/9–4/12 連4場，華語天后級，住房商機',icon:'🏟️',src:'大巨蛋'},
-  {y:2026,m:4,d:25,name:'ONE OK ROCK 大巨蛋演唱會',type:'major',note:'4/25 首組攻蛋日本團，完售，住房商機',icon:'🏟️',src:'大巨蛋'},
-  // 5月
-  {y:2026,m:5,d:15,name:'孫燕姿 大巨蛋演唱會',type:'major',end:17,note:'5/15、5/17 台北大巨蛋，華語天后，住房商機',icon:'🏟️',src:'大巨蛋'},
-  {y:2026,m:5,d:15,name:'動力火車 小巨蛋演唱會',type:'major',end:17,note:'5/15–5/17 台北小巨蛋',icon:'🎤',src:'演唱會彙整'},
-  // 7月
-  {y:2026,m:7,d:3,name:'五月天 25週年大巨蛋演唱會',type:'major',end:12,note:'7/3、4、5、8、10、11、12 共7場，暑假最大住房商機',icon:'🏟️',src:'大巨蛋'},
-  // 12月
-  {y:2026,m:12,d:30,name:'蔡依林 大巨蛋跨年演唱會',type:'major',note:'12/30 跨年檔期，與101煙火連動，住房全面爆滿',icon:'🏟️',src:'大巨蛋'},
-  // ── 在此貼上更多台北活動（格式同上）──
+  // ── 劍潭活動請填在這裡 ──
 ];
 const SPORTS_EVENTS_JT = [
-  // ── 路協賽事（中華民國路跑協會官方賽程 sportsnet.org.tw；台北場次，賽前住宿商機）──
-  // ⚠️ 每年由路協重新公告，請於年初手動更新本清單。
-  {y:2026,m:1,d:11,name:'渣打臺北公益馬拉松',type:'major',note:'總統府/大佳河濱，42K/21K/11K/3K，萬人賽事、賽前住宿商機',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:3,d:8,name:'南山人壽臺北國道馬拉松',type:'major',note:'中山高五股-汐止高架段，42K/21K/接力',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:4,d:12,name:'TS WOMEN RUN 女子路跑',type:'major',note:'台北市府前廣場，21K/10K/3K',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:5,d:9,name:'中信台北101公益垂直馬拉松',type:'major',note:'台北101辦公大樓，登高賽',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:5,d:10,name:'臺北市第23屆舒跑杯路跑賽',type:'major',note:'台北市府前廣場，9K/3K',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:9,d:6,name:'Panasonic 台北城市路跑賽',type:'major',note:'凱達格蘭大道，約12.5K/3K',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:9,d:20,name:'長庚永慶盃路跑',type:'major',note:'凱達格蘭大道，10.5K/3K',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:10,d:25,name:'長榮航空馬拉松',type:'major',note:'總統府前，42K/21K/10K/3K，賽前住宿商機',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:11,d:1,name:'臺灣國家公園馬拉松-陽明山',type:'major',note:'陽明山中山樓，全馬/半馬/5K',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:11,d:22,name:'NS RUN 南山人壽半程馬拉松',type:'major',note:'總統府前，21K/10K/3K',icon:'🏃',src:'路跑協會'},
-  {y:2026,m:12,d:20,name:'臺北馬拉松 TAIPEI MARATHON',type:'major',note:'台北市府-體育園區，42K/21K，年度最大路跑、住宿全面爆滿',icon:'🏃',src:'路跑協會'},
-  // ── 2026 中職 in 臺北大巨蛋 賽程（共58場）──────────────────────────
-  // 資料來源：臺北大巨蛋官網 farglorydome.com.tw（賽程更新日 2026/3/20）
-  // ⚠️ 賽程每年由中職重新公告，請於每年球季開打前手動更新本清單。
-  // 3月
-  {y:2026,m:3,d:28,name:'中職 中信兄弟 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:3,d:29,name:'中職 味全龍 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  // 5月
-  {y:2026,m:5,d:1,name:'中職 中信兄弟 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:2,name:'中職 中信兄弟 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:3,name:'中職 中信兄弟 VS 台鋼雄鷹',type:'sport',note:'15:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:5,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:6,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:22,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:23,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:24,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'15:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:26,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:27,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:29,name:'中職 中信兄弟 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:30,name:'中職 中信兄弟 VS 富邦悍將',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:5,d:31,name:'中職 中信兄弟 VS 富邦悍將',type:'sport',note:'16:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  // 6月
-  {y:2026,m:6,d:2,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:6,d:3,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:6,d:5,name:'中職 富邦悍將 VS 統一7-ELEVEn獅',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:6,d:6,name:'中職 富邦悍將 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:6,d:7,name:'中職 富邦悍將 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  // 7月
-  {y:2026,m:7,d:21,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:7,d:22,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:7,d:24,name:'中職 富邦悍將 VS 樂天桃猿',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:7,d:25,name:'中職 富邦悍將 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:7,d:26,name:'中職 富邦悍將 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:7,d:28,name:'中職 味全龍 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:7,d:29,name:'中職 味全龍 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:7,d:31,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  // 8月
-  {y:2026,m:8,d:1,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:2,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'15:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:14,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:15,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:16,name:'中職 樂天桃猿 VS 味全龍',type:'sport',note:'15:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:19,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:20,name:'中職 中信兄弟 VS 味全龍',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:21,name:'中職 中信兄弟 VS 統一7-ELEVEn獅',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:22,name:'中職 中信兄弟 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:23,name:'中職 中信兄弟 VS 統一7-ELEVEn獅',type:'sport',note:'16:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:25,name:'中職 樂天桃猿 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:26,name:'中職 樂天桃猿 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:28,name:'中職 統一7-ELEVEn獅 VS 樂天桃猿',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:29,name:'中職 統一7-ELEVEn獅 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:8,d:30,name:'中職 統一7-ELEVEn獅 VS 樂天桃猿',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  // 9月
-  {y:2026,m:9,d:1,name:'中職 統一7-ELEVEn獅 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:2,name:'中職 統一7-ELEVEn獅 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:4,name:'中職 樂天桃猿 VS 富邦悍將',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:5,name:'中職 樂天桃猿 VS 富邦悍將',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:6,name:'中職 樂天桃猿 VS 富邦悍將',type:'sport',note:'17:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:8,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:9,name:'中職 富邦悍將 VS 味全龍',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:17,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:18,name:'中職 統一7-ELEVEn獅 VS 中信兄弟',type:'sport',note:'18:35 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:19,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'17:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:20,name:'中職 味全龍 VS 中信兄弟',type:'sport',note:'15:05 大巨蛋｜住房商機',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:24,name:'中職 富邦悍將 VS 台鋼雄鷹',type:'sport',note:'18:35 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:25,name:'中職 富邦悍將 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:26,name:'中職 統一7-ELEVEn獅 VS 台鋼雄鷹',type:'sport',note:'16:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  {y:2026,m:9,d:27,name:'中職 統一7-ELEVEn獅 VS 台鋼雄鷹',type:'sport',note:'15:05 大巨蛋',icon:'⚾',src:'大巨蛋'},
-  // ── 每年球季前請手動至 farglorydome.com.tw 更新賽程 ──
+  // ── 劍潭體育／研習競賽請填在這裡 ──
 ];
 // 劍潭 AI 月份節慶（每月關鍵檔期；先放台北通用節慶，劍潭可自行增修）
 const FESTIVALS_JT = {
@@ -3886,41 +3662,16 @@ const FESTIVALS_JT = {
   11:['企業年度會議旺季','研習營隊'],
   12:['聖誕節','跨年','年終尾牙與企業聚餐旺季'],
 };
-// 劍潭國定假日／連假（2026・全台通用；無金門在地活動。劍潭可自行增修台北檔期）
-const HOLIDAYS_2026_JT = {
-  1: [{d:'1/1',n:'元旦'}],
-  2: [{d:'2/14-2/22',n:'農曆春節',days:9},{d:'2/27-3/1',n:'228和平紀念日連假',days:3}],
-  3: [{d:'2/27-3/1',n:'228連假',days:3}],
-  4: [{d:'4/3-4/6',n:'兒童節暨清明連假',days:4}],
-  5: [{d:'5/1-5/3',n:'勞動節連假',days:3},{d:'5/10',n:'母親節'}],
-  6: [{d:'6/19-6/21',n:'端午節連假',days:3}],
-  7: [{d:'7/1–8/31',n:'暑假旺季',peak:true}],
-  8: [{d:'8/7',n:'父親節'}],
-  9: [{d:'9/25-9/28',n:'中秋暨教師節連假',days:4}],
-  10: [{d:'10/9-10/11',n:'國慶連假',days:3},{d:'10/24-10/26',n:'光復節連假',days:3},{d:'10/29',n:'重陽節'}],
-  11: [],
-  12: [{d:'12/25-12/27',n:'行憲紀念日連假',days:3},{d:'12/31',n:'跨年',peak:true}],
-};
-// 劍潭各月住宿／場地高峰等級（暫用通用值，劍潭可依實際檔期調整）
-const MONTH_LEVEL_JT = {
-  1:'mid', 2:'mid', 3:'mid', 4:'mid',
-  5:'high', 6:'high', 7:'peak', 8:'peak',
-  9:'high', 10:'high', 11:'mid', 12:'high'
-};
 
 // ── 依單位選用行事曆資料（新單位在此加一筆）─────────────────────
 const CAL_DATA = {
-  kinmen:  {events:CAL_EVENTS,    sports:SPORTS_EVENTS,    festivals:FESTIVALS,    holidays:HOLIDAYS_2026,    monthLevel:MONTH_LEVEL},
-  jiantan: {events:CAL_EVENTS_JT, sports:SPORTS_EVENTS_JT, festivals:FESTIVALS_JT, holidays:HOLIDAYS_2026_JT, monthLevel:MONTH_LEVEL_JT},
+  kinmen:  {events:CAL_EVENTS,    sports:SPORTS_EVENTS,    festivals:FESTIVALS},
+  jiantan: {events:CAL_EVENTS_JT, sports:SPORTS_EVENTS_JT, festivals:FESTIVALS_JT},
 };
 function calData(){ return CAL_DATA[getUnit()]||CAL_DATA.kinmen; }
-// 自動抓取的「年度大型活動」（依單位暫存於記憶體；抓到才有，放進年度活動列表，不混入日曆格）
-const LIVE_ANNUAL={};
 function calEvents(){ return calData().events||[]; }
 function calSports(){ return calData().sports||[]; }
 function festivalsOf(mi){ return (calData().festivals||{})[mi]||[]; }
-function holidaysOf(mi){ return (calData().holidays||{})[mi]||[]; }
-function monthLevelOf(mi){ return (calData().monthLevel||{})[mi]||'mid'; }
 
 
 // 顏色與分類設定
@@ -3963,46 +3714,11 @@ function buildCalendar(){
     </div>`).join('');
   grid.appendChild(leg);
 
-  // 逐月：月曆 + 該月活動說明 交錯排列（12個月），依季別分組
-  // 季別：春(3-5)／夏(6-8)／秋(9-11)／冬(12,1,2)。當季預設展開，其他季別預設收合。
-  const SEASONS=[
-    {key:'spring', name:'🌸 春季',   months:[3,4,5],  color:'#5DD6A5'},
-    {key:'summer', name:'☀️ 夏季',   months:[6,7,8],  color:'#E8893E'},
-    {key:'autumn', name:'🍂 秋季',   months:[9,10,11],color:'#C8963E'},
-    {key:'winter', name:'❄️ 冬季',   months:[12,1,2], color:'#5B9BD5'},
-  ];
-  function seasonOfMonth(m){ return SEASONS.find(s=>s.months.includes(m)); }
-  const curSeasonKey=seasonOfMonth(CM)?.key;
-  // 各季容器
-  const seasonWrap={};   // key -> 內層卡片容器
-  const seasonSection={};// key -> 整個區塊（含標頭）
-  SEASONS.forEach(s=>{
-    const isCur=(s.key===curSeasonKey);
-    const section=document.createElement('div');
-    section.style.cssText='margin-bottom:12px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;'+
-      (isCur?'border-left:3px solid '+s.color+';':'');
-    // 季別標頭（可收合整季）
-    const sh=document.createElement('div');
-    sh.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;'+
-      'background:var(--sf2);';
-    sh.innerHTML=`<div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:14px;font-weight:700;color:${s.color};">${s.name}</span>
-        <span style="font-size:9px;color:var(--tx3);">${s.months.map(m=>m+'月').join('・')}</span>
-        ${isCur?'<span style="font-size:9px;padding:2px 7px;border-radius:10px;background:'+s.color+';color:#0F1923;font-weight:700;">當季</span>':''}
-      </div>
-      <span id="seasonArrow_${s.key}" style="font-size:12px;color:var(--tx3);">${isCur?'▲':'▼'}</span>`;
-    const inner=document.createElement('div');
-    inner.id='seasonInner_'+s.key;
-    inner.style.cssText='padding:8px 10px 4px;display:'+(isCur?'block':'none')+';';
-    sh.onclick=()=>{
-      const open=inner.style.display==='none';
-      inner.style.display=open?'block':'none';
-      const a=document.getElementById('seasonArrow_'+s.key);
-      if(a) a.textContent=open?'▲':'▼';
-    };
-    section.appendChild(sh); section.appendChild(inner);
-    seasonWrap[s.key]=inner; seasonSection[s.key]=section;
-  });
+  // 逐月：月曆 + 該月活動說明 交錯排列（12個月）
+  // 前3個月直接顯示，第4-12月收合進「顯示更多」
+  const laterWrap=document.createElement('div');
+  laterWrap.id='calLaterWrap';
+  laterWrap.style.cssText='display:none;flex-direction:column;gap:0;';
 
   for(let mi=0;mi<12;mi++){
     let cy=CY, cm=CM+mi;
@@ -4045,11 +3761,10 @@ function buildCalendar(){
     });
     const hasOcc=Object.keys(occByDay).length>0;
 
-    // ── 連假解析：展開本單位 holidays 的日期範圍，標出連假日與最後一天 ──
+    // ── 連假解析：展開 HOLIDAYS_2026 的日期範圍，標出連假日與最後一天 ──
     const longHolDays=new Set(), longHolLastDay=new Set();
-    const monthHolidays=(cy===2026)?holidaysOf(cm):[];
-    if(monthHolidays.length){
-      monthHolidays.forEach(h=>{
+    if(cy===2026 && typeof HOLIDAYS_2026!=='undefined' && HOLIDAYS_2026[cm]){
+      HOLIDAYS_2026[cm].forEach(h=>{
         if(!h.days || h.days<2) return; // 只處理連假(2天以上)
         // 解析日期字串，如 "1/28–2/2"、"3/28-29"、"6/28–7/1"
         const ds=String(h.d).replace(/[–—]/g,'-');
@@ -4193,18 +3908,29 @@ function buildCalendar(){
       a.textContent=open?'▲':'▼';
     };
     card.appendChild(hdr); card.appendChild(body);
-    const sObj=seasonOfMonth(cm);
-    if(sObj && seasonWrap[sObj.key]) seasonWrap[sObj.key].appendChild(card);
-    else grid.appendChild(card);
+    if(mi<3) grid.appendChild(card);
+    else laterWrap.appendChild(card);
   }
 
-  // 季別區塊排序：當季在最前，其餘照春夏秋冬
-  const ordered=[curSeasonKey, ...SEASONS.map(s=>s.key).filter(k=>k!==curSeasonKey)];
-  ordered.forEach(k=>{ if(seasonSection[k]) grid.appendChild(seasonSection[k]); });
+  // 顯示更多按鈕（控制第4-12個月）
+  const moreBtn=document.createElement('button');
+  moreBtn.id='calMoreBtn';
+  moreBtn.style.cssText='width:100%;padding:10px;margin-top:2px;background:var(--sf2);'+
+    'border:1px solid var(--bd);border-radius:var(--rs);color:var(--ac);font-size:11px;'+
+    'cursor:pointer;font-weight:600;';
+  moreBtn.textContent='▼ 顯示更多月份（未來 4–12 個月）';
+  moreBtn.onclick=()=>{
+    const w=document.getElementById('calLaterWrap');
+    const open=w.style.display==='none';
+    w.style.display=open?'flex':'none';
+    moreBtn.textContent=open?'▲ 收合未來月份':'▼ 顯示更多月份（未來 4–12 個月）';
+  };
+  grid.appendChild(moreBtn);
+  grid.appendChild(laterWrap);
 }
 
-// ── 在地年度大型活動（常態清單，每年固定登場）依單位分開 ──────────────
-const ANNUAL_EVENTS_KM=[
+// ── 在地年度大型活動（常態清單，每年固定登場）──────────────────
+const ANNUAL_EVENTS=[
   {month:'農曆4月',name:'浯島迎城隍文化季',type:'major',note:'金門最大宗教盛事，國家重要民俗，346年傳承。約5月、為期一個月'},
   {month:'5–6月',name:'購物嘉年華',type:'cultural',note:'全島消費抽獎，帶動商圈'},
   {month:'7–8月',name:'暑期親子嘉年華系列',type:'major',note:'花蛤季、音浪玩水節、海上長泳等10餘項，暑假旺季主力'},
@@ -4218,209 +3944,38 @@ const ANNUAL_EVENTS_KM=[
   {month:'12/31',name:'金門跨年晚會',type:'major',note:'莒光共融公園，音樂煙火，萬人出席'},
   {month:'約1月',name:'金門馬拉松',type:'major',note:'國際經典賽事，海內外跑者必搶'},
 ];
-// 劍潭（臺北）年度大型活動 — 查證過的台北年度固定活動，實際日期每年微調，以官方公告為準
-const ANNUAL_EVENTS_JT=[
-  {month:'2–3月',name:'台北燈節',type:'major',note:'元宵賞燈，西門＋花博展區（花博鄰近劍潭）；2/25–3/15，年度最大燈會'},
-  {month:'3月',name:'陽明山花季',type:'cultural',note:'櫻花、杜鵑陸續綻放，賞花旺季'},
-  {month:'3–4月',name:'士林官邸鬱金香展',type:'cultural',note:'士林官邸春季花展，鄰近劍潭'},
-  {month:'3–4月',name:'台北杜鵑花季',type:'cultural',note:'台大、大安森林公園一帶賞花'},
-  {month:'4–5月',name:'竹子湖海芋＆繡球花季',type:'cultural',note:'陽明山竹子湖，春末初夏賞花人潮'},
-  {month:'8月',name:'大稻埕夏日節（七夕煙火）',type:'major',note:'8/6–8/30 水岸活動，七夕情人節煙火為壓軸，年度大型煙火秀'},
-  {month:'10月',name:'白晝之夜 Nuit Blanche',type:'major',note:'台北年度大型夜間藝術活動，整夜不打烊'},
-  {month:'秋冬',name:'台北溫泉季（北投）',type:'cultural',note:'北投溫泉季系列活動，秋冬泡湯旺季'},
-  {month:'11–12月',name:'耶誕＆跨年檔期',type:'major',note:'信義區耶誕燈飾、快閃市集，年末城市觀光高峰'},
-  {month:'12/31',name:'臺北最High新年城＋101煙火',type:'major',note:'年度最大跨年活動，市區住宿全面爆滿'},
-];
-const ANNUAL_EVENTS_DATA={ kinmen:ANNUAL_EVENTS_KM, jiantan:ANNUAL_EVENTS_JT };
-function annualEvents(){
-  const manual=ANNUAL_EVENTS_DATA[getUnit()]||ANNUAL_EVENTS_KM;
-  const live=LIVE_ANNUAL[getUnit()]||[];
-  if(!live.length) return manual;
-  // 手填在前、API 自動帶入在後，依名稱去重（手填優先）
-  const seen=new Set(manual.map(e=>e.name));
-  const extra=live.filter(e=>!seen.has(e.name));
-  return manual.concat(extra);
-}
-// ── 行事曆活動自動抓取（背景補充；目前供劍潭接臺北旅遊網 Open API）──────
-// 設計原則：手填清單為主，這裡抓到才併入；抓不到完全不影響畫面。
-// 容錯：欄位名稱可能因 API 而異，故同時嘗試多種常見命名與日期格式。
-function pickField(o,keys){ for(const k of keys){ if(o[k]!=null && o[k]!=='') return o[k]; } return ''; }
-function parseApiDate(s){
-  // 接受 "2026-02-25"、"2026/02/25"、"2026-02-25T00:00:00" 等
-  if(!s) return null;
-  const m=String(s).match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if(!m) return null;
-  return { y:+m[1], mo:+m[2], d:+m[3] };
-}
-async function fetchUnitEvents(){
-  const u=(typeof unitCfg==='function')?unitCfg():null;
-  const api=u&&u.eventsApi;
-  if(!api||!api.base) return;            // 此單位沒設定自動抓取就直接結束
-  const unit=getUnit();
-  const yr=new Date().getFullYear();
-  // 一天快取一次（存成年度活動格式）
-  try{
-    const cached=uGet('liveAnnual');
-    const cachedAt=parseInt(uGet('liveAnnualAt')||'0');
-    if(cached && Date.now()-cachedAt<86400000){
-      LIVE_ANNUAL[unit]=JSON.parse(cached);
-      try{ renderAnnualEvents(); }catch(e){}
-      return;
-    }
-  }catch(e){}
-
-  const collected=[];
-  const maxPages=api.pages||12;          // 全年活動需要多頁，抓到空頁就停
-  for(let p=1;p<=maxPages;p++){
-    const apiUrl=`${api.base}?begin=${yr}-01-01&end=${yr}-12-31&page=${p}`;
-    try{
-      const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
-      const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
-      if(!resp.ok) break;
-      const wrap=await resp.json();
-      let body=wrap.contents;
-      if(typeof body==='string'){ try{ body=JSON.parse(body); }catch(e){ break; } }
-      const arr=body.data||body.Data||body.events||body.result||[];
-      if(!Array.isArray(arr)||!arr.length) break;   // 沒資料＝抓完了
-      arr.forEach(it=>{
-        const name=pickField(it,['name','title','Name','Title','subject']);
-        const begin=pickField(it,['begin','startTime','start','beginTime','Begin','date','startDate']);
-        const end=pickField(it,['end','endTime','finish','End','endDate']);
-        const id=pickField(it,['id','Id','ID']);
-        const loc=pickField(it,['location','address','Location','place','area']);
-        const bd=parseApiDate(begin), ed=parseApiDate(end);
-        if(!name||!bd) return;
-        // 組「月份」標籤字串（年度列表左欄用）
-        let monthLabel;
-        if(ed && (ed.mo!==bd.mo || ed.d!==bd.d)){
-          monthLabel = (ed.mo!==bd.mo) ? `${bd.mo}/${bd.d}–${ed.mo}/${ed.d}` : `${bd.mo}/${bd.d}–${ed.d}`;
-        } else {
-          monthLabel = `${bd.mo}/${bd.d}`;
-        }
-        const item={
-          _ts:new Date(bd.y,bd.mo-1,bd.d).getTime(),
-          month:monthLabel,
-          name:String(name).trim(),
-          type:'cultural',
-          note:(loc?String(loc).trim()+'｜':'')+'臺北旅遊網自動帶入',
-        };
-        if(id) item.link=`https://www.travel.taipei/zh-tw/event-calendar/details/${id}`;
-        collected.push(item);
-      });
-    }catch(e){ break; } // 逾時或失敗：停止抓取，保留已抓到的
-  }
-
-  if(collected.length){
-    // 依日期排序、同名去重
-    collected.sort((a,b)=>a._ts-b._ts);
-    const seen=new Set(), uniq=[];
-    collected.forEach(a=>{ if(!seen.has(a.name)){ seen.add(a.name); uniq.push(a); } });
-    LIVE_ANNUAL[unit]=uniq;
-    try{ uSet('liveAnnual',JSON.stringify(uniq)); uSet('liveAnnualAt',String(Date.now())); }catch(e){}
-    try{ renderAnnualEvents(); }catch(e){}   // 重畫年度活動列表
-  }
-}
-
 function renderAnnualEvents(){
   const box=document.getElementById('annualEvents');
   if(!box) return;
-  // 依單位更新標題與說明
-  const descEl=document.getElementById('annualDesc');
-  if(descEl){
-    descEl.textContent=(getUnit()==='kinmen')
-      ? '金門每年固定登場的重點活動，新進同仁可快速掌握。實際日期每年微調，以官方公告為準。'
-      : '本單位固定重點活動＋臺北旅遊網自動帶入之年度活動（標 ↗ 者可點開原文）。日期以官方公告為準。';
-  }
-  box.innerHTML=annualEvents().map(e=>{
+  box.innerHTML=ANNUAL_EVENTS.map(e=>{
     const t=CAL_TYPE[e.type]||CAL_TYPE.cultural;
-    const inner=`<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--ac2);
-        flex-shrink:0;width:56px;text-align:center;padding-top:1px;">${e.month}</span>
+    return `<div style="display:flex;gap:9px;align-items:flex-start;background:var(--sf);
+      border:1px solid var(--bd);border-left:3px solid ${t.dot};border-radius:var(--rs);padding:9px 11px;">
+      <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--ac2);
+        flex-shrink:0;width:48px;text-align:center;padding-top:1px;">${e.month}</span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:600;color:var(--tx);">${e.name}${e.link?' <span style=\"font-size:10px;color:var(--ac);\">↗</span>':''}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx);">${e.name}</div>
         <div style="font-size:10px;color:var(--tx3);margin-top:2px;line-height:1.5;">${e.note}</div>
-      </div>`;
-    const style=`display:flex;gap:9px;align-items:flex-start;background:var(--sf);
-      border:1px solid var(--bd);border-left:3px solid ${t.dot};border-radius:var(--rs);padding:9px 11px;`;
-    return e.link
-      ? `<a href="${e.link}" target="_blank" style="text-decoration:none;${style}">${inner}</a>`
-      : `<div style="${style}">${inner}</div>`;
+      </div>
+    </div>`;
   }).join('');
 }
-// 收合／展開「在地年度大型活動」
-function toggleAnnual(){
-  const box=document.getElementById('annualEvents');
-  const arrow=document.getElementById('annualArrow');
-  if(!box) return;
-  const open=box.style.display==='none';
-  box.style.display=open?'flex':'none';
-  if(arrow) arrow.textContent=open?'▲':'▼';
-}
 
-// ── 行事曆在地新聞（依單位：金門→金門日報 RSS／劍潭→Google 新聞觀光類）──
+// ── 金門日報在地新聞（RSS 抓取 + 關鍵字標記疑似活動）──────────────
+const KMDN_FEEDS=[
+  {name:'地方新聞', url:'https://www.kmdn.gov.tw/1117/1271/1272/RSSList'},
+  {name:'快訊',     url:'https://www.kmdn.gov.tw/1117/1271/287081/RSSList'},
+];
 // 疑似活動關鍵字（標題含這些字 → 標紅）
-const ACT_KEYWORDS=['季','賽','節','活動','嘉年華','研習','競賽','報名','登場','舉辦','開跑','開放','體驗','市集','音樂會','演出','展','營','賽事','盃','馬拉松','泳渡','路跑','慶典','文化季','親子','演唱會','燈會','花季'];
+const ACT_KEYWORDS=['季','賽','節','活動','嘉年華','研習','競賽','報名','登場','舉辦','開跑','開放','體驗','市集','音樂會','演出','展','營','賽事','盃','馬拉松','泳渡','路跑','慶典','文化季','親子'];
 function isLikelyActivity(title){ return ACT_KEYWORDS.some(k=>title.includes(k)); }
 
-// 依單位設定，更新行事曆新聞區塊的標題與說明文字
-function applyCalNewsLabels(){
-  const nc=(typeof unitCfg==='function'?unitCfg().calNews:null)||null;
-  const titleEl=document.getElementById('calNewsTitle');
-  const descEl=document.getElementById('calNewsDesc');
-  if(titleEl && nc?.title) titleEl.textContent='📰 '+nc.title;
-  if(descEl && nc?.desc) descEl.textContent=nc.desc;
-}
-
-// 統一入口（沿用舊名，各呼叫點不必改）：依單位選擇抓取方式
 async function fetchKmdnNews(){
-  applyCalNewsLabels();
-  const nc=(typeof unitCfg==='function'?unitCfg().calNews:null)||null;
-  if(nc && nc.type==='google') return fetchGoogleCalNews(nc);
-  return fetchRssCalNews(nc);
-}
-
-// 渲染新聞卡片（金門日報與 Google 新聞共用樣式）
-function newsCardHtml(a){
-  const act=isLikelyActivity(a.title);
-  return `<a href="${a.link}" target="_blank" style="text-decoration:none;display:block;
-    background:${act?'rgba(224,92,92,.08)':'var(--sf)'};border:1px solid ${act?'rgba(224,92,92,.3)':'var(--bd)'};
-    border-radius:var(--rs);padding:8px 10px;">
-    <div style="display:flex;align-items:flex-start;gap:6px;">
-      ${act?'<span style="font-size:8px;color:var(--red);flex-shrink:0;margin-top:2px;">🔴</span>':'<span style="width:8px;flex-shrink:0;"></span>'}
-      <span style="font-size:11px;color:var(--tx);line-height:1.5;flex:1;">${a.title}</span>
-    </div>
-    <div style="font-size:9px;color:var(--tx3);margin-top:3px;padding-left:14px;">${a.cat}${a.dateStr?' · '+a.dateStr:''}${act?' · 疑似活動':''}</div>
-  </a>`;
-}
-function renderCalNews(box,uniq){
-  // 疑似活動排前面
-  uniq.sort((a,b)=>(isLikelyActivity(b.title)?1:0)-(isLikelyActivity(a.title)?1:0));
-  // 依時間分流：近三天顯示，其餘收合
-  const now=Date.now(), THREE_DAYS=3*86400000;
-  const recent=uniq.filter(a=>a.ts && (now-a.ts)<=THREE_DAYS);
-  const older=uniq.filter(a=>!(a.ts && (now-a.ts)<=THREE_DAYS));
-  // 若近三天完全沒有（可能來源沒給日期），退而顯示前5則，其餘收合
-  let shown=recent, hidden=older;
-  if(!recent.length){ shown=uniq.slice(0,5); hidden=uniq.slice(5); }
-  const shownHtml=shown.length
-    ? shown.map(newsCardHtml).join('')
-    : '<div style="font-size:10px;color:var(--tx3);padding:8px;text-align:center;">近三天暫無新聞</div>';
-  const hiddenHtml=hidden.length
-    ? `<div id="calNewsMore" style="display:none;flex-direction:column;gap:6px;margin-top:6px;">${hidden.map(newsCardHtml).join('')}</div>
-       <button onclick="(function(){var m=document.getElementById('calNewsMore');var b=document.getElementById('calNewsMoreBtn');var o=m.style.display==='none';m.style.display=o?'flex':'none';b.textContent=o?'▲ 收合較早新聞':'▼ 顯示較早新聞（${hidden.length}）';})()"
-         id="calNewsMoreBtn" style="margin-top:6px;width:100%;padding:6px;background:var(--sf2);
-         border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx2);font-size:10px;cursor:pointer;">▼ 顯示較早新聞（${hidden.length}）</button>`
-    : '';
-  box.innerHTML=shownHtml+hiddenHtml;
-}
-
-// 金門：金門日報 RSS
-async function fetchRssCalNews(nc){
   const box=document.getElementById('kmdnNews');
   if(!box) return;
-  const feeds=(nc&&nc.feeds)||[];
-  box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入在地新聞中...</div>';
+  box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入金門日報新聞中...</div>';
   const all=[];
-  for(const feed of feeds){
+  for(const feed of KMDN_FEEDS){
     try{
       const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(feed.url)}`;
       const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
@@ -4431,9 +3986,9 @@ async function fetchRssCalNews(nc){
         const title=(item.querySelector('title')?.textContent||'').trim();
         const link=item.querySelector('link')?.textContent||'#';
         const pub=item.querySelector('pubDate')?.textContent||'';
-        let dateStr='', ts=0;
-        if(pub){ const d=new Date(pub); if(!isNaN(d)){ dateStr=`${d.getMonth()+1}/${d.getDate()}`; ts=d.getTime(); } }
-        if(title) all.push({title,link,dateStr,ts,cat:feed.name});
+        let dateStr='';
+        if(pub){ const d=new Date(pub); if(!isNaN(d)) dateStr=`${d.getMonth()+1}/${d.getDate()}`; }
+        if(title) all.push({title,link,dateStr,cat:feed.name});
       });
     }catch(e){ /* 略過失敗的 feed */ }
   }
@@ -4441,61 +3996,30 @@ async function fetchRssCalNews(nc){
     box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;line-height:1.6;">暫時無法載入新聞<br>（免費代理可能繁忙，請按重新整理）</div>';
     return;
   }
+  // 去重（同標題）
   const seen=new Set(), uniq=[];
   all.forEach(a=>{ if(!seen.has(a.title)){ seen.add(a.title); uniq.push(a);} });
-  renderCalNews(box,uniq);
+  // 疑似活動排前面
+  uniq.sort((a,b)=>(isLikelyActivity(b.title)?1:0)-(isLikelyActivity(a.title)?1:0));
+
+  box.innerHTML=uniq.slice(0,16).map(a=>{
+    const act=isLikelyActivity(a.title);
+    return `<a href="${a.link}" target="_blank" style="text-decoration:none;display:block;
+      background:${act?'rgba(224,92,92,.08)':'var(--sf)'};border:1px solid ${act?'rgba(224,92,92,.3)':'var(--bd)'};
+      border-radius:var(--rs);padding:8px 10px;">
+      <div style="display:flex;align-items:flex-start;gap:6px;">
+        ${act?'<span style="font-size:8px;color:var(--red);flex-shrink:0;margin-top:2px;">🔴</span>':'<span style="width:8px;flex-shrink:0;"></span>'}
+        <span style="font-size:11px;color:var(--tx);line-height:1.5;flex:1;">${a.title}</span>
+      </div>
+      <div style="font-size:9px;color:var(--tx3);margin-top:3px;padding-left:14px;">${a.cat}${a.dateStr?' · '+a.dateStr:''}${act?' · 疑似活動':''}</div>
+    </a>`;
+  }).join('');
 }
 
-// 劍潭等：Google 新聞（多個觀光類查詢合併）
-async function fetchGoogleCalNews(nc){
-  const box=document.getElementById('kmdnNews');
-  if(!box) return;
-  const queries=(nc&&nc.queries)||[];
-  box.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:10px;text-align:center;">⏳ 載入觀光新聞中...</div>';
-  const all=[];
-  for(const cat of queries){
-    try{
-      const q=encodeURIComponent(cat.q+' when:7d');
-      const rssUrl=`https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
-      const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-      const resp=await fetch(proxy,{signal:AbortSignal.timeout(9000)});
-      if(!resp.ok) continue;
-      const data=await resp.json();
-      const xml=new DOMParser().parseFromString(data.contents,'text/xml');
-      [...xml.querySelectorAll('item')].slice(0,10).forEach(item=>{
-        const title=(item.querySelector('title')?.textContent||'').replace(/\s*-\s*[^-]+$/,'').trim();
-        const link=item.querySelector('link')?.textContent||'#';
-        const pub=item.querySelector('pubDate')?.textContent||'';
-        let dateStr='', ts=0;
-        if(pub){ const d=new Date(pub); if(!isNaN(d)){ dateStr=`${d.getMonth()+1}/${d.getDate()}`; ts=d.getTime(); } }
-        const src=item.querySelector('source')?.textContent||'';
-        if(title) all.push({title,link,dateStr,ts,cat:cat.name+(src?'・'+src:'')});
-      });
-    }catch(e){ /* 略過失敗的查詢 */ }
-  }
-  if(!all.length){
-    box.innerHTML=`<a href="https://news.google.com/search?q=${encodeURIComponent('台北 旅遊 觀光')}&hl=zh-TW" target="_blank"
-      style="text-decoration:none;display:block;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:10px;text-align:center;">
-      <span style="font-size:10px;color:var(--tx2);">暫時無法載入，點此查看 Google 觀光新聞 →</span></a>`;
-    return;
-  }
-  const seen=new Set(), uniq=[];
-  all.forEach(a=>{ if(!seen.has(a.title)){ seen.add(a.title); uniq.push(a);} });
-  renderCalNews(box,uniq);
-}
 
-// ── 行事曆頁尾：來源按鈕與更新提醒（有設定 eventsApi 的台北類單位顯示，例：劍潭）──
-function applyCalSrcBtns(){
-  const show=!!(typeof unitCfg==='function' && unitCfg().eventsApi);
-  const foot=document.getElementById('calFootNote');
-  if(foot) foot.style.display=show?'block':'none';
-  const srcb=document.getElementById('calSrcBtns');
-  if(srcb) srcb.style.display=show?'flex':'none';
-}
-
-// ── 競爭對手（對應 Thunderbit 抓取欄位）依單位切換 ────────────────
-// 金門：本中心 + 13 家在地對手（共 14 家）
-const COMP_KINMEN = [
+// ── Real competitors with Agoda URLs ─────────────────────────
+// ── 14家競爭對手（對應 Thunderbit 抓取欄位）────────────────
+const COMPETITORS = [
   { name:'金門青年活動中心（無電梯）', shortLabel:'金門青年活動中心', sheetName:'金門青年活動中心',
     cat:'self',  hostel:false, self:true,  price:0, avail:true, rating:8.5,
     note:'本中心・金城鎮', agoda:'https://www.agoda.com/zh-tw/kinmen-youth-activity-center/hotel/kinmen-tw.html' },
@@ -4503,13 +4027,13 @@ const COMP_KINMEN = [
     cat:'hostel', hostel:true, self:false, price:0, avail:true, rating:8.3,
     note:'背包客棧・近機場', agoda:'https://www.agoda.com/zh-tw/tumbler-travel/hotel/all/kinmen-islands-tw.html' },
   { name:'八二三行館飯店', sheetName:'八二三行館飯店',
-    cat:'mid', hostel:false, self:false, price:0, avail:true, rating:8.3,
+    cat:'general', hostel:false, self:false, price:0, avail:true, rating:8.3,
     note:'一般旅館・金湖鎮', agoda:'https://www.agoda.com/zh-tw/823-tourist-hotel/hotel/kinmen-tw.html' },
   { name:'金華民宿', sheetName:'金華民宿',
-    cat:'mid',  hostel:false, self:false, price:0, avail:true, rating:7.5,
+    cat:'suite',  hostel:false, self:false, price:0, avail:true, rating:7.5,
     note:'民宿・金城鎮', agoda:'https://www.agoda.com/zh-tw/h63113258/hotel/kinmen-islands-tw.html' },
   { name:'總兵招待所', sheetName:'總兵招待所',
-    cat:'mid',  hostel:false, self:false, price:0, avail:true, rating:7.4,
+    cat:'suite',  hostel:false, self:false, price:0, avail:true, rating:7.4,
     note:'套房・金城鎮', agoda:'https://www.agoda.com/zh-tw/h76106414/hotel/kinmen-islands-tw.html' },
   { name:'金門市區背包客棧民宿', shortLabel:'金門市區背包客棧', sheetName:'金門市區背包客棧',
     cat:'hostel', hostel:true, self:false, price:0, avail:true, rating:9.0,
@@ -4521,103 +4045,24 @@ const COMP_KINMEN = [
     cat:'hostel', hostel:true, self:false, price:0, avail:true, rating:8.9,
     note:'背包客棧・金城鎮', agoda:'https://www.agoda.com/zh-tw/backpack-home-497-no-2/hotel/kinmen-tw.html' },
   { name:'金瑞旅店', sheetName:'金瑞旅店',
-    cat:'mid',  hostel:false, self:false, price:0, avail:true, rating:7.8,
+    cat:'suite',  hostel:false, self:false, price:0, avail:true, rating:7.8,
     note:'旅店・金城鎮', agoda:'https://www.agoda.com/zh-tw/quemoy-hotel/hotel/kinmen-tw.html' },
   { name:'浯江大飯店', sheetName:'浯江大飯店',
-    cat:'high', hostel:false, self:false, price:0, avail:true, rating:7.7,
+    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:7.7,
     note:'星級飯店・金城鎮', agoda:'https://www.agoda.com/zh-tw/hotel-river-kinmen/hotel/kinmen-tw.html' },
   { name:'浯島文旅', sheetName:'浯島文旅',
-    cat:'mid', hostel:false, self:false, price:0, avail:true, rating:8.9,
+    cat:'general', hostel:false, self:false, price:0, avail:true, rating:8.9,
     note:'旅館・金湖鎮', agoda:'https://www.agoda.com/zh-tw/h34126829/hotel/kinmen-tw.html' },
   { name:'海福商務飯店', sheetName:'海福商務飯店',
-    cat:'high', hostel:false, self:false, price:0, avail:true, rating:8.6,
+    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:8.6,
     note:'商務旅館・金城鎮', agoda:'https://www.agoda.com/zh-tw/haifu-hotel-suites/hotel/kinmen-tw.html' },
   { name:'IN99精品旅館', sheetName:'IN99精品旅館',
-    cat:'high', hostel:false, self:false, price:0, avail:true, rating:7.7,
+    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:7.7,
     note:'精品旅館・金城鎮', agoda:'https://www.agoda.com/zh-tw/in99-hotel/hotel/kinmen-tw.html' },
   { name:'金湖飯店', sheetName:'金湖飯店',
-    cat:'high', hostel:false, self:false, price:0, avail:true, rating:9.1,
+    cat:'luxury', hostel:false, self:false, price:0, avail:true, rating:9.1,
     note:'星級飯店・金湖鎮', agoda:'https://www.agoda.com/zh-tw/golden-lake-hotel/hotel/kinmen-tw.html' },
 ];
-
-// 劍潭花園會館：本中心 + 10 家台北對手（共 11 家）
-// 來源：Thunderbit 抓取（士林／圓山／台北車站／西門周邊）
-// 分兩群：rival=主要對手（同級競價）、ref=參考房價（高階指標，僅供參考）
-// 註：本中心在 Agoda 的列名為「劍潭青年飯店」，故以 sheetName 別稱匹配 CSV
-const COMP_JIANTAN = [
-  { name:'劍潭花園會館', shortLabel:'劍潭花園會館', sheetName:'劍潭青年飯店',
-    cat:'self',  hostel:false, self:true,  price:0, avail:true, rating:8.3,
-    note:'本中心・士林劍潭', agoda:'https://www.agoda.com/zh-tw/chientan-youth-hotel/hotel/taipei-tw.html' },
-  // ── 主要對手（rival）──
-  { name:'三德大飯店', sheetName:'三德大飯店',
-    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.1,
-    note:'主要對手・大同區', agoda:'https://www.agoda.com/zh-tw/santos-hotel_4/hotel/taipei-tw.html' },
-  { name:'德立莊酒店', sheetName:'德立莊酒店',
-    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.1,
-    note:'主要對手・西門町', agoda:'https://www.agoda.com/zh-tw/hotel-midtown-richardson/hotel/taipei-tw.html' },
-  { name:'沃田旅店', sheetName:'沃田旅店',
-    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.7,
-    note:'主要對手・士林區', agoda:'https://www.agoda.com/zh-tw/mellow-fields-hotel/hotel/taipei-tw.html' },
-  { name:'見潭璞旅', sheetName:'見潭璞旅',
-    cat:'rival', hostel:false, self:false, price:0, avail:true, rating:8.8,
-    note:'主要對手・士林區', agoda:'https://www.agoda.com/zh-tw/boutech-meet-jiantan-hotel/hotel/taipei-tw.html' },
-  // ── 參考房價（ref）──
-  { name:'天閣酒店台北劍潭', sheetName:'天閣酒店台北劍潭',
-    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:9.0,
-    note:'參考房價・士林區', agoda:'https://www.agoda.com/zh-tw/the-tango-taipei-jiantan/hotel/taipei-tw.html' },
-  { name:'天閣酒店台北士林', sheetName:'天閣酒店台北士林',
-    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:9.0,
-    note:'參考房價・士林區', agoda:'https://www.agoda.com/zh-tw/the-tango-hotel-taipei-shilin/hotel/taipei-tw.html' },
-  { name:'圓山大飯店', sheetName:'圓山大飯店',
-    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:8.8,
-    note:'參考房價・中山區', agoda:'https://www.agoda.com/zh-tw/grand-hotel/hotel/taipei-tw.html' },
-  { name:'台北天成大飯店-台北車站', shortLabel:'天成大飯店', sheetName:'台北天成大飯店',
-    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:8.6,
-    note:'參考房價・台北車站', agoda:'https://www.agoda.com/zh-tw/cosmos-hotel-taipei/hotel/taipei-tw.html' },
-  { name:'台北凱撒大飯店', shortLabel:'台北凱撒', sheetName:'台北凱撒大飯店',
-    cat:'ref', hostel:false, self:false, price:0, avail:true, rating:8.3,
-    note:'參考房價・台北車站', agoda:'https://www.agoda.com/zh-tw/caesar-park-hotel-taipei_6/hotel/taipei-tw.html' },
-];
-
-// 各單位競爭對手資料集
-const COMP_DATASETS = { kinmen: COMP_KINMEN, jiantan: COMP_JIANTAN };
-
-// 現用清單（會依單位切換）。預設金門，applyUnitCompetitors() 會在進入單位時重設。
-let COMPETITORS = COMP_KINMEN;
-
-// 依目前單位選用對應競爭對手清單；切換時把價格全部歸零（避免沿用別單位的價格）
-function applyUnitCompetitors(){
-  const u = (typeof getUnit==='function') ? getUnit() : 'kinmen';
-  COMPETITORS = COMP_DATASETS[u] || COMP_KINMEN;
-  // 切到新單位先歸零，等 loadCompData()／雲端拉回再填入
-  COMPETITORS.forEach(c=>{ c.price=0; c.avail=true; });
-}
-
-// 各單位的分類區塊（清單分組、歷史圖分類、長條圖配色都用這個）
-const COMP_SECTIONS_KINMEN=[
-  {cat:'self',  label:'本中心',    dot:'var(--ac)', color:'#FFE234'},
-  {cat:'high',  label:'高價位（精品/商務/星級）', dot:'#5B9BD5', color:'#5B9BD5'},
-  {cat:'mid',   label:'中價位（一般/套房/民宿）', dot:'#E8B86D', color:'#E8B86D'},
-  {cat:'hostel',label:'背包客棧 🎒', dot:'#4CAF82', color:'#4CAF82'},
-];
-const COMP_SECTIONS_JIANTAN=[
-  {cat:'self',  label:'本中心',    dot:'var(--ac)', color:'#FFE234'},
-  {cat:'rival', label:'主要對手（同級競價）', dot:'#5BE3B3', color:'#5BE3B3'},
-  {cat:'ref',   label:'參考房價（高階指標）', dot:'#5B9BD5', color:'#5B9BD5'},
-];
-function compSections(){
-  return (typeof getUnit==='function' && getUnit()==='jiantan')
-    ? COMP_SECTIONS_JIANTAN : COMP_SECTIONS_KINMEN;
-}
-// 分類篩選頁籤（all + 各區塊）依單位
-function compCatTabs(){
-  const base=[{cat:'all',label:'全部'}];
-  return base.concat(compSections().map(s=>({cat:s.cat,label:s.label.replace(/（.*?）/,'').replace(' 🎒','')})));
-}
-// 長條圖配色（cat→色）依單位
-function compColorMap(){
-  const m={}; compSections().forEach(s=>m[s.cat]=s.color); return m;
-}
 
 // ── Daily chart with month selector ──────────────────────────
 let dailyMonths=[{year:2026,month:'五月',rows:DEMO_DAILY},null,null];
@@ -4758,48 +4203,77 @@ function buildCompetitors(){
   });
 }
 
-// ── Competitor page full list（三欄精簡：名稱／星等／Agoda）──────
+// ── Competitor page full list ─────────────────────────────────
 function buildLists(){
   const container=document.getElementById('compLists');
   if(!container) return;
   container.innerHTML='';
-  const sections=compSections();
-  const today=new Date();
-  const fmt=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-
+  const sections=[
+    {cat:'self',   label:'本中心',    dot:'var(--ac)'},
+    {cat:'luxury', label:'精品/商務/星級旅館', dot:'#5B9BD5'},
+    {cat:'general',label:'一般旅館',   dot:'#A78BFA'},
+    {cat:'suite',  label:'套房・民宿', dot:'#E8B86D'},
+    {cat:'hostel', label:'背包客棧 🎒（均價較低）', dot:'#4CAF82'},
+  ];
   sections.forEach(sec=>{
     const hotels=COMPETITORS.filter(h=>h.cat===sec.cat);
     if(curCat!=='all'&&curCat!==sec.cat) return;
     if(!hotels.length) return;
 
+    // 有空房依價格低→高，售完移到最下面
     const available = hotels.filter(h=>h.avail&&h.price>0).sort((a,b)=>a.price-b.price);
     const noPrice   = hotels.filter(h=>h.avail&&h.price===0);
     const soldOut   = hotels.filter(h=>!h.avail);
     const sorted    = [...available, ...noPrice, ...soldOut];
-
-    let cells='';
-    sorted.forEach(h=>{
-      const idx=COMPETITORS.indexOf(h);
-      const agodaUrl=h.agoda+'?checkIn='+fmt(today)+'&los=1&adults=1&rooms=1&currencyCode=TWD';
-      const nameCol=h.self?'#FFE234':'var(--tx)';
-      const sold=h.avail?'':'<span style="color:var(--red);font-size:9px;margin-left:4px;">售完</span>';
-      cells+=`<div id="item-${idx}" style="background:var(--sf2);border:1px solid ${h.self?'rgba(255,226,52,.35)':'var(--bd)'};border-radius:var(--rs);padding:8px 8px 9px;display:flex;flex-direction:column;gap:5px;min-width:0;">
-        <div style="font-size:11px;font-weight:500;color:${nameCol};line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${h.self?'🎖️ ':''}${h.shortLabel||h.name}${sold}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
-          <span style="font-size:10px;color:var(--tx3);white-space:nowrap;">★ ${h.rating||'—'}</span>
-          <a href="${agodaUrl}" target="_blank" style="font-size:9px;color:var(--ac2,#5BE3B3);text-decoration:none;white-space:nowrap;">🔗 Agoda</a>
-        </div>
-      </div>`;
-    });
-
-    container.innerHTML+=`<div class="comp-section" style="margin-top:12px;">
-      <div class="section-hdr" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx);margin-bottom:8px;">
-        <div class="section-dot" style="width:8px;height:8px;border-radius:50%;background:${sec.dot};"></div>
+    let html=`<div class="comp-section">
+      <div class="section-hdr">
+        <div class="section-dot" style="background:${sec.dot};"></div>
         ${sec.label}
         <span style="font-size:10px;color:var(--tx3);margin-left:auto;">${hotels.length} 家</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">${cells}</div>
-    </div>`;
+      </div>`;
+    sorted.forEach((h,localIdx)=>{
+      const idx=COMPETITORS.indexOf(h);
+      const soldCls=h.avail?'':'sold';
+      const soldBadge=h.avail?'':'<div class="sold-badge">已售完</div>';
+      const today=new Date();
+      const fmt=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+      const agodaUrl=h.agoda+'?checkIn='+fmt(today)+'&los=1&adults=1&rooms=1&currencyCode=TWD';
+      if(h.self){
+        html+=`<div class="comp-item self" id="item-${idx}" style="position:relative;">${soldBadge}
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <div class="comp-rank" id="rank-${idx}" style="flex-shrink:0;">★</div>
+            <div style="flex:1;font-size:12px;font-weight:500;color:#FFE234;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🎖️ ${h.name}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#FFE234;white-space:nowrap;text-align:right;">
+              ${h.price>0?h.price.toLocaleString()+'元':'—'}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding-left:28px;">
+            <span style="font-size:11px;color:var(--tx3);">★ ${h.rating}</span>
+            <a class="agoda-btn" href="${agodaUrl}" target="_blank" style="font-size:10px;">🔗 Agoda</a>
+            <div class="self-badge" style="flex-shrink:0;">本中心</div>
+          </div>
+        </div>`;
+      } else {
+        html+=`<div class="comp-item ${soldCls}" id="item-${idx}" style="position:relative;">
+          ${soldBadge}
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <div class="comp-rank" id="rank-${idx}" style="flex-shrink:0;">—</div>
+            <div style="flex:1;font-size:12px;font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.name}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;
+              color:${h.avail?'var(--tx)':'var(--red)'};white-space:nowrap;text-align:right;">
+              ${h.price>0?h.price.toLocaleString()+'元':'—'}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding-left:28px;">
+            <span style="font-size:11px;color:var(--tx3);">★ ${h.rating}</span>
+            <a class="agoda-btn" href="${agodaUrl}" target="_blank" style="font-size:10px;">🔗 Agoda</a>
+            <div class="comp-type" style="flex-shrink:0;">${h.cat==='hostel'?'🎒背包':h.note.split('・')[0]}</div>
+          </div>
+        </div>`;
+      }
+    });
+    html+='</div>';
+    container.innerHTML+=html;
   });
 }
 
@@ -4876,24 +4350,14 @@ function parseAndApplyCSV(text){
       !availTxt.includes('售完') &&
       !availTxt.toLowerCase().includes('sold');
 
-    // Match hotel by name：先精確比對，避免「天閣酒店台北劍潭／士林」這類同前綴互撞
+    // Match hotel by name (flexible)
     const na = shName.replace(/[\s（）()・,，\-]/g,'');
-    const norm = c => ({
-      nb:(c.sheetName||c.name).replace(/[\s（）()・,，\-]/g,''),
-      nc:c.name.replace(/[\s（）()・,，\-]/g,'')
+    const found = COMPETITORS.find(c=>{
+      const nb = (c.sheetName||c.name).replace(/[\s（）()・,，\-]/g,'');
+      const nc = c.name.replace(/[\s（）()・,，\-]/g,'');
+      return na===nb || na===nc ||
+        (na.length>=3 && nb.length>=3 && (nb.startsWith(na.slice(0,3)) || na.startsWith(nb.slice(0,3))));
     });
-    // 第一階段：完全相等（sheetName 別稱或正式名）
-    let found = COMPETITORS.find(c=>{ const{nb,nc}=norm(c); return na===nb||na===nc; });
-    // 第二階段：互為前綴（較長者，至少 4 字），仍找不到才放寬
-    if(!found){
-      found = COMPETITORS.find(c=>{ const{nb,nc}=norm(c);
-        return (na.length>=4 && (nb.startsWith(na)||na.startsWith(nb)||nc.startsWith(na)||na.startsWith(nc))); });
-    }
-    // 第三階段：3 字前綴寬鬆比對（最後手段，原邏輯）
-    if(!found){
-      found = COMPETITORS.find(c=>{ const{nb}=norm(c);
-        return (na.length>=3 && nb.length>=3 && (nb.startsWith(na.slice(0,3))||na.startsWith(nb.slice(0,3)))); });
-    }
 
     if(found){
       if(price>0){
@@ -4927,11 +4391,7 @@ function parseAndApplyCSV(text){
         ? `✅ 成功更新 ${matched} 家房價${skipMsg}（已同步雲端 ☁️）`
         : `⚠️ 已更新 ${matched} 家房價，但雲端同步失敗，手機可能讀不到`,
         ok?'var(--green)':'var(--red)');
-      if(ok){
-        setTimeout(()=>{ const m=document.getElementById('csvModal'); if(m)m.style.display='none'; }, 2000);
-        // 後端已寫入今日歷史，稍候重抓刷新走勢圖
-        setTimeout(()=>{ try{ loadHistData(); }catch(e){} }, 1200);
-      }
+      if(ok) setTimeout(()=>{ const m=document.getElementById('csvModal'); if(m)m.style.display='none'; }, 2000);
     });
   }else{
     showCSVStatus(`✅ 成功更新 ${matched} 家房價！${skipMsg}`, 'var(--green)');
@@ -5021,263 +4481,6 @@ function saveCompData(){
   }catch(e){}
 }
 
-// ── 競爭房價歷史走勢（本中心獨立 + 三價位分類 + 全部家數總圖）──────
-let HIST_DATA=null;           // 後端回來的歷史 {unit,dates,hotels}
-// 本中心在歷史表中的名字（依單位）
-function selfHistName(){
-  return (typeof getUnit==='function' && getUnit()==='jiantan') ? '劍潭花園會館' : '金門青年活動中心';
-}
-
-// 多線配色盤（分類圖內各家用不同色，易區分）
-const HIST_PALETTE=['#5BE3B3','#5B9BD5','#E8B86D','#C792EA','#FF8A65','#4DD0E1'];
-const SELF_COLOR='#FFE234';
-// 各家圖例縮寫（key=shortLabel||name，只用於總覽圖，不影響長條圖/清單）
-const HIST_ABBR_KINMEN={
-  '金門青年活動中心':'金門中心','不倒翁輕旅':'不倒翁輕旅','八二三行館飯店':'823行館',
-  '金華民宿':'金華民宿','總兵招待所':'總兵招待所','金門市區背包客棧':'市區背包',
-  '浯島魁星背包棧':'浯島魁星','背包客棧497-2館':'背包497-2','金瑞旅店':'金瑞旅店',
-  '浯江大飯店':'浯江大飯店','浯島文旅':'浯島文旅','海福商務飯店':'海福商務',
-  'IN99精品旅館':'IN99旅館','金湖飯店':'金湖飯店'
-};
-const HIST_ABBR_JIANTAN={
-  '劍潭花園會館':'劍潭會館','三德大飯店':'三德','德立莊酒店':'德立莊',
-  '沃田旅店':'沃田','見潭璞旅':'見潭璞旅','天閣酒店台北劍潭':'天閣劍潭',
-  '天閣酒店台北士林':'天閣士林','圓山大飯店':'圓山','天成大飯店':'天成',
-  '台北凱撒':'凱撒'
-};
-function histAbbrMap(){
-  return (typeof getUnit==='function' && getUnit()==='jiantan') ? HIST_ABBR_JIANTAN : HIST_ABBR_KINMEN;
-}
-
-async function loadHistData(){
-  const url=getCloudUrl();
-  if(!url) return;
-  try{
-    const r=await fetch(url+'?mode=history&unit='+encodeURIComponent(getUnit())+'&t='+Date.now());
-    if(!r.ok) return;
-    const d=await r.json();
-    if(!d || !d.hotels) return;
-    HIST_DATA=d;
-    renderAllHistCharts();
-  }catch(e){}
-}
-
-// 依 cat 取該類飯店在歷史表中的顯示名（用 shortLabel||name，與 comp_names 一致）
-function histNamesByCat(cat){
-  return COMPETITORS.filter(c=>c.cat===cat && !c.self).map(c=>c.shortLabel||c.name);
-}
-
-function renderAllHistCharts(){
-  const sub=document.getElementById('histSubInfo');
-  if(!HIST_DATA || !Object.keys(HIST_DATA.hotels).length){
-    ['Self','High','Mid','Hostel','All'].forEach(s=>{
-      const box=document.getElementById('histChart'+s);
-      if(box) box.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px 8px;line-height:1.8;">尚無歷史資料<br>每日上傳 CSV 後自動累積</div>';
-    });
-    if(sub) sub.textContent='累積每日上傳紀錄';
-    return;
-  }
-  const days=(HIST_DATA.dates||[]).length;
-  if(sub) sub.textContent='共 '+days+' 天紀錄';
-
-  const isJT=(typeof getUnit==='function' && getUnit()==='jiantan');
-  const tHigh=document.getElementById('histTitleHigh');
-  const tMid=document.getElementById('histTitleMid');
-  const hostelCard=document.getElementById('histCardHostel');
-
-  if(isJT){
-    // 劍潭：兩群組 → 借用 High 槽放「主要對手」、Mid 槽放「參考房價」，隱藏 Hostel 槽
-    if(tHigh) tHigh.textContent='主要對手（同級競價）';
-    if(tMid)  tMid.textContent='參考房價（高階指標）';
-    if(hostelCard) hostelCard.style.display='none';
-    // 本中心：劍潭約 1500–2500
-    drawInto('histChartSelf', [selfHistName()], {showSelf:false, lo:1500, hi:2500, tick:200});
-    // 主要對手：固定 1200–2800，每 400，疊本中心對比
-    drawInto('histChartHigh', histNamesByCat('rival'), {showSelf:true, lo:1200, hi:2800, tick:400});
-    // 參考房價：範圍自動，刻度 500，不疊本中心
-    drawInto('histChartMid',  histNamesByCat('ref'),   {showSelf:false, tick:500});
-  } else {
-    // 金門：回復原本三價位標題與背包客棧卡片
-    if(tHigh) tHigh.textContent='高價位（精品/商務/星級）';
-    if(tMid)  tMid.textContent='中價位（一般/套房/民宿）';
-    if(hostelCard) hostelCard.style.display='';
-    // 本中心：單線，固定 1000–1500，每 100
-    drawInto('histChartSelf', [selfHistName()], {showSelf:false, lo:1000, hi:1500, tick:100});
-    // 高價位：範圍自動，刻度間隔 500，不疊本中心
-    drawInto('histChartHigh',   histNamesByCat('high'),   {showSelf:false, tick:500});
-    // 中價位：固定 1000–2000，每 200，疊本中心對比
-    drawInto('histChartMid',    histNamesByCat('mid'),    {showSelf:true, lo:1000, hi:2000, tick:200});
-    // 背包客棧：固定 400–1000，每 200，不疊本中心
-    drawInto('histChartHostel', histNamesByCat('hostel'), {showSelf:false, lo:400, hi:1000, tick:200});
-  }
-  // 全部家數（含本中心）：互動式，點圖例凸顯
-  const allNames=COMPETITORS.map(c=>c.shortLabel||c.name);
-  const allTitle=document.getElementById('histAllTitle');
-  if(allTitle) allTitle.textContent=`全部 ${COMPETITORS.length} 家總覽`;
-  drawInto('histChartAll', allNames, {showSelf:false, dense:true, interactive:true});
-}
-
-// 把指定的一組飯店畫進某個容器
-function drawInto(boxId, names, opt){
-  const box=document.getElementById(boxId);
-  if(!box) return;
-  opt=opt||{};
-  const dates=HIST_DATA.dates||[];
-
-  // 組出每條線的資料；過濾掉「完全沒有任何有效價格」的飯店
-  let series=[];
-  names.forEach(nm=>{
-    const h=HIST_DATA.hotels[nm];
-    if(!h) return;
-    const vals=dates.map(d=>{const v=h[d]; return (v===undefined)?null:v;});
-    if(vals.some(v=>v!==null && v>0)) series.push({name:nm,vals:vals});
-  });
-
-  // 需要本中心對比線時，補上（虛線、固定黃色）
-  let selfVals=null;
-  if(opt.showSelf){
-    const sh=HIST_DATA.hotels[selfHistName()];
-    if(sh){
-      const sv=dates.map(d=>{const v=sh[d]; return (v===undefined)?null:v;});
-      if(sv.some(v=>v!==null && v>0)) selfVals=sv;
-    }
-  }
-
-  if(!series.length && !selfVals){
-    box.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px 8px;">此分類尚無資料</div>';
-    return;
-  }
-  // 判斷可成線天數（任一條線有 ≥2 個有效點才畫得出走勢）
-  const maxValid=Math.max(0,...series.map(s=>s.vals.filter(v=>v!==null&&v>0).length),
-                            selfVals?selfVals.filter(v=>v!==null&&v>0).length:0);
-  if(maxValid<2){
-    box.innerHTML='<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px 8px;line-height:1.8;">目前僅 '+maxValid+' 天資料<br>再累積幾天就會出現走勢線</div>';
-    return;
-  }
-  box.innerHTML=drawMultiLineSVG(dates, series, selfVals, opt);
-}
-
-// 多線折線 SVG。opt:{dense, lo, hi, tick, showSelf, interactive}
-function drawMultiLineSVG(dates, series, selfVals, opt){
-  opt=opt||{};
-  const dense=opt.dense, interactive=opt.interactive;
-  const W=320, H=dense?153:120, padL=42, padR=12, padT=12, padB=dense?38:26;
-  const innerW=W-padL-padR, innerH=H-padT-padB;
-
-  const pool=[];
-  series.forEach(s=>s.vals.forEach(v=>{if(v!==null&&v>0)pool.push(v);}));
-  if(selfVals) selfVals.forEach(v=>{if(v!==null&&v>0)pool.push(v);});
-  if(!pool.length) return '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:18px;">無有效價格</div>';
-
-  const dataLo=Math.min(...pool), dataHi=Math.max(...pool);
-  let lo,hi;
-  if(typeof opt.lo==='number' && typeof opt.hi==='number'){
-    // 指定範圍；但偵測到資料超出就自動放寬到涵蓋（B：自動放寬）
-    const tk=opt.tick||((opt.hi-opt.lo)/3);
-    lo=Math.min(opt.lo, Math.floor(dataLo/tk)*tk);
-    hi=Math.max(opt.hi, Math.ceil(dataHi/tk)*tk);
-  }else{
-    // 全自動範圍，對齊刻度間隔（A：高價位自動範圍、刻度 500）
-    lo=dataLo; hi=dataHi;
-    if(lo===hi){ lo=lo*0.9; hi=hi*1.1; }
-    else { const pad=(hi-lo)*0.15; lo=lo-pad; hi=hi+pad; }
-    const tk=opt.tick;
-    if(tk){ lo=Math.floor(lo/tk)*tk; hi=Math.ceil(hi/tk)*tk; }
-    lo=Math.max(0,lo);
-  }
-
-  const n=dates.length;
-  const xAt=i=> n===1?padL+innerW/2 : padL+(innerW*i/(n-1));
-  const yAt=v=> padT+innerH*(1-(v-lo)/(hi-lo));
-
-  function pathOf(vals){
-    let segs=[],cur=[];
-    vals.forEach((v,i)=>{ if(v===null||v<=0){if(cur.length){segs.push(cur);cur=[];}} else cur.push([xAt(i),yAt(v)]); });
-    if(cur.length) segs.push(cur);
-    return segs.map(seg=>'M'+seg.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L')).join(' ');
-  }
-  function dotsOf(vals,color){
-    return vals.map((v,i)=>(v===null||v<=0)?'':`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="2.3" fill="${color}"/>`).join('');
-  }
-
-  // y 軸刻度：有 tick 用固定間隔，否則 3 等分
-  let yTicks='';
-  if(opt.tick){
-    for(let val=lo; val<=hi+0.5; val+=opt.tick){
-      const y=yAt(val);
-      yTicks+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="0.5" opacity="0.5"/><text x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--tx3)" font-family="DM Mono,monospace">${Math.round(val).toLocaleString()}</text>`;
-    }
-  }else{
-    for(let k=0;k<=2;k++){
-      const val=lo+(hi-lo)*k/2, y=yAt(val);
-      yTicks+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="0.5" opacity="0.5"/><text x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--tx3)" font-family="DM Mono,monospace">${Math.round(val).toLocaleString()}</text>`;
-    }
-  }
-  // x 軸標籤
-  let xLabels='';
-  const step=Math.max(1,Math.ceil(n/5));
-  for(let i=0;i<n;i+=step){
-    xLabels+=`<text x="${xAt(i).toFixed(1)}" y="${H-(dense?20:8)}" text-anchor="middle" font-size="9" fill="var(--tx3)" font-family="DM Mono,monospace">${dates[i].slice(5)}</text>`;
-  }
-
-  // 互動模式：每條線加 class + data-key，圖例可點擊凸顯
-  const uid='hc'+Math.random().toString(36).slice(2,8);
-  let lines='', dots='', legend='';
-  series.forEach((s,idx)=>{
-    const col=HIST_PALETTE[idx%HIST_PALETTE.length];
-    const key=idx;
-    const cls=interactive?`class="${uid}-ln" data-k="${key}"`:'';
-    lines+=`<path d="${pathOf(s.vals)}" ${cls} fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
-    dots+=`<g ${interactive?`class="${uid}-dt" data-k="${key}"`:''}>`+dotsOf(s.vals,col)+`</g>`;
-    if(interactive){
-      const lbl=histAbbrMap()[s.name]||s.name;
-      legend+=`<span onclick="histHi('${uid}',${key},this)" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:3px 4px;border-radius:4px;white-space:nowrap;" data-k="${key}"><span style="width:12px;height:2px;background:${col};display:inline-block;flex-shrink:0;"></span>${lbl}</span>`;
-    }else{
-      legend+=`<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:2px;background:${col};display:inline-block;"></span>${s.name}</span>`;
-    }
-  });
-  // 本中心對比（虛線）
-  let selfLine='';
-  if(selfVals){
-    selfLine=`<path d="${pathOf(selfVals)}" fill="none" stroke="${SELF_COLOR}" stroke-width="1.6" stroke-dasharray="4,3" opacity="0.95"/>`+dotsOf(selfVals,SELF_COLOR);
-    legend+=`<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:0;border-top:2px dashed ${SELF_COLOR};display:inline-block;"></span>本中心</span>`;
-  }
-
-  const tapHint=interactive?`<div style="font-size:9px;color:var(--tx3);text-align:center;margin-top:6px;">點下方飯店名可凸顯該條線・再點一次取消</div>`:'';
-  const legendStyle=interactive
-    ? 'display:grid;grid-template-columns:repeat(4,1fr);gap:4px 6px;margin-top:8px;font-size:9px;color:var(--tx3);'
-    : 'display:flex;flex-wrap:wrap;gap:8px 12px;justify-content:center;margin-top:8px;font-size:10px;color:var(--tx3);';
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">
-    ${yTicks}${lines}${selfLine}${dots}${xLabels}
-  </svg>
-  <div style="${legendStyle}">${legend}</div>${tapHint}`;
-}
-
-// 互動凸顯：點圖例 → 該線變粗、其餘淡化；再點同一個或點別的切換
-function histHi(uid, key, el){
-  const lns=document.querySelectorAll('.'+uid+'-ln');
-  const dts=document.querySelectorAll('.'+uid+'-dt');
-  const legendBox=el.parentElement;
-  const cur=legendBox.getAttribute('data-hi');
-  const turnOff=(String(cur)===String(key)); // 點同一個→取消凸顯
-  legendBox.setAttribute('data-hi', turnOff?'':key);
-  lns.forEach(p=>{
-    const k=p.getAttribute('data-k');
-    if(turnOff){ p.style.opacity='1'; p.setAttribute('stroke-width','2'); }
-    else if(String(k)===String(key)){ p.style.opacity='1'; p.setAttribute('stroke-width','3.4'); }
-    else { p.style.opacity='0.15'; p.setAttribute('stroke-width','2'); }
-  });
-  dts.forEach(g=>{
-    const k=g.getAttribute('data-k');
-    g.style.opacity=(turnOff||String(k)===String(key))?'1':'0.15';
-  });
-  // 圖例文字同步反白
-  legendBox.querySelectorAll('span[data-k]').forEach(s=>{
-    const k=s.getAttribute('data-k');
-    s.style.background=(!turnOff && String(k)===String(key))?'var(--sf3)':'transparent';
-    s.style.color=(!turnOff && String(k)===String(key))?'var(--tx)':'';
-  });
-}
 function clearCompData(){
   if(!confirm('確定清除目前所有競品房價資料嗎？\n（清除後可重新上傳 CSV）')) return;
   // 全部歸零
@@ -5363,7 +4566,7 @@ function buildBarChart(){
     return;
   }
   const max=priced.length?Math.max(...priced.map(h=>h.price)):1;
-  const colors=compColorMap();
+  const colors={self:'#FFE234',luxury:'var(--blue)',general:'#A78BFA',suite:'var(--pur)',hostel:'var(--green)'};
   let html='';
   list.forEach(h=>{
     const label=h.shortLabel||h.name;
@@ -5471,25 +4674,10 @@ function calcStats(){
 
 // ── 類別篩選 ──────────────────────────────────────────────────
 let curCat='all';
-// 依單位重建分類頁籤（含各類即時家數）
-function buildCatTabs(){
-  const box=document.getElementById('catTabs');
-  if(!box) return;
-  const tabs=compCatTabs();
-  // 若目前選的分類在新單位不存在，回到 all
-  if(!tabs.some(t=>t.cat===curCat)) curCat='all';
-  box.innerHTML=tabs.map(t=>{
-    const n = t.cat==='all'
-      ? COMPETITORS.length
-      : COMPETITORS.filter(c=>c.cat===t.cat).length;
-    const on = (t.cat===curCat) ? ' on' : '';
-    return `<button class="cat-tab${on}" onclick="filterCat('${t.cat}',this)">${t.label}（${n}）</button>`;
-  }).join('');
-}
 function filterCat(cat,btn){
   curCat=cat;
   document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('on'));
-  if(btn) btn.classList.add('on');
+  btn.classList.add('on');
   buildLists();
   buildBarChart();
 }
@@ -5775,9 +4963,6 @@ ${triCtx}
 ${newsCtx}
 `:`
 ${u.aiMarket}
-
-【競爭對手最低房價】（${compDate||'近期'}）
-${compInfo}
 `}
 請針對以上資訊，提供4點具體建議：
 ①針對本月客群結構（團體／散客比重、每房均人數與人次同比變化）的客群經營策略
@@ -5934,10 +5119,8 @@ function switchPage(id){
   if(pg) pg.classList.add('active');
   if(nav) nav.classList.add('on');
   if(id==='comp'){ 
-    buildCatTabs();
     loadCompData();
     try{ buildLists(); buildBarChart(); calcStats(); loadUpdateTime(); }catch(e){}
-    try{ loadHistData(); }catch(e){}
     // 從雲端拉最新房價（取代舊的 prices.json 爬蟲路徑），拉到後重新套用重畫
     if(getCloudUrl()){
       pullFromCloud().then(synced=>{
@@ -6070,8 +5253,8 @@ function saveOccData(){
     uSet('occ_savedAt', ts);
     showDataDate(ts);
   }catch(e){}
-  // 凡是已設定雲端網址的單位（金門／劍潭…）都推雲端；未設定者純本機儲存
-  if(getCloudUrl()) pushToCloud();
+  // 僅金門推雲端（劍潭等其他單位純本機儲存，未設定各自雲端前不推送）
+  if(getUnit()==='kinmen' && getCloudUrl()) pushToCloud();
 }
 
 function showDataDate(ts){
@@ -6093,14 +5276,10 @@ function showDataDate(ts){
 function refreshDisplay(){
   const btn=document.querySelector('#dataDateBar button');
   if(btn){ btn.textContent='🔄 更新中...'; btn.disabled=true; }
-  const done=()=>{ if(btn){ btn.textContent='🔄 重新整理'; btn.disabled=false; } };
-  // 有雲端網址的單位（金門／劍潭）：真的去雲端抓最新資料覆蓋本機再重繪；
-  // 無雲端的單位：退回原本的本機重繪
-  if(getCloudUrl() && typeof forceSyncFromCloud==='function'){
-    forceSyncFromCloud().then(()=>{ done(); }).catch(()=>{ try{ init(); }catch(e){} done(); });
-  }else{
-    setTimeout(()=>{ try{ init(); }catch(e){} done(); },100);
-  }
+  setTimeout(()=>{
+    init();
+    if(btn){ btn.textContent='🔄 重新整理'; btn.disabled=false; }
+  },100);
 }
 
 function loadSavedOccData(){
@@ -6157,17 +5336,15 @@ function loadSavedOccData(){
 
 // ── 雲端同步（Google Apps Script）──────────────────────────
 function getCloudUrl(){
-  // 各單位內建預設雲端網址（獨立後端、依 unit 分流）；亦可被各自前綴的自訂網址覆蓋
+  // 金門：沿用既有預設雲端網址（或曾自訂的前綴值）；其他單位：用各自前綴的自訂網址
   const KINMEN_DEFAULT='https://script.google.com/macros/s/AKfycbwinsU-QJg_9zWlQp0ByTINq-bEBXH-mFI6Rswh0xa-owagFAa5iY5Cc_qiYjrq3D4o/exec';
-  const JIANTAN_DEFAULT='https://script.google.com/macros/s/AKfycbw0fpyGev8s5Z6m6rJ_5aufKYfm-kUUoqTcPf2h7mJUCdnYUVZaVHy51nQO6l1Oq95M/exec';
-  const DEFAULTS={kinmen:KINMEN_DEFAULT, jiantan:JIANTAN_DEFAULT};
   try{
-    const custom=uGet('cloudUrl');           // 單位前綴的自訂網址（優先）
+    const custom=uGet('cloudUrl');           // 單位前綴的自訂網址
     if(custom) return custom;
     // 相容舊版：金門曾存過無前綴的 cloudUrl
     if(getUnit()==='kinmen'){ return localStorage.getItem('cloudUrl')||KINMEN_DEFAULT; }
-    return DEFAULTS[getUnit()]||'';            // 有內建預設的單位用預設，其餘不同步
-  }catch(e){ return DEFAULTS[getUnit()]||''; }
+    return '';                                 // 其他單位未設定 → 不同步
+  }catch(e){ return getUnit()==='kinmen'?KINMEN_DEFAULT:''; }
 }
 
 function showSyncStatus(msg,ok){
@@ -6188,7 +5365,6 @@ function buildSyncPayload(){
     occ_daily:uGet('occ_daily')||'',
     occ_savedAt:uGet('occ_savedAt')||'',
     comp_prices:uGet('comp_prices')||'',
-    comp_names:JSON.stringify(COMPETITORS.map(c=>c.shortLabel||c.name)),
     comp_savedAt:uGet('comp_savedAt')||'',
     pushedAt:Date.now()
   });
@@ -6262,47 +5438,6 @@ async function pullFromCloud(){
   }catch(e){ return false; }
 }
 
-// 強制同步：無視本機時間戳，直接以雲端為真相源覆蓋本機。
-// 用於「別台裝置顯示舊資料、普通載入被時間戳擋住」的情況。
-async function forceSyncFromCloud(){
-  const url=getCloudUrl();
-  if(!url){ showSyncStatus('未設定雲端網址',false); return false; }
-  showSyncStatus('更新中...',true);
-  try{
-    const r=await fetch(url+'?unit='+encodeURIComponent(getUnit())+'&t='+Date.now());
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const d=await r.json();
-    if(!d || (!d.occ_cur && !d.comp_prices)){
-      showSyncStatus('雲端尚無資料',false);
-      return false;
-    }
-    const builtin=unitCfg().preferBuiltin;
-
-    // 競品房價：直接覆蓋
-    if(d.comp_prices){
-      uSet('comp_prices', d.comp_prices);
-      if(d.comp_savedAt) uSet('comp_savedAt', d.comp_savedAt);
-    }
-    // 營運資料：無視時間戳，直接以雲端覆蓋本機
-    const occKeys=builtin
-      ? ['occ_daily']
-      : ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt'];
-    occKeys.forEach(k=>{ if(d[k]) uSet(k,d[k]); });
-    if(d.pushedAt) uSet('occ_pushedAt',String(d.pushedAt));
-
-    // 重新套用並重繪
-    loadCompData();
-    loadSavedOccData();
-    init();
-    try{ if(typeof loadCompData==='function'){ buildLists&&buildLists(); buildBarChart&&buildBarChart(); calcStats&&calcStats(); loadUpdateTime&&loadUpdateTime(); } }catch(e){}
-    showSyncStatus('✓ 已更新為雲端最新資料',true);
-    return true;
-  }catch(e){
-    showSyncStatus('更新失敗：'+e.message,false);
-    return false;
-  }
-}
-
 // 一次性遷移：把舊版「無前綴」的金門資料搬到 kinmen_ 前綴（只搬一次，不覆蓋既有）
 function migrateLegacyKeys(){
   try{
@@ -6330,16 +5465,6 @@ function migrateLegacyKeys(){
     ['occ_cur','occ_prev','occ_curY','occ_prevY','occ_idx','occ_daily','occ_savedAt','occ_pushedAt']
       .forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
     localStorage.setItem('_migratedV9','1');
-  }catch(e){}
-  // 劍潭接雲端同步：清掉測試階段(preferBuiltin)留下的本機營運殘留與時間戳，
-  // 強制所有裝置切換後第一次從劍潭雲端重新拉正確資料（獨立旗標，只跑一次）
-  try{
-    if(!localStorage.getItem('_jiantanCloudV1')){
-      ['jiantan_occ_cur','jiantan_occ_prev','jiantan_occ_curY','jiantan_occ_prevY',
-       'jiantan_occ_idx','jiantan_occ_daily','jiantan_occ_savedAt','jiantan_occ_pushedAt']
-        .forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
-      localStorage.setItem('_jiantanCloudV1','1');
-    }
   }catch(e){}
 }
 
