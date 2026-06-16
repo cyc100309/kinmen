@@ -1457,7 +1457,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
 <div class="hdr">
   <div>
     <div class="logo">競爭房價監控</div>
-    <div class="sub">金門旅宿市場・今日定價分析</div>
+    <div class="sub" id="compMarketSub">金門旅宿市場・今日定價分析</div>
   </div>
   <div style="text-align:right;">
     <div class="date-badge" id="todayDate"></div>
@@ -2839,6 +2839,11 @@ function applyUnitBranding(unit){
   try{ applyCalSrcBtns(); }catch(e){}
   // 競爭房價：依單位切換對手清單與分類頁籤（金門 14 家／劍潭 11 家兩群組）
   try{ applyUnitCompetitors(); buildCatTabs(); }catch(e){}
+  // 競爭房價頁副標：依單位市場名稱（無 compMarket 則用 city 備援）
+  try{
+    const sub=document.getElementById('compMarketSub');
+    if(sub){ const mk=u.compMarket||((u.city||'')+'旅宿市場'); sub.textContent=mk+'・今日定價分析'; }
+  }catch(e){}
 }
 // 交通概況分頁：依單位顯示/隱藏與改名（金門專屬；其他單位可自訂主題或關閉）
 function applyTransportNav(u){
@@ -3015,6 +3020,7 @@ function applyUnitMemory(){
 const UNITS={
   kinmen:{
     logo:'金門戰地文旅', name:'救國團金門青年活動中心', city:'金門縣',
+    compMarket:'金門旅宿市場',  // 競爭房價頁副標：市場名稱（新單位照填）
     ordersCsv:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSyKGXsmNov21aAHKlykG38Pq5UmtkzMIgzFDzgTi3k0GiZhgF8ZBioSiIzx_X9AlVhXsezQL4nm1F6/pub?gid=1880038165&single=true&output=csv',
     ordersApi:'https://script.google.com/macros/s/AKfycbxjff5GwoPAGbQjn9U05KLPSowKP1lePEj3Yq1_431KE0-4RScexlL8nwhuRMB_Nm26nA/exec',
     sheetsUrl:'https://docs.google.com/spreadsheets/d/e/2PACX-1vTaluvqiqTvp4VWqYqVDBbCt4n_T7cNGHSjFXqvblt9YiK0Xn7o7LHYgGbyuFlW8xs2SRlSjlHGl8Em/pub?output=csv',
@@ -3049,6 +3055,7 @@ const UNITS={
   },
   jiantan:{
     logo:'劍潭花園會館', name:'救國團劍潭青年活動中心', city:'臺北市',
+    compMarket:'台北旅宿市場',  // 競爭房價頁副標：市場名稱（新單位照填）
     ordersApi:'https://script.google.com/macros/s/AKfycbxUG9QWp61apLgKLb1muFJkfu4_B7r0actEkRYASntTWFZobGlOMGHUhPaQLkYDcBVV0g/exec',  // 劍潭 NABE 訂單 API（doGet）
     sheetsUrl:'',      // 測試階段：尚未建立劍潭自己的營運試算表
     seedKey:null,      // 劍潭暫無種子資料
