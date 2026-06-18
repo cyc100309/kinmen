@@ -37,7 +37,8 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   background:var(--ad);padding:3px 9px;border-radius:20px;border:1px solid var(--bd2);}
 .av{width:32px;height:32px;border-radius:50%;background:var(--ad);
   border:1.5px solid var(--ac);display:flex;align-items:center;justify-content:center;
-  font-size:12px;color:var(--ac);font-weight:700;}
+  font-size:14px;color:var(--ac);font-weight:700;cursor:pointer;transition:all .15s;}
+.av:hover{background:var(--ac);color:var(--bg);transform:scale(1.08);}
 
 .mrow-wrap{padding:12px 0 0;display:flex;align-items:center;gap:0;}
 .mrow-arrow{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;
@@ -784,7 +785,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
   <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-top:2px;">
     <div class="yr-b" id="yrB">2026年</div>
     <button onclick="openCfg()" style="background:transparent;border:none;cursor:pointer;font-size:18px;opacity:.6;padding:4px;" title="中心設定">⚙️</button>
-    <div class="av">🎖️</div>
+    <div class="av" onclick="backToCover()" title="回首頁（單位選擇）" role="button">🏠</div>
   </div>
 </div>
 
@@ -6344,10 +6345,11 @@ function getCloudUrl(){
   const JIANTAN_DEFAULT='https://script.google.com/macros/s/AKfycbw0fpyGev8s5Z6m6rJ_5aufKYfm-kUUoqTcPf2h7mJUCdnYUVZaVHy51nQO6l1Oq95M/exec';
   const DEFAULTS={kinmen:KINMEN_DEFAULT, jiantan:JIANTAN_DEFAULT};
   try{
-    const custom=uGet('cloudUrl');           // 單位前綴的自訂網址（優先）
+    // 金門：一律使用內建正確網址，忽略任何早期殘留的自訂／無前綴 cloudUrl，
+    // 避免某些裝置讀到舊後端（電腦顯示「雲端尚無資料」、手機正常的根因）。
+    if(getUnit()==='kinmen') return KINMEN_DEFAULT;
+    const custom=uGet('cloudUrl');            // 其他單位：單位前綴的自訂網址優先
     if(custom) return custom;
-    // 相容舊版：金門曾存過無前綴的 cloudUrl
-    if(getUnit()==='kinmen'){ return localStorage.getItem('cloudUrl')||KINMEN_DEFAULT; }
     return DEFAULTS[getUnit()]||'';            // 有內建預設的單位用預設，其餘不同步
   }catch(e){ return DEFAULTS[getUnit()]||''; }
 }
@@ -6522,6 +6524,19 @@ function migrateLegacyKeys(){
        'jiantan_occ_idx','jiantan_occ_daily','jiantan_occ_savedAt','jiantan_occ_pushedAt']
         .forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
       localStorage.setItem('_jiantanCloudV1','1');
+    }
+  }catch(e){}
+  // 一次性清掉金門早期殘留的雲端網址（無前綴 cloudUrl 與 kinmen_cloudUrl）。
+  // 這些殘留會讓部分裝置讀到舊後端（電腦「雲端尚無資料」、手機正常的根因）；
+  // 現在金門一律用內建正確網址，故將殘留清除，每台裝置開一次即修正。
+  try{
+    if(!localStorage.getItem('_kinmenUrlFixV1')){
+      const KMURL='https://script.google.com/macros/s/AKfycbwinsU-QJg_9zWlQp0ByTINq-bEBXH-mFI6Rswh0xa-owagFAa5iY5Cc_qiYjrq3D4o/exec';
+      const a=localStorage.getItem('cloudUrl');
+      const b=localStorage.getItem('kinmen_cloudUrl');
+      if(a && a!==KMURL){ try{ localStorage.removeItem('cloudUrl'); }catch(e){} }
+      if(b && b!==KMURL){ try{ localStorage.removeItem('kinmen_cloudUrl'); }catch(e){} }
+      localStorage.setItem('_kinmenUrlFixV1','1');
     }
   }catch(e){}
 }
