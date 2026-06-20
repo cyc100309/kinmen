@@ -1393,20 +1393,20 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;
     <svg id="ordLeadChart" viewBox="0 0 360 127" style="width:100%;height:auto;margin-bottom:2px;"></svg>
     <div id="ordLeadLegend" style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;line-height:1.6;"></div>
 
+    <!-- 每日新增/取消（跟隨上方月份篩選）— 移到月份趨勢上方 -->
+    <div class="lbl" style="margin-bottom:4px;padding-left:0;padding-right:0;"><span>🗓️ 每日新增／取消</span><span class="lbl-r" id="ordDailyTitle" style="font-size:9px;color:var(--tx3);">—</span></div>
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">依下訂日統計所選月份每一天的新增與取消訂單數。選季別／累計時則改以月為單位。</div>
+    <svg id="ordDailyChart" viewBox="0 0 360 133" style="width:100%;height:auto;margin-bottom:2px;"></svg>
+    <div id="ordDailyLegend" style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;line-height:1.6;">
+      <span style="color:var(--green);">▬</span> 新增　<span style="color:var(--red);">▬</span> 取消
+    </div>
+
     <!-- 月份趨勢 -->
     <div class="lbl" style="margin-bottom:4px;padding-left:0;padding-right:0;"><span>📈 月份訂單趨勢</span></div>
     <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">依下訂月份統計每月新增訂單數與取消數。</div>
     <svg id="ordTrendChart" viewBox="0 0 360 133" style="width:100%;height:auto;margin-bottom:2px;"></svg>
     <div style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;">
       <span style="color:var(--ac2);">■</span> 訂單數（新增）　<span style="color:var(--red);">■</span> 取消數
-    </div>
-
-    <!-- 每日新增/取消（跟隨上方月份篩選） -->
-    <div class="lbl" style="margin-bottom:4px;padding-left:0;padding-right:0;"><span>🗓️ 每日新增／取消</span><span class="lbl-r" id="ordDailyTitle" style="font-size:9px;color:var(--tx3);">—</span></div>
-    <div style="font-size:9px;color:var(--tx3);margin-bottom:12px;">依下訂日統計所選月份每一天的新增與取消訂單數。選季別／累計時則改以月為單位。</div>
-    <svg id="ordDailyChart" viewBox="0 0 360 133" style="width:100%;height:auto;margin-bottom:2px;"></svg>
-    <div id="ordDailyLegend" style="font-size:9px;color:var(--tx3);text-align:center;margin-bottom:22px;line-height:1.6;">
-      <span style="color:var(--green);">▬</span> 新增　<span style="color:var(--red);">▬</span> 取消
     </div>
 
     <!-- 週間 vs 週末 -->
@@ -3262,6 +3262,7 @@ const ORDERS_SEED=[{"系統":"Trip.com","狀態":"新訂房","間數":2.0,"晚�
 let ORDERS_RAW=[];        // 解析後全部訂單（劍潭=當期本月明細；金門=全量）
 let ORDERS_SUMMARY=[];    // 劍潭月度彙整（每月一列），跨月圖用此計算
 let ORDERS_HISTORY_CACHE={}; // 劍潭歷史單月明細快取：{ 'YYYY-MM': [ordMapRow...] }
+let ORDERS_DAILY=[];      // 劍潭每日彙整（一天一列），每日/週末圖用此
 let ordRange='m'+(new Date().getMonth()+1); // 期間篩選（預設當月）
 let ordChannelSort='rev'; // rev | count
 let ordYear=0;            // 0=全部年份；否則指定西元年（YoY 用）
@@ -3382,9 +3383,10 @@ async function loadOrders(force){
       if(isJT){
         // 劍潭：當期明細(current) + 月度彙整(summary) 兩個輕量來源
         const sep=apiUrl.includes('?')?'&':'?';
-        const [curRes,sumRes]=await Promise.all([
+        const [curRes,sumRes,dayRes]=await Promise.all([
           fetch(apiUrl+sep+'mode=current&t='+Date.now()),
-          fetch(apiUrl+sep+'mode=summary&t='+Date.now())
+          fetch(apiUrl+sep+'mode=summary&t='+Date.now()),
+          fetch(apiUrl+sep+'mode=daily&t='+Date.now())
         ]);
         if(!curRes.ok) throw new Error('HTTP '+curRes.status);
         const curData=await curRes.json();
@@ -3395,6 +3397,11 @@ async function loadOrders(force){
           const sumData=await sumRes.json();
           ORDERS_SUMMARY=(sumData.ok&&sumData.rows)?sumData.rows:[];
         }catch(e2){ ORDERS_SUMMARY=[]; }
+        // daily 彙整：每日/週末圖用
+        try{
+          const dayData=await dayRes.json();
+          ORDERS_DAILY=(dayData.ok&&dayData.rows)?dayData.rows:[];
+        }catch(e3){ ORDERS_DAILY=[]; }
         const sumN=ORDERS_SUMMARY.reduce((a,r)=>a+sumNum(r,'新增數')+sumNum(r,'取消數'),0);
         dateEl.textContent=`資料：${stamp()}　當期 ${ORDERS_RAW.length} 筆 + 彙整 ${ORDERS_SUMMARY.length} 月（共 ${sumN} 筆封存）`;
         renderOrders();
@@ -3812,13 +3819,31 @@ function renderOrdTrend(){
 }
 // 週間 vs 週末（跟隨上方篩選；基準＝訂房日/收信日的星期）
 function renderOrdWeekend(){
-  const all=ordFiltered(ordYear||0);
   let wd={nw:0,cx:0}, we={nw:0,cx:0};  // 週間 / 週末
-  all.forEach(o=>{ const d=o.recv; if(!d) return;
-    const dow=d.getDay(); const weekend=(dow===0||dow===6);
-    const t=weekend?we:wd;
-    if(o.cancel) t.cx++; else t.nw++;
-  });
+  if(ordSummaryMode()&&ORDERS_DAILY.length){
+    // 劍潭：讀每日彙整，依當前期間篩選（年/季/月）
+    const year=ordYear||(ordYears().length?ordYears()[0]:new Date().getFullYear());
+    ORDERS_DAILY.forEach(r=>{
+      const m=String(r['日期']||'').match(/(\d{4})-(\d{2})-(\d{2})/);
+      if(!m) return;
+      if(+m[1]!==year) return;
+      const mo=+m[2];
+      if(ordRange&&ordRange[0]==='m'&&mo!==parseInt(ordRange.slice(1))) return;
+      if(ordRange&&ordRange[0]==='q'){ const ms={1:[1,2,3],2:[4,5,6],3:[7,8,9],4:[10,11,12]}[parseInt(ordRange.slice(1))]||[]; if(!ms.includes(mo)) return; }
+      // 星期：彙整表已存(0=日..6=六)，缺則用日期算
+      let dow=r['星期']; dow=(dow===''||dow==null)?new Date(+m[1],+m[2]-1,+m[3]).getDay():parseInt(dow);
+      const weekend=(dow===0||dow===6);
+      const t=weekend?we:wd;
+      t.nw+=sumNum(r,'新增數'); t.cx+=sumNum(r,'取消數');
+    });
+  }else{
+    const all=ordFiltered(ordYear||0);
+    all.forEach(o=>{ const d=o.recv; if(!d) return;
+      const dow=d.getDay(); const weekend=(dow===0||dow===6);
+      const t=weekend?we:wd;
+      if(o.cancel) t.cx++; else t.nw++;
+    });
+  }
   const totNew=wd.nw+we.nw, totCx=wd.cx+we.cx;
   const pct=(v,t)=>t? (v/t*100).toFixed(0)+'%':'—';
   document.getElementById('ordWdNew').textContent=wd.nw;
@@ -3878,28 +3903,21 @@ function renderOrdDaily(){
     dailyMi=mi;
     const days=new Date(year,mi+1,0).getDate();
     for(let d=1;d<=days;d++){ labels.push(d); newArr.push(0); cancelArr.push(0); }
-    // 來源：劍潭模式下，當期(ORDERS_RAW)只有本月；歷史月改用 history 明細
-    let src=ORDERS_RAW;
-    if(ordSummaryMode()){
-      const ym=year+'-'+('0'+(mi+1)).slice(-2);
-      const now=new Date();
-      const isCurrentMonth=(year===now.getFullYear()&&mi===now.getMonth());
-      if(!isCurrentMonth){
-        // 歷史月：用快取；沒有就抓 history 後重繪
-        if(ORDERS_HISTORY_CACHE[ym]){
-          src=ORDERS_HISTORY_CACHE[ym];
-        }else{
-          titleEl.textContent=`${year} 年 ${mi+1} 月・載入歷史中…`;
-          svgEl.innerHTML='';
-          ordFetchHistoryMonth(ym).then(()=>{ renderOrdDaily(); });
-          return;
-        }
-      }
+    if(ordSummaryMode()&&ORDERS_DAILY.length){
+      // 劍潭：讀每日彙整表
+      ORDERS_DAILY.forEach(r=>{
+        const m=String(r['日期']||'').match(/(\d{4})-(\d{2})-(\d{2})/);
+        if(!m) return;
+        if(+m[1]!==year||(+m[2]-1)!==mi) return;
+        const idx=+m[3]-1;
+        if(idx>=0&&idx<days){ newArr[idx]=sumNum(r,'新增數'); cancelArr[idx]=sumNum(r,'取消數'); }
+      });
+    }else{
+      ORDERS_RAW.forEach(o=>{ const d=o.recv; if(!d||d.getFullYear()!==year||d.getMonth()!==mi) return;
+        const idx=d.getDate()-1;
+        if(o.cancel) cancelArr[idx]++; else newArr[idx]++;
+      });
     }
-    src.forEach(o=>{ const d=o.recv; if(!d||d.getFullYear()!==year||d.getMonth()!==mi) return;
-      const idx=d.getDate()-1;
-      if(o.cancel) cancelArr[idx]++; else newArr[idx]++;
-    });
     titleEl.textContent=`${year} 年 ${mi+1} 月・逐日`;
   }else{
     // 季別/今年累計：以月為單位（落在篩選範圍內的月份）
